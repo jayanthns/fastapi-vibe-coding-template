@@ -1,0 +1,81 @@
+services:
+  fastapi_vibe_coding:
+    container_name: fastapi_vibe_coding_container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    expose:
+      - 8000
+    # command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - DATABASE_HOST=${DATABASE_DOCKER_HOST:-fastapi_vibe_coding_db_svc}
+      - DATABASE_PORT=5432
+      - REDIS_HOST_AND_PORT=fastapi_vibe_coding_redis_svc:6379
+      - REDIS_HOST=fastapi_vibe_coding_redis_svc
+      - REDIS_PORT=6379
+    depends_on:
+      - fastapi_vibe_coding_db_svc
+      # - fastapi_vibe_coding_redis_svc
+    stdin_open: true
+    tty: true
+    networks:
+      - fastapi_vibe_coding_network
+
+  fastapi_vibe_coding_db_svc:
+    image: postgres:13
+    container_name: fastapi_vibe_coding_db_svc_container
+    volumes:
+      - fastapi_vibe_coding_postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_NAME=${DATABASE_NAME}
+      - POSTGRES_DB=${DATABASE_NAME}
+    networks:
+      - fastapi_vibe_coding_network
+
+  # fastapi_vibe_coding_redis_svc:
+  #   image: redis:7-alpine
+  #   container_name: fastapi_vibe_coding_redis_container
+  #   restart: always
+  #   command: >
+  #     redis-server --requirepass redis --appendonly yes --save 60 1
+  #   ports:
+  #     - "6379:6379"
+  #   expose:
+  #     - 6379
+  #   volumes:
+  #     # - /var/lib/docker-data/fastapi_vibe_coding_redis_data:/data  # Store Redis data persistently
+  #     - ./local_scripts/redis.conf:/usr/local/etc/redis/redis.conf
+  #     - ./local_scripts/redis-entrypoint.sh:/usr/local/bin/redis-entrypoint.sh # Mount entrypoint script
+  #   environment:
+  #     - REDIS_PASSWORD=redis
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "-a", "redis", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 3
+  #   networks:
+  #     - fastapi_vibe_coding_network
+
+
+volumes:
+  fastapi_vibe_coding_postgres_data:
+
+
+networks:
+  fastapi_vibe_coding_network:
+    name: fastapi_vibe_coding_network
+    driver: bridge

@@ -1,0 +1,28 @@
+# Runtime (production) dependencies
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.8.2
+pydantic-settings>=2.4.0
+SQLAlchemy>=2.0.32
+alembic>=1.13.2
+# Default DB driver is SQLite async
+aiosqlite>=0.20.0
+python-dotenv>=1.0.1
+
+# Optional: Postgres sync driver if ever needed
+# psycopg2-binary>=2.9.9
+# Optional: Postgres async driver (uncomment if you switch to asyncpg DSN)
+asyncpg>=0.29.0
+pytest>=8.3.2
+pytest-cov==4.1.0
+pytest-asyncio==1.2.0
+ruff==0.13.1
+black==24.3.0
+mypy==1.10.0
+isort==5.12.0
+flake8==6.1.0
+pytest-mock==3.11.1
+requests-mock==1.11.0
+requests==2.32.4
+types-requests==2.32.4.20250809
+pre-commit==3.4.0

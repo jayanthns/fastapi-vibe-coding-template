@@ -1,0 +1,8 @@
+# Dev/test tooling
+pytest>=8.3.2
+pytest-asyncio==1.2.0
+httpx>=0.27.2
+ruff>=0.6.3
+
+# Optional local server enhancements
+watchfiles>=0.13

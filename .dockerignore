@@ -1,0 +1,53 @@
+# Version control
+.git
+.gitignore
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.tox/
+.coverage
+coverage.xml
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Logs and temp files
+*.log
+tmp/
+logs/
+
+# Local databases and data
+app.db
+data/
+
+# Node/npm (if present)
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Docker artifacts
+Dockerfile*
+docker-compose*.yml
+docker-compose*.yaml
+
