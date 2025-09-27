@@ -311,13 +311,15 @@ This repo includes `/.vscode/tasks.json` with common tasks (run server, tests, D
 ## 17) Architecture overview
 
 See `ARCHITECTURE.md` for layering and patterns. High‑level:
+- Centralized URL configuration (`app/api/urls.py`) manages all API routing.
 - Routers (HTTP) → Services (business rules) → Repositories (data access) → DB models.
 - Schemas define request/response contracts and enforce output shapes.
 
 ## 18) API docs & versioning
 
-- The API is namespaced under `/api/v1`. Add new routers under `app/api/v1/`.
+- The API is namespaced under `/api/v1`. Add new routers under `app/api/v1/` and include them in `app/api/urls.py`.
 - Use response models to keep OpenAPI accurate. Docs available at `/docs` and `/openapi.json`.
+- URL configuration follows Django-style organization with centralized routing in `app/api/urls.py`.
 
 ## 19) VS Code mandatory extensions
 
@@ -476,7 +478,7 @@ from app.db.session import get_session
 from app.schemas.category import CategoryCreate, CategoryUpdate, CategoryRead
 from app.services import category as svc
 
-router = APIRouter(prefix="/categories", tags=["categories"])
+router = APIRouter()  # No prefix - handled by app/api/urls.py
 
 @router.post("/", response_model=CategoryRead, status_code=201)
 async def create(payload: CategoryCreate, session: AsyncSession = Depends(get_session)):
@@ -495,11 +497,16 @@ async def delete(id: int, session: AsyncSession = Depends(get_session)):
     await svc.delete_category(session, id)
 ```
 
-Then include the router in `app/main.py`:
+Then include the router in `app/api/urls.py`:
 
 ```python
-from app.api.v1 import categories as categories_router
-app.include_router(categories_router.router, prefix="/api/v1")
+from app.api.v1 import categories
+
+api_router.include_router(
+    categories.router,
+    prefix="/v1/categories",
+    tags=["categories"]
+)
 ```
 
 ### 6) Database migration

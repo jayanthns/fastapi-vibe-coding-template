@@ -7,6 +7,7 @@ This document explains how the project is structured and how a request flows thr
 ```txt
 app/
   api/
+    urls.py              # Centralized URL configuration (Django-style)
     v1/
       articles.py         # API routes (FastAPI routers)
   core/
@@ -22,7 +23,7 @@ app/
     article.py           # Pydantic v2 schemas
   services/
     article.py           # Business/domain logic
-  main.py               # FastAPI app, middleware, router registration
+  main.py               # FastAPI app, middleware, centralized URL routing
 alembic/
   env.py                 # Migration runtime config
   versions/              # Versioned migration scripts
@@ -33,14 +34,15 @@ alembic/
 ### `app/main.py`
 
 - Creates the FastAPI app and lifecycle (`lifespan`) hook.
-- Registers middleware (CORS) and includes API routers.
+- Registers middleware (CORS) and includes centralized API router.
 - Provides a simple `/healthz` endpoint.
 - On startup, opens a connection to surface DB issues early.
 
 Key points:
 
 - Uses `settings` to configure app title and debug.
-- Mounts the `v1` API under `/api/v1` (`articles` router lives there).
+- Mounts the centralized `api_router` under `/api` prefix.
+- All API routing is managed through `app/api/urls.py`.
 
 ### `app/core/config.py`
 
@@ -90,10 +92,19 @@ Why: Keeps SQL queries and persistence logic out of business logic and APIs.
 
 Why: Keeps API layer thin and enables reuse and testing of domain logic.
 
+### `app/api/urls.py`
+
+- Centralized URL configuration following Django's `urls.py` pattern.
+- Manages all API routes and their prefixes in one place.
+- Includes versioned routers (v1, v2, etc.) with appropriate prefixes and tags.
+
+Why: Single source of truth for API routing, easy to maintain and extend.
+
 ### `app/api/v1/*`
 
 - FastAPI routers that define HTTP endpoints and wire dependencies.
 - Validates input using `schemas`, calls `services`, returns `schemas`.
+- Individual routers without prefixes (handled by main `urls.py`).
 
 Why: Clean separation between HTTP transport concerns and domain logic.
 
@@ -120,7 +131,7 @@ Why: Version control for database schema, safe upgrades/downgrades.
 - Schemas: add `app/schemas/comment.py` with `CommentCreate`, `CommentUpdate`, `Comment`.
 - Repository: add `app/repositories/comment.py` with CRUD methods.
 - Service: add `app/services/comment.py` orchestrating repository operations.
-- API: add `app/api/v1/comments.py` with routes; include router in `app/main.py` under `/api/v1`.
+- API: add `app/api/v1/comments.py` with routes; include router in `app/api/urls.py` under `/v1/comments`.
 - Migration: run `alembic revision --autogenerate -m "add comment"` then `alembic upgrade head`.
 - Tests: create tests under `app/tests/` for repository/service/router as needed.
 
@@ -140,7 +151,8 @@ Why: Version control for database schema, safe upgrades/downgrades.
 
 ## Where to start reading
 
-- `app/main.py` to see app bootstrapping and routers.
-- `app/api/v1/articles.py` to see routing and request handling.
+- `app/main.py` to see app bootstrapping and centralized URL routing.
+- `app/api/urls.py` to see how API routes are organized and configured.
+- `app/api/v1/articles.py` to see individual router implementation and request handling.
 - `app/services/article.py` and `app/repositories/article.py` for domain + data layers.
 - `app/models/article.py` and `app/schemas/article.py` for persisted and transport shapes.

@@ -4,7 +4,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import articles as articles_router
+from app.api.urls import api_router
 from app.core.config import settings
 from app.db.session import engine
 
@@ -33,4 +33,4 @@ async def health_check():
     return {"status": "ok"}
 
 
-app.include_router(articles_router.router, prefix="/api/v1")
+app.include_router(api_router, prefix="/api")

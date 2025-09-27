@@ -4,7 +4,7 @@ from app.db.session import get_db
 from app.schemas.article import Article, ArticleCreate, ArticleUpdate
 from app.services.article import article_service
 
-router = APIRouter(prefix="/articles", tags=["articles"])
+router = APIRouter()
 
 
 @router.post("/", response_model=Article, status_code=status.HTTP_201_CREATED)
