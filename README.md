@@ -59,12 +59,12 @@ python -m pip install -U pip
 
 ## 2) Environment variables (.env)
 
-Create a `.env` in the project root. A starter file is provided as `.env.copy`.
+Create a `.env` in the project root. A starter file is provided as `.env_copy`.
 
 Quick start:
 
 ```bash
-cp .env.copy .env
+cp .env_copy .env
 # then edit .env as needed
 ```
 
@@ -254,7 +254,7 @@ docker compose logs -f
 Common issues:
 - If you can’t reach the app, ensure Uvicorn binds to `0.0.0.0` (already set in Dockerfile).
 - Port in use: another process uses 8000; stop it or change host port mapping in `docker-compose.yaml`.
-- Env: ensure `.env` exists; see `.env.copy` for a template.
+- Env: ensure `.env` exists; see `.env_copy` for a template.
 
 ## 11) Debug/start scripts
 
@@ -304,7 +304,7 @@ This repo includes `/.vscode/tasks.json` with common tasks (run server, tests, D
 
 ## 16) Security notes
 
-- Do not commit secrets. Use `.env.copy` as a template and keep your `.env` local.
+- Do not commit secrets. Use `.env_copy` as a template and keep your `.env` local.
 - Rotate credentials regularly; prefer per‑developer credentials for local DBs/services.
 - Restrict CORS in non‑dev envs; don’t leave `*` in production.
 
