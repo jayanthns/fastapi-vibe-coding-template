@@ -28,7 +28,7 @@ update-package: update-deps install-deps
 
 uv-venv-init:
 	python3 -m pip install uv
-	uv venv
+	uv venv venv
 	@$(VENV_ACTIVATE) && python -m pip install --upgrade uv pip-tools pip wheel
 
 uv-update-deps:
