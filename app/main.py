@@ -7,11 +7,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.urls import api_router
 from app.core.config import settings
 from app.db.session import engine
+from app.middleware.logging import setup_logging
 from app.middleware.trace import TraceIDMiddleware
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    # Setup logging configuration
+    setup_logging()
+
     # Ensure engine is created during startup for early DB feedback
     async with engine.begin() as conn:  # noqa: F841
         pass
@@ -34,7 +38,10 @@ app.add_middleware(
 
 @app.get("/healthz")
 async def health_check(request: Request):
-    from app.middleware.trace import get_trace_id
+    from app.middleware.trace import get_request_logger, get_trace_id
+
+    logger = get_request_logger(request)
+    logger.info("Health check requested")
 
     return {
         "status": "ok",

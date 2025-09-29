@@ -9,6 +9,8 @@ from uuid import uuid4
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
+from app.middleware.logging import RequestLogger
+
 
 class TraceIDMiddleware(BaseHTTPMiddleware):
     """
@@ -29,21 +31,56 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
         # Store trace_id in request state (similar to Django's request.META)
         request.state.trace_id = trace_id
 
+        # Create and attach request-scoped logger
+        request_logger = RequestLogger(trace_id, "app.request")
+        request.state.logger = request_logger
+
         # Add request start time for performance tracking
         request.state.start_time = time.time()
 
-        # Process the request
-        response = await call_next(request)
+        # Log request start
+        request_logger.info(
+            f"Request started: {request.method} {request.url.path}",
+            extra={"method": request.method, "path": request.url.path},
+        )
 
-        # Add trace_id to response headers
-        response.headers[self.trace_id_header] = trace_id
+        try:
+            # Process the request
+            response = await call_next(request)
 
-        # Add request processing time header
-        if hasattr(request.state, "start_time"):
-            processing_time = time.time() - request.state.start_time
-            response.headers["X-Response-Time"] = f"{processing_time:.4f}s"
+            # Add trace_id to response headers
+            response.headers[self.trace_id_header] = trace_id
 
-        return response
+            # Add request processing time header
+            if hasattr(request.state, "start_time"):
+                processing_time = time.time() - request.state.start_time
+                response.headers["X-Response-Time"] = f"{processing_time:.4f}s"
+
+            # Log request completion
+            request_logger.info(
+                f"Request completed: {request.method} {request.url.path} - "
+                f"Status: {response.status_code} - Time: {processing_time:.4f}s",
+                extra={
+                    "method": request.method,
+                    "path": request.url.path,
+                    "status_code": response.status_code,
+                    "processing_time": processing_time,
+                },
+            )
+
+            return response
+
+        except Exception as e:
+            # Log request error
+            request_logger.error(
+                f"Request failed: {request.method} {request.url.path} - Error: {str(e)}",
+                extra={
+                    "method": request.method,
+                    "path": request.url.path,
+                    "error": str(e),
+                },
+            )
+            raise
 
 
 def get_trace_id(request: Request) -> str:
@@ -75,3 +112,18 @@ def get_request_processing_time(request: Request) -> float:
     if hasattr(request.state, "start_time"):
         return time.time() - request.state.start_time
     return 0.0
+
+
+def get_request_logger(request: Request) -> RequestLogger:
+    """
+    Get the request-scoped logger with trace_id.
+
+    Usage:
+        from app.middleware.trace import get_request_logger
+
+        @router.get("/")
+        async def endpoint(request: Request):
+            logger = get_request_logger(request)
+            logger.info("Processing request")
+    """
+    return getattr(request.state, "logger", RequestLogger(get_trace_id(request)))
