@@ -68,6 +68,17 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
                 },
             )
 
+            # Log to access log
+            from app.middleware.file_logging import log_request_access
+
+            log_request_access(
+                trace_id,
+                request.method,
+                request.url.path,
+                response.status_code,
+                processing_time,
+            )
+
             return response
 
         except Exception as e:
@@ -80,6 +91,16 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
                     "error": str(e),
                 },
             )
+
+            # Log to error log
+            from app.middleware.file_logging import log_error
+
+            log_error(
+                trace_id,
+                f"Request failed: {request.method} {request.url.path} - Error: {str(e)}",
+                e,
+            )
+
             raise
 
 

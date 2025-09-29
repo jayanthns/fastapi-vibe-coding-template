@@ -465,10 +465,48 @@ All API responses include the trace_id in the response body:
 Logging is automatically configured during application startup. The system uses:
 
 - **Console output** with structured formatting
+- **File output** with daily rotation and different log types
 - **INFO level** by default (configurable)
 - **Custom formatter** that includes trace_id in all messages
 - **Request lifecycle logging** (automatic start/completion/error logging)
 - **SQLAlchemy logging** (only enabled in development environment)
+
+#### File Logging
+
+The system automatically creates log files in `tmp/logs/` with a **simplified 2-file structure**:
+
+- **`app-YYYY-MM-DD.log`**: All application logs (requests, business logic, errors, access)
+- **`sqlalchemy-YYYY-MM-DD.log`**: Database query logs (development only)
+
+**Why Only 2 Files?**
+- **Less confusion**: Everything in one place with trace_id for correlation
+- **Easier monitoring**: Only 2 files to watch instead of 4
+- **Better context**: Related logs stay together (request + error + business logic)
+- **Simpler maintenance**: Fewer files to manage and rotate
+
+**Log File Features:**
+- **Daily rotation**: New log file each day
+- **Size-based rotation**: 10MB max per file, keeps 5 backup files
+- **UTF-8 encoding**: Proper character support
+- **Structured format**: Consistent trace_id and timestamp format
+- **Clear prefixes**: "ACCESS:", "ERROR:" prefixes for easy filtering
+
+**Log File Location:**
+```
+tmp/
+├── .gitkeep          # Git-tracked file
+└── logs/             # Git-ignored directory
+    ├── app-2024-09-29.log        # All application logs
+    └── sqlalchemy-2024-09-29.log # Database queries (dev only)
+```
+
+**Example App Log Content:**
+```
+2024-09-29 20:06:15,123 | INFO     | 32471740-1d73-4cc7-a437-a85083301776 | app.request | Request started: GET /api/v1/articles/
+2024-09-29 20:06:15,124 | INFO     | 32471740-1d73-4cc7-a437-a85083301776 | app.request | Listing articles - skip: 0, limit: 100
+2024-09-29 20:06:15,125 | INFO     | 32471740-1d73-4cc7-a437-a85083301776 | app.access | ACCESS: GET /api/v1/articles/ - 200 - 0.0242s
+2024-09-29 20:06:15,126 | INFO     | 32471740-1d73-4cc7-a437-a85083301776 | app.request | Request completed: GET /api/v1/articles/ - Status: 200 - Time: 0.0242s
+```
 
 #### Environment-Based SQL Logging
 

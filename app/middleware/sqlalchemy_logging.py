@@ -4,6 +4,9 @@ Configures SQLAlchemy to use our trace_id-aware logging.
 """
 
 import logging
+import os
+from datetime import datetime
+from pathlib import Path
 
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
@@ -44,6 +47,10 @@ def setup_sqlalchemy_logging(trace_id: str) -> None:
 
     # Remove existing handlers to avoid duplicate logs
     engine_logger.handlers.clear()
+
+    # Create logs directory if it doesn't exist
+    logs_dir = Path("tmp/logs")
+    logs_dir.mkdir(parents=True, exist_ok=True)
 
     # Add our custom handler with trace_id
     handler = SQLAlchemyTraceIDHandler(trace_id)

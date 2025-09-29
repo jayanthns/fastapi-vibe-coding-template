@@ -103,14 +103,19 @@ def get_logger_for_trace_id(trace_id: str, logger_name: str = "app") -> RequestL
 
 def setup_logging() -> None:
     """
-    Setup application-wide logging configuration.
+    Setup application-wide logging configuration with both console and file output.
     Call this once during application startup.
     """
+    # Setup advanced file logging
+    from app.middleware.file_logging import setup_file_logging
+
+    setup_file_logging()
+
     # Create console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
 
-    # Set custom formatter
+    # Set custom formatter for console
     formatter = TraceIDFormatter()
     console_handler.setFormatter(formatter)
 
@@ -126,6 +131,12 @@ def setup_logging() -> None:
     # Prevent duplicate logs
     app_logger.propagate = False
     app_logger.addHandler(console_handler)
+
+    # Log startup message
+    from app.middleware.file_logging import get_log_file_path
+
+    log_file = get_log_file_path("app")
+    app_logger.info(f"Logging initialized - Console and file: {log_file}")
 
 
 # Convenience function for getting logger from request
