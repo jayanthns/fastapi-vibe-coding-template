@@ -5,6 +5,7 @@ This document describes the Background Jobs API that demonstrates how to use Fas
 ## Overview
 
 The Background Jobs API provides:
+
 - **Asynchronous job execution** with status tracking
 - **In-memory caching** for job status (production-ready for Redis)
 - **Trace ID integration** for request tracking across background tasks
@@ -21,10 +22,12 @@ The Background Jobs API provides:
 Creates a background job to process an article.
 
 **Parameters:**
+
 - `article_id` (int): ID of the article to process
 - `processing_time` (int, optional): Time in seconds to simulate processing (default: 5)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -47,11 +50,13 @@ Creates a background job to process an article.
 Creates a background job to send an email.
 
 **Parameters:**
+
 - `recipient` (str): Email recipient
 - `subject` (str): Email subject
 - `body` (str, optional): Email body (default: "Hello from FastAPI!")
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -74,10 +79,12 @@ Creates a background job to send an email.
 Creates a background job to generate a report.
 
 **Parameters:**
+
 - `report_type` (str): Type of report to generate
 - `date_range` (str, optional): Date range for the report (default: "last_30_days")
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -100,6 +107,7 @@ Creates a background job to generate a report.
 Gets the current status of a background job.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -135,6 +143,7 @@ Gets the current status of a background job.
 Cancels a running background job.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -157,9 +166,11 @@ Cancels a running background job.
 Lists all background jobs with optional status filter.
 
 **Parameters:**
+
 - `status_filter` (str, optional): Filter by job status (pending, running, completed, failed, cancelled)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -193,6 +204,7 @@ Lists all background jobs with optional status filter.
 Lists all background jobs without any filtering. This is a dedicated endpoint that explicitly shows all jobs regardless of status.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -331,7 +343,7 @@ python test_background_jobs.py
 
 All background jobs are logged with trace_id for complete request tracking:
 
-```
+```log
 2024-01-01 10:00:00,123 | INFO | 550e8400-e29b-41d4-a716-446655440000 | app.background_jobs | Created background job 123e4567-e89b-12d3-a456-426614174000 of type process_article
 2024-01-01 10:00:01,124 | INFO | 550e8400-e29b-41d4-a716-446655440000 | app.background_jobs | Started background job 123e4567-e89b-12d3-a456-426614174000 of type process_article
 2024-01-01 10:00:05,125 | INFO | 550e8400-e29b-41d4-a716-446655440000 | app.background_jobs | Completed background job 123e4567-e89b-12d3-a456-426614174000 successfully
