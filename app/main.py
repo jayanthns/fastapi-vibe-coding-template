@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.urls import api_router
 from app.core.config import settings
+from app.core.background_tasks import background_task_manager
 from app.db.session import engine
 from app.core.logging import setup_logging
 from app.middleware.trace import TraceIDMiddleware
@@ -16,10 +17,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Setup logging configuration
     setup_logging()
 
+    # Start background task manager
+    await background_task_manager.start()
+
     # Ensure engine is created during startup for early DB feedback
     async with engine.begin() as conn:  # noqa: F841
         pass
     yield
+
+    # Cleanup
+    await background_task_manager.stop()
 
 
 app = FastAPI(title=settings.app_name, debug=settings.debug, lifespan=lifespan)

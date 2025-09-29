@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Generic, TypeVar
 from uuid import uuid4
 
@@ -17,7 +17,7 @@ class APIResponse(BaseModel, Generic[T]):
     data: T | None = None
     error: str | None = None
     trace_id: str = Field(default_factory=lambda: str(uuid4()))
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     @classmethod
     def create_with_trace_id(
@@ -51,7 +51,7 @@ class APIResponse(BaseModel, Generic[T]):
             data=data,
             error=error,
             trace_id=trace_id or str(uuid4()),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
 
