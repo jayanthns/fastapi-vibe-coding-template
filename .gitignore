@@ -113,6 +113,10 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# Logs and temporary files
+tmp/*
+!tmp/.gitkeep
+
 # Pyre type checker
 .pyre/
 

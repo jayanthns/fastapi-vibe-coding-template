@@ -21,6 +21,7 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
     - [Python virtualenv](#python-virtualenv)
     - [Using uv for dependencies (faster)](#using-uv-for-dependencies-faster)
     - [Security auditing](#security-auditing)
+    - [Database migrations (Django-style)](#database-migrations-django-style)
     - [Docker helpers](#docker-helpers)
   - [10) Run with Docker](#10-run-with-docker)
   - [11) Debug/start scripts](#11-debugstart-scripts)
@@ -30,8 +31,9 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
   - [15) Alembic tips](#15-alembic-tips)
   - [16) Security notes](#16-security-notes)
   - [17) Architecture overview](#17-architecture-overview)
-  - [18) API docs \& versioning](#18-api-docs--versioning)
-  - [19) VS Code mandatory extensions](#19-vs-code-mandatory-extensions)
+  - [18) Request tracing and logging](#18-request-tracing-and-logging)
+  - [19) API docs \& versioning](#19-api-docs--versioning)
+  - [20) VS Code mandatory extensions](#20-vs-code-mandatory-extensions)
   - [9) How to extend this template (step‑by‑step guide)](#9-how-to-extend-this-template-stepbystep-guide)
     - [1) Define the database model](#1-define-the-database-model)
     - [2) Create Pydantic schemas](#2-create-pydantic-schemas)
@@ -125,6 +127,69 @@ pip install -e '.[dev]'
 ```
 
 ## 4) Database migrations (Alembic)
+
+### Using Makefile Commands (Recommended - Django-style)
+
+The project includes Django-style migration commands via Makefile for easier database management:
+
+#### **Create Migrations**
+```bash
+# Create a new migration (like Django makemigrations)
+make makemigrations MSG='add user table'
+make makemigrations MSG='update article schema'
+```
+
+#### **Apply Migrations**
+```bash
+# Apply all pending migrations (like Django migrate)
+make migrate
+```
+
+#### **Migration Management**
+```bash
+# Show migration history
+make migrate-history
+
+# Show current migration status
+make migrate-current
+
+# Show latest migration details
+make migrate-show
+
+# Downgrade one migration
+make migrate-downgrade
+
+# Reset all migrations (development only!)
+make migrate-reset
+```
+
+#### **Database Management**
+```bash
+# Initialize database with all migrations
+make db-init
+
+# Reset database completely (development only!)
+make db-reset
+
+# Seed database with initial data
+make db-seed
+```
+
+#### **Development Setup**
+```bash
+# Complete development environment setup
+make dev-setup
+
+# Reset development database
+make dev-reset
+
+# Get help with all available commands
+make help
+```
+
+### Using Alembic Directly (Alternative)
+
+If you prefer using Alembic commands directly:
 
 - Create an initial migration (if not present) or a new one after model changes:
 
@@ -224,6 +289,24 @@ Use these shortcuts to manage your environment, dependencies, and Docker. Run fr
 - **make uv-pip-audit-prod**: Same as above using `uv pip-audit`.
 - **make uv-pip-audit-all**: Audit both lockfiles via `uv pip-audit`.
 
+### Database migrations (Django-style)
+
+- **make makemigrations MSG='message'**: Create new migration (like Django makemigrations).
+  - Example: `make makemigrations MSG='add user table'`
+- **make migrate**: Apply all pending migrations (like Django migrate).
+  - Example: `make migrate`
+- **make migrate-history**: Show migration history.
+- **make migrate-current**: Show current migration status.
+- **make migrate-show**: Show latest migration details.
+- **make migrate-downgrade**: Downgrade one migration.
+- **make migrate-reset**: Reset all migrations (development only!).
+- **make db-init**: Initialize database with all migrations.
+- **make db-reset**: Reset database completely (development only!).
+- **make db-seed**: Seed database with initial data.
+- **make dev-setup**: Complete development environment setup.
+- **make dev-reset**: Reset development database.
+- **make help**: Show all available commands with examples.
+
 ### Docker helpers
 
 - **make d-up**: `docker compose up -d` (all services).
@@ -311,17 +394,243 @@ This repo includes `/.vscode/tasks.json` with common tasks (run server, tests, D
 ## 17) Architecture overview
 
 See `ARCHITECTURE.md` for layering and patterns. High‑level:
+
 - Centralized URL configuration (`app/api/urls.py`) manages all API routing.
 - Routers (HTTP) → Services (business rules) → Repositories (data access) → DB models.
 - Schemas define request/response contracts and enforce output shapes.
 
-## 18) API docs & versioning
+## 18) Request tracing and logging
+
+This application includes a comprehensive request-level tracing and logging system that automatically tracks requests with unique trace IDs and provides structured logging throughout the request lifecycle.
+
+### Trace ID System
+
+Every request receives a unique `trace_id` that is:
+
+- Generated automatically by the `TraceIDMiddleware`
+- Available throughout the entire request lifecycle
+- Included in all log messages
+- Returned in API responses and response headers
+- Passable to background/async tasks
+
+### Request-Level Logging
+
+The system provides request-scoped loggers that automatically include the trace_id in all log messages, similar to Django's request-level logging pattern.
+
+#### Log Format
+
+```
+2024-01-01 10:00:00,123 | INFO     | 550e8400-e29b-41d4-a716-446655440000 | app.request | Request started: POST /api/v1/articles
+2024-01-01 10:00:00,124 | INFO     | 550e8400-e29b-41d4-a716-446655440000 | app.request | Creating article: My New Article
+2024-01-01 10:00:00,125 | INFO     | 550e8400-e29b-41d4-a716-446655440000 | app.request | Article created successfully with ID: 1
+2024-01-01 10:00:00,126 | INFO     | 550e8400-e29b-41d4-a716-446655440000 | app.request | Request completed: POST /api/v1/articles - Status: 201 - Time: 0.0234s
+```
+
+#### Usage in API Endpoints
+
+```python
+from fastapi import Request
+from app.middleware.trace import get_request_logger, get_trace_id
+
+@router.post("/articles")
+async def create_article(payload: ArticleCreate, request: Request, db=Depends(get_db)):
+    # Get request-scoped logger with trace_id
+    logger = get_request_logger(request)
+    logger.info(f"Creating article: {payload.title}")
+
+    # Your business logic here
+    article = await article_service.create_article(db, payload)
+
+    logger.info(f"Article created successfully with ID: {article.id}")
+
+    # Return response with trace_id
+    return APIResponse.create_with_trace_id(
+        data=article,
+        message="Article created successfully",
+        status_code=201,
+        trace_id=get_trace_id(request)
+    )
+```
+
+#### Usage in Background/Async Tasks
+
+```python
+from app.middleware.logging import get_logger_for_trace_id
+
+async def process_article_async(article_id: int, trace_id: str) -> None:
+    # Create logger with the request's trace_id
+    logger = get_logger_for_trace_id(trace_id, "app.background")
+
+    logger.info(f"Starting background processing for article {article_id}")
+
+    try:
+        # Your background work here
+        await some_async_operation()
+        logger.info(f"Background processing completed for article {article_id}")
+    except Exception as e:
+        logger.error(f"Background processing failed: {str(e)}")
+        raise
+
+# In your endpoint:
+@router.post("/articles/{article_id}/process")
+async def process_article(article_id: int, request: Request, background_tasks: BackgroundTasks):
+    logger = get_request_logger(request)
+    trace_id = get_trace_id(request)
+
+    logger.info(f"Starting background processing for article {article_id}")
+
+    # Pass trace_id to background task
+    background_tasks.add_task(process_article_async, article_id, trace_id)
+
+    return {"message": "Processing started", "trace_id": trace_id}
+```
+
+#### Usage in Services and Repositories
+
+```python
+# In services
+async def create_article_service(db, payload, trace_id: str):
+    logger = get_logger_for_trace_id(trace_id, "app.service")
+    logger.info(f"Creating article: {payload.title}")
+
+    # Your business logic here
+    article = await article_repository.create(db, **payload.dict())
+
+    logger.info(f"Article created with ID: {article.id}")
+    return article
+
+# In repositories
+async def create_article_repository(db, title: str, content: str, trace_id: str):
+    logger = get_logger_for_trace_id(trace_id, "app.repository")
+    logger.info(f"Creating article in database: {title}")
+
+    # Your database operations here
+    article = Article(title=title, content=content)
+    db.add(article)
+    await db.commit()
+
+    logger.info(f"Article saved to database with ID: {article.id}")
+    return article
+```
+
+#### Response Headers
+
+The system automatically adds these headers to all responses:
+
+- `X-Trace-ID`: The unique trace ID for the request
+- `X-Response-Time`: Request processing time in seconds
+
+#### API Response Format
+
+All API responses include the trace_id in the response body:
+
+```json
+{
+  "success": true,
+  "message": "Article created successfully",
+  "status_code": 201,
+  "data": {
+    "id": 1,
+    "title": "My Article",
+    "content": "Article content...",
+    "created_at": "2024-01-01T10:00:00Z",
+    "updated_at": "2024-01-01T10:00:00Z"
+  },
+  "error": null,
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "timestamp": "2024-01-01T10:00:00Z"
+}
+```
+
+#### Configuration
+
+Logging is automatically configured during application startup. The system uses:
+
+- **Console output** with structured formatting
+- **File output** with daily rotation and different log types
+- **INFO level** by default (configurable)
+- **Custom formatter** that includes trace_id in all messages
+- **Request lifecycle logging** (automatic start/completion/error logging)
+- **SQLAlchemy logging** (only enabled in development environment)
+
+#### Architecture
+
+The logging system follows **Single Responsibility Principle (SRP)**:
+
+- **`app/config/logging.py`**: Logging configuration and setup
+- **`app/utils/logging.py`**: Logging utilities and helper classes
+- **`app/utils/sqlalchemy_logging.py`**: SQLAlchemy logging integration
+- **`app/middleware/trace.py`**: Request/response middleware only
+
+#### File Logging
+
+The system automatically creates log files in `tmp/logs/` with a **simplified 2-file structure**:
+
+- **`app-YYYY-MM-DD.log`**: All application logs (requests, business logic, errors, access)
+- **`sqlalchemy-YYYY-MM-DD.log`**: Database query logs (development only)
+
+**Why Only 2 Files?**
+- **Less confusion**: Everything in one place with trace_id for correlation
+- **Easier monitoring**: Only 2 files to watch instead of 4
+- **Better context**: Related logs stay together (request + error + business logic)
+- **Simpler maintenance**: Fewer files to manage and rotate
+
+**Log File Features:**
+- **Daily rotation**: New log file each day
+- **Size-based rotation**: 10MB max per file, keeps 5 backup files
+- **UTF-8 encoding**: Proper character support
+- **Structured format**: Consistent trace_id and timestamp format
+- **Clear prefixes**: "ACCESS:", "ERROR:" prefixes for easy filtering
+
+**Log File Location:**
+```
+tmp/
+├── .gitkeep          # Git-tracked file
+└── logs/             # Git-ignored directory
+    ├── app-2024-09-29.log        # All application logs
+    └── sqlalchemy-2024-09-29.log # Database queries (dev only)
+```
+
+**Example App Log Content:**
+```
+2024-09-29 20:06:15,123 | INFO     | 32471740-1d73-4cc7-a437-a85083301776 | app.request | Request started: GET /api/v1/articles/
+2024-09-29 20:06:15,124 | INFO     | 32471740-1d73-4cc7-a437-a85083301776 | app.request | Listing articles - skip: 0, limit: 100
+2024-09-29 20:06:15,125 | INFO     | 32471740-1d73-4cc7-a437-a85083301776 | app.access | ACCESS: GET /api/v1/articles/ - 200 - 0.0242s
+2024-09-29 20:06:15,126 | INFO     | 32471740-1d73-4cc7-a437-a85083301776 | app.request | Request completed: GET /api/v1/articles/ - Status: 200 - Time: 0.0242s
+```
+
+#### Environment-Based SQL Logging
+
+SQLAlchemy query logging is automatically enabled/disabled based on the environment:
+
+- **Development** (`ENVIRONMENT=development`): SQL queries are logged with trace_id
+- **Production/Staging** (`ENVIRONMENT=production` or other): No SQL logging to avoid performance impact
+
+This is controlled by the `ENVIRONMENT` setting in your `.env` file:
+
+```bash
+# .env
+ENVIRONMENT=development  # Enables SQL logging
+# ENVIRONMENT=production  # Disables SQL logging
+```
+
+#### Key Benefits
+
+1. **Request Tracing**: Every log message includes the request's trace_id
+2. **Lifecycle Logging**: Automatic request start/completion/error logging
+3. **Background Support**: Trace_id can be passed to async tasks
+4. **Django-Style**: Familiar request-level logging pattern
+5. **Performance Tracking**: Built-in request timing
+6. **Error Tracking**: Automatic exception logging with trace_id
+7. **Flexible**: Works in endpoints, services, repositories, and background tasks
+
+## 19) API docs & versioning
 
 - The API is namespaced under `/api/v1`. Add new routers under `app/api/v1/` and include them in `app/api/urls.py`.
 - Use response models to keep OpenAPI accurate. Docs available at `/docs` and `/openapi.json`.
 - URL configuration follows Django-style organization with centralized routing in `app/api/urls.py`.
 
-## 19) VS Code mandatory extensions
+## 20) VS Code mandatory extensions
 
 This repo recommends the following VS Code extensions (see `.vscode/extensions.json`). Installing them ensures consistent formatting and linting:
 
@@ -340,6 +649,7 @@ code --install-extension ms-python.python \
 ```
 
 Or in VS Code:
+
 - Open the Command Palette → “Extensions: Show Recommended Extensions” → Install all.
 
 ## 9) How to extend this template (step‑by‑step guide)

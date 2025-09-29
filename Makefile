@@ -74,3 +74,79 @@ d-logs:
 
 d-logs-app:
 	docker compose logs -f fastapi_vibe_coding_app_svc
+
+# Database Migration Commands (Django-style)
+makemigrations:
+	@echo "Creating new migration..."
+	@$(VENV_ACTIVATE) && alembic revision --autogenerate -m "$(MSG)"
+
+migrate:
+	@echo "Applying migrations..."
+	@$(VENV_ACTIVATE) && alembic upgrade head
+
+migrate-downgrade:
+	@echo "Downgrading one migration..."
+	@$(VENV_ACTIVATE) && alembic downgrade -1
+
+migrate-reset:
+	@echo "Resetting all migrations..."
+	@$(VENV_ACTIVATE) && alembic downgrade base && alembic upgrade head
+
+migrate-history:
+	@echo "Migration history:"
+	@$(VENV_ACTIVATE) && alembic history
+
+migrate-current:
+	@echo "Current migration:"
+	@$(VENV_ACTIVATE) && alembic current
+
+migrate-show:
+	@echo "Show migration details:"
+	@$(VENV_ACTIVATE) && alembic show head
+
+# Database Management Commands
+db-init:
+	@echo "Initializing database..."
+	@$(VENV_ACTIVATE) && alembic upgrade head
+
+db-reset:
+	@echo "Resetting database..."
+	@$(VENV_ACTIVATE) && alembic downgrade base && alembic upgrade head
+
+db-seed:
+	@echo "Seeding database with initial data..."
+	@$(VENV_ACTIVATE) && python -c "from app.db.session import engine; from app.models.article import Base; Base.metadata.create_all(bind=engine)"
+
+# Development Commands
+dev-setup: install-deps db-init
+	@echo "Development environment setup complete!"
+
+dev-reset: db-reset
+	@echo "Development database reset complete!"
+
+# Help command
+help:
+	@echo "Available commands:"
+	@echo ""
+	@echo "Database Migration Commands:"
+	@echo "  makemigrations MSG='message'  - Create new migration (like Django makemigrations)"
+	@echo "  migrate                       - Apply migrations (like Django migrate)"
+	@echo "  migrate-downgrade             - Downgrade one migration"
+	@echo "  migrate-reset                 - Reset all migrations"
+	@echo "  migrate-history               - Show migration history"
+	@echo "  migrate-current               - Show current migration"
+	@echo "  migrate-show                  - Show migration details"
+	@echo ""
+	@echo "Database Management:"
+	@echo "  db-init                       - Initialize database"
+	@echo "  db-reset                      - Reset database"
+	@echo "  db-seed                       - Seed database with initial data"
+	@echo ""
+	@echo "Development:"
+	@echo "  dev-setup                     - Setup development environment"
+	@echo "  dev-reset                     - Reset development database"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make makemigrations MSG='add user table'"
+	@echo "  make migrate"
+	@echo "  make db-reset"
