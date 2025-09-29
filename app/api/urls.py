@@ -5,13 +5,14 @@ This file acts as the main URL dispatcher, similar to Django's urls.py.
 
 from fastapi import APIRouter
 
-from app.api.v1 import articles
+from app.api.v1 import articles, background_jobs
 
 # Create the main API router
 api_router = APIRouter()
 
 # Include versioned API routes
 api_router.include_router(articles.router, prefix="/v1/articles", tags=["articles"])
+api_router.include_router(background_jobs.router, prefix="/v1", tags=["background-jobs"])
 
 # You can add more versioned routes here as your API grows
 # Example:
