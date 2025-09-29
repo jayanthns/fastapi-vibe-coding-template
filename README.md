@@ -4,6 +4,8 @@
 
 This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Alembic, and an Article CRUD. This doc covers local setup, environment values, dependency management with uv, database migrations, and how to run the app.
 
+> **📝 Template Options**: This repository includes demo features (articles CRUD and background jobs) that can be removed if you want a completely clean template. See [Template Cleanup](docs/TEMPLATE_CLEANUP.md) for instructions to remove all demo code and start fresh.
+
 ## Table of contents
 
 - [FastAPI Vibe Coding — Local Development](#fastapi-vibe-coding--local-development)
@@ -692,6 +694,7 @@ After cleanup, you'll still have a fully functional FastAPI application with art
 - **[Architecture Overview](docs/ARCHITECTURE.md)** - System architecture, components, and design patterns
 - **[Background Jobs API](docs/BACKGROUND_JOBS_API.md)** - Complete background jobs system documentation
 - **[Background Jobs Cleanup](docs/BACKGROUND_JOBS_CLEANUP.md)** - How to remove background jobs feature
+- **[Template Cleanup](docs/TEMPLATE_CLEANUP.md)** - Complete cleanup guide to remove all demo code
 - **[Testing Guide](docs/TESTING.md)** - Comprehensive testing setup and best practices
 
 ### 🔗 Quick Links
