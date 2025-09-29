@@ -468,6 +468,22 @@ Logging is automatically configured during application startup. The system uses:
 - **INFO level** by default (configurable)
 - **Custom formatter** that includes trace_id in all messages
 - **Request lifecycle logging** (automatic start/completion/error logging)
+- **SQLAlchemy logging** (only enabled in development environment)
+
+#### Environment-Based SQL Logging
+
+SQLAlchemy query logging is automatically enabled/disabled based on the environment:
+
+- **Development** (`ENVIRONMENT=development`): SQL queries are logged with trace_id
+- **Production/Staging** (`ENVIRONMENT=production` or other): No SQL logging to avoid performance impact
+
+This is controlled by the `ENVIRONMENT` setting in your `.env` file:
+
+```bash
+# .env
+ENVIRONMENT=development  # Enables SQL logging
+# ENVIRONMENT=production  # Disables SQL logging
+```
 
 #### Key Benefits
 
