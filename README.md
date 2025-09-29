@@ -21,6 +21,7 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
     - [Python virtualenv](#python-virtualenv)
     - [Using uv for dependencies (faster)](#using-uv-for-dependencies-faster)
     - [Security auditing](#security-auditing)
+    - [Database migrations (Django-style)](#database-migrations-django-style)
     - [Docker helpers](#docker-helpers)
   - [10) Run with Docker](#10-run-with-docker)
   - [11) Debug/start scripts](#11-debugstart-scripts)
@@ -127,6 +128,69 @@ pip install -e '.[dev]'
 
 ## 4) Database migrations (Alembic)
 
+### Using Makefile Commands (Recommended - Django-style)
+
+The project includes Django-style migration commands via Makefile for easier database management:
+
+#### **Create Migrations**
+```bash
+# Create a new migration (like Django makemigrations)
+make makemigrations MSG='add user table'
+make makemigrations MSG='update article schema'
+```
+
+#### **Apply Migrations**
+```bash
+# Apply all pending migrations (like Django migrate)
+make migrate
+```
+
+#### **Migration Management**
+```bash
+# Show migration history
+make migrate-history
+
+# Show current migration status
+make migrate-current
+
+# Show latest migration details
+make migrate-show
+
+# Downgrade one migration
+make migrate-downgrade
+
+# Reset all migrations (development only!)
+make migrate-reset
+```
+
+#### **Database Management**
+```bash
+# Initialize database with all migrations
+make db-init
+
+# Reset database completely (development only!)
+make db-reset
+
+# Seed database with initial data
+make db-seed
+```
+
+#### **Development Setup**
+```bash
+# Complete development environment setup
+make dev-setup
+
+# Reset development database
+make dev-reset
+
+# Get help with all available commands
+make help
+```
+
+### Using Alembic Directly (Alternative)
+
+If you prefer using Alembic commands directly:
+
 - Create an initial migration (if not present) or a new one after model changes:
 
 ```bash
@@ -224,6 +288,24 @@ Use these shortcuts to manage your environment, dependencies, and Docker. Run fr
 - **make pip-audit-all**: Audit both prod and local/dev lockfiles.
 - **make uv-pip-audit-prod**: Same as above using `uv pip-audit`.
 - **make uv-pip-audit-all**: Audit both lockfiles via `uv pip-audit`.
+
+### Database migrations (Django-style)
+
+- **make makemigrations MSG='message'**: Create new migration (like Django makemigrations).
+  - Example: `make makemigrations MSG='add user table'`
+- **make migrate**: Apply all pending migrations (like Django migrate).
+  - Example: `make migrate`
+- **make migrate-history**: Show migration history.
+- **make migrate-current**: Show current migration status.
+- **make migrate-show**: Show latest migration details.
+- **make migrate-downgrade**: Downgrade one migration.
+- **make migrate-reset**: Reset all migrations (development only!).
+- **make db-init**: Initialize database with all migrations.
+- **make db-reset**: Reset database completely (development only!).
+- **make db-seed**: Seed database with initial data.
+- **make dev-setup**: Complete development environment setup.
+- **make dev-reset**: Reset development database.
+- **make help**: Show all available commands with examples.
 
 ### Docker helpers
 
@@ -470,6 +552,15 @@ Logging is automatically configured during application startup. The system uses:
 - **Custom formatter** that includes trace_id in all messages
 - **Request lifecycle logging** (automatic start/completion/error logging)
 - **SQLAlchemy logging** (only enabled in development environment)
+
+#### Architecture
+
+The logging system follows **Single Responsibility Principle (SRP)**:
+
+- **`app/config/logging.py`**: Logging configuration and setup
+- **`app/utils/logging.py`**: Logging utilities and helper classes
+- **`app/utils/sqlalchemy_logging.py`**: SQLAlchemy logging integration
+- **`app/middleware/trace.py`**: Request/response middleware only
 
 #### File Logging
 
