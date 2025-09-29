@@ -34,8 +34,9 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
   - [18) Request tracing and logging](#18-request-tracing-and-logging)
   - [19) Background Jobs API (Template Feature)](#19-background-jobs-api-template-feature)
     - [Background Jobs Code Cleanup](#background-jobs-code-cleanup)
-  - [20) API docs \& versioning](#20-api-docs--versioning)
-  - [21) VS Code mandatory extensions](#21-vs-code-mandatory-extensions)
+  - [20) Documentation](#20-documentation)
+  - [21) API docs \& versioning](#21-api-docs--versioning)
+  - [22) VS Code mandatory extensions](#22-vs-code-mandatory-extensions)
   - [9) How to extend this template (step‑by‑step guide)](#9-how-to-extend-this-template-stepbystep-guide)
     - [1) Define the database model](#1-define-the-database-model)
     - [2) Create Pydantic schemas](#2-create-pydantic-schemas)
@@ -669,28 +670,44 @@ make test-background
 make test
 ```
 
-For complete documentation, see [BACKGROUND_JOBS_API.md](BACKGROUND_JOBS_API.md).
+For complete documentation, see [docs/BACKGROUND_JOBS_API.md](docs/BACKGROUND_JOBS_API.md).
 
 ### Background Jobs Code Cleanup
 
-If you don't need the background jobs functionality, you can remove it completely. See [BACKGROUND_JOBS_CLEANUP.md](BACKGROUND_JOBS_CLEANUP.md) for detailed step-by-step instructions.
+If you don't need the background jobs functionality, you can remove it completely. See [docs/BACKGROUND_JOBS_CLEANUP.md](docs/BACKGROUND_JOBS_CLEANUP.md) for detailed step-by-step instructions.
 
 **Quick cleanup summary:**
 1. Remove `app/api/v1/background_jobs.py`
 2. Remove `app/services/background_job_service.py` and `app/core/background_tasks.py`
 3. Update `app/api/urls.py` and `app/main.py`
 4. Remove `tests/test_background_jobs.py`
-5. Remove `BACKGROUND_JOBS_API.md`
+5. Remove `docs/BACKGROUND_JOBS_API.md`
 
 After cleanup, you'll still have a fully functional FastAPI application with articles CRUD, database integration, logging, and all core features.
 
-## 20) API docs & versioning
+## 20) Documentation
+
+### 📚 Available Documentation
+
+- **[Architecture Overview](docs/ARCHITECTURE.md)** - System architecture, components, and design patterns
+- **[Background Jobs API](docs/BACKGROUND_JOBS_API.md)** - Complete background jobs system documentation
+- **[Background Jobs Cleanup](docs/BACKGROUND_JOBS_CLEANUP.md)** - How to remove background jobs feature
+- **[Testing Guide](docs/TESTING.md)** - Comprehensive testing setup and best practices
+
+### 🔗 Quick Links
+
+- **API Documentation**: Available at `/docs` and `/openapi.json` when running the server
+- **Health Check**: `GET /healthz` - Server status and trace ID
+- **Articles API**: `GET /api/v1/articles/` - Article CRUD operations
+- **Background Jobs**: `GET /api/v1/jobs/` - Background job management (if enabled)
+
+## 21) API docs & versioning
 
 - The API is namespaced under `/api/v1`. Add new routers under `app/api/v1/` and include them in `app/api/urls.py`.
 - Use response models to keep OpenAPI accurate. Docs available at `/docs` and `/openapi.json`.
 - URL configuration follows Django-style organization with centralized routing in `app/api/urls.py`.
 
-## 21) VS Code mandatory extensions
+## 22) VS Code mandatory extensions
 
 This repo recommends the following VS Code extensions (see `.vscode/extensions.json`). Installing them ensures consistent formatting and linting:
 
