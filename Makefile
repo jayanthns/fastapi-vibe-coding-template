@@ -124,6 +124,43 @@ dev-setup: install-deps db-init
 dev-reset: db-reset
 	@echo "Development database reset complete!"
 
+# Testing Commands
+test:
+	@echo "Running all tests..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest
+
+test-verbose:
+	@echo "Running tests with verbose output..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -v
+
+test-coverage:
+	@echo "Running tests with coverage..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest --cov=app --cov-report=term-missing --cov-report=html
+
+test-fast:
+	@echo "Running fast tests (excluding slow tests)..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "not slow"
+
+test-unit:
+	@echo "Running unit tests only..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "unit"
+
+test-integration:
+	@echo "Running integration tests only..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "integration"
+
+test-api:
+	@echo "Running API tests only..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "api"
+
+test-background:
+	@echo "Running background job tests only..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "background"
+
+test-watch:
+	@echo "Running tests in watch mode..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest-watch
+
 # Help command
 help:
 	@echo "Available commands:"
@@ -142,6 +179,17 @@ help:
 	@echo "  db-reset                      - Reset database"
 	@echo "  db-seed                       - Seed database with initial data"
 	@echo ""
+	@echo "Testing Commands:"
+	@echo "  test                          - Run all tests"
+	@echo "  test-verbose                  - Run tests with verbose output"
+	@echo "  test-coverage                 - Run tests with coverage report"
+	@echo "  test-fast                     - Run fast tests (exclude slow tests)"
+	@echo "  test-unit                     - Run unit tests only"
+	@echo "  test-integration              - Run integration tests only"
+	@echo "  test-api                      - Run API tests only"
+	@echo "  test-background               - Run background job tests only"
+	@echo "  test-watch                    - Run tests in watch mode"
+	@echo ""
 	@echo "Development:"
 	@echo "  dev-setup                     - Setup development environment"
 	@echo "  dev-reset                     - Reset development database"
@@ -150,3 +198,5 @@ help:
 	@echo "  make makemigrations MSG='add user table'"
 	@echo "  make migrate"
 	@echo "  make db-reset"
+	@echo "  make test-coverage"
+	@echo "  make test-fast"

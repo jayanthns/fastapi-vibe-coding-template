@@ -23,8 +23,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=8.3.2",
-  "httpx>=0.27.2",
   "pytest-asyncio>=0.23.8",
+  "pytest-cov>=6.0.0",
+  "pytest-timeout>=2.3.1",
+  "httpx>=0.27.2",
   "ruff>=0.6.3",
 ]
 
@@ -41,4 +43,68 @@ target-version = "py310"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "W"]
 ignore = []
+
+[tool.pytest.ini_options]
+# Test discovery configuration
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Python path configuration
+pythonpath = ["."]
+
+# Ignore virtual environment directories
+norecursedirs = [
+    "venv",
+    ".venv",
+    "env",
+    ".env",
+    ".git",
+    ".tox",
+    "dist",
+    "build",
+    "*.egg-info",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".coverage",
+    "tmp",
+    "logs"
+]
+
+# Test execution configuration
+addopts = [
+    "-v",                    # Verbose output
+    "--tb=short",           # Shorter traceback format
+    "--strict-markers",     # Strict marker configuration
+    "--strict-config",      # Strict configuration
+    "--disable-warnings",   # Disable warnings during tests
+    "--color=yes",          # Colored output
+    "--durations=10",       # Show 10 slowest tests
+]
+
+# Markers for categorizing tests
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "api: marks tests as API tests",
+    "background: marks tests as background job tests",
+]
+
+# Async test configuration
+asyncio_mode = "auto"
+
+# Minimum version requirements
+minversion = "8.0"
+
+# Coverage configuration (if using pytest-cov)
+# addopts = [
+#     "--cov=app",
+#     "--cov-report=term-missing",
+#     "--cov-report=html",
+#     "--cov-report=xml",
+#     "--cov-fail-under=80"
+# ]
 
