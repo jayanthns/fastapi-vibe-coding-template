@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.db.session import get_db_with_trace_id
-from app.middleware.trace import get_request_logger, get_trace_id
+from app.middleware.trace import get_trace_id
+from app.core.logging import get_logger
 from app.schemas.article import APIResponse, Article, ArticleCreate, ArticleUpdate
 from app.services.article import article_service
 
@@ -14,7 +15,7 @@ router = APIRouter()
 async def create_article(
     payload: ArticleCreate, request: Request, db=Depends(get_db_with_trace_id)
 ):
-    logger = get_request_logger(request)
+    logger = get_logger(request)
     logger.info(f"Creating article: {payload.title}")
 
     article = await article_service.create_article(db, payload)
@@ -32,7 +33,7 @@ async def create_article(
 async def get_article(
     article_id: int, request: Request, db=Depends(get_db_with_trace_id)
 ):
-    logger = get_request_logger(request)
+    logger = get_logger(request)
     logger.info(f"Retrieving article with ID: {article_id}")
 
     article = await article_service.get_article(db, article_id)
@@ -55,7 +56,7 @@ async def get_article(
 async def list_articles(
     request: Request, skip: int = 0, limit: int = 100, db=Depends(get_db_with_trace_id)
 ):
-    logger = get_request_logger(request)
+    logger = get_logger(request)
     logger.info(f"Listing articles - skip: {skip}, limit: {limit}")
 
     articles = await article_service.list_articles(db, skip=skip, limit=limit)
@@ -76,7 +77,7 @@ async def update_article(
     request: Request,
     db=Depends(get_db_with_trace_id),
 ):
-    logger = get_request_logger(request)
+    logger = get_logger(request)
     logger.info(f"Updating article with ID: {article_id}")
 
     article = await article_service.update_article(db, article_id, payload)
@@ -94,7 +95,7 @@ async def update_article(
 async def delete_article(
     article_id: int, request: Request, db=Depends(get_db_with_trace_id)
 ):
-    logger = get_request_logger(request)
+    logger = get_logger(request)
     logger.info(f"Deleting article with ID: {article_id}")
 
     deleted = await article_service.delete_article(db, article_id)

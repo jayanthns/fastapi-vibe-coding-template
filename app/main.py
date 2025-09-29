@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.urls import api_router
 from app.core.config import settings
 from app.db.session import engine
-from app.middleware.logging import setup_logging
+from app.core.logging import setup_logging
 from app.middleware.trace import TraceIDMiddleware
 
 

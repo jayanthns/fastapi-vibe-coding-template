@@ -57,7 +57,7 @@ def setup_sqlalchemy_logging(trace_id: str) -> None:
     handler.setLevel(logging.INFO)
 
     # Set formatter
-    from app.middleware.logging import TraceIDFormatter
+    from app.core.logging import TraceIDFormatter
 
     formatter = TraceIDFormatter()
     handler.setFormatter(formatter)

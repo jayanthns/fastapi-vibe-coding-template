@@ -9,7 +9,7 @@ from uuid import uuid4
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
-from app.middleware.logging import RequestLogger
+from app.core.logging import RequestLogger, log_error, log_request_access
 
 
 class TraceIDMiddleware(BaseHTTPMiddleware):
@@ -69,8 +69,6 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
             )
 
             # Log to access log
-            from app.middleware.file_logging import log_request_access
-
             log_request_access(
                 trace_id,
                 request.method,
@@ -93,8 +91,6 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
             )
 
             # Log to error log
-            from app.middleware.file_logging import log_error
-
             log_error(
                 trace_id,
                 f"Request failed: {request.method} {request.url.path} - Error: {str(e)}",

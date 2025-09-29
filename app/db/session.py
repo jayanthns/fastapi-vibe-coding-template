@@ -33,8 +33,8 @@ async def get_db_with_trace_id(request: Request) -> AsyncGenerator[AsyncSession,
             # Database operations will be logged with trace_id (development only)
             pass
     """
-    from app.middleware.sqlalchemy_logging import setup_sqlalchemy_logging
     from app.middleware.trace import get_trace_id
+    from app.core.sqlalchemy_logging import setup_sqlalchemy_logging
 
     trace_id = get_trace_id(request)
 
@@ -47,7 +47,7 @@ async def get_db_with_trace_id(request: Request) -> AsyncGenerator[AsyncSession,
     finally:
         # Clean up logging handlers (only if they were set up)
         from app.core.config import settings
-        from app.middleware.sqlalchemy_logging import clear_sqlalchemy_logging
+        from app.core.sqlalchemy_logging import clear_sqlalchemy_logging
 
         # Only clear if we're in development (where logging was set up)
         if settings.environment == "development":

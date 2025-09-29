@@ -4,7 +4,7 @@ Example of how to use trace_id-aware logging in background/async tasks.
 
 import asyncio
 
-from app.middleware.logging import get_logger_for_trace_id
+from app.core.logging import get_logger_for_trace_id
 
 
 async def process_article_async(article_id: int, trace_id: str) -> None:
