@@ -125,9 +125,6 @@ db-reset:
 	@echo "Resetting database..."
 	@$(VENV_ACTIVATE) && alembic downgrade base && alembic upgrade head
 
-db-seed:
-	@echo "Seeding database with initial data..."
-	@$(VENV_ACTIVATE) && python -c "from app.db.session import engine; from app.models.article import Base; Base.metadata.create_all(bind=engine)"
 
 # Development Commands
 dev-setup: install-deps db-init
@@ -166,6 +163,7 @@ test-db-drop:
 	@echo "Dropping test database..."
 	@$(VENV_ACTIVATE) && python -c "import asyncio; from scripts.setup_test_db import get_database_urls; from sqlalchemy.ext.asyncio import create_async_engine; from sqlalchemy import text; async def drop_db(): admin_url, _, test_db_name = get_database_urls(); engine = create_async_engine(admin_url); async with engine.connect() as conn: await conn.execute(text('COMMIT')); await conn.execute(text(f'DROP DATABASE IF EXISTS {test_db_name}')); await engine.dispose(); asyncio.run(drop_db())"
 
+
 test-integration:
 	@echo "Running integration tests only..."
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "integration"
@@ -198,7 +196,6 @@ help:
 	@echo "Database Management:"
 	@echo "  db-init                       - Initialize database"
 	@echo "  db-reset                      - Reset database"
-	@echo "  db-seed                       - Seed database with initial data"
 	@echo ""
 	@echo "Testing Commands:"
 	@echo "  test                          - Run all tests"

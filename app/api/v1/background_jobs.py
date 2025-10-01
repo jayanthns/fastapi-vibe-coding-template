@@ -4,6 +4,7 @@ Demonstrates background task management with status tracking and trace_id loggin
 """
 
 from typing import Any, Dict
+from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request, status
 
@@ -21,7 +22,7 @@ router = APIRouter()
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def create_process_article_job(
-    request: Request, article_id: int, processing_time: int = 5
+    request: Request, article_id: UUID, processing_time: int = 5
 ):
     """
     Create a background job to process an article.

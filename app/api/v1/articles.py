@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from uuid import UUID
 
 from app.db.session import get_db_with_trace_id
 from app.middleware.trace import get_trace_id
@@ -31,7 +32,7 @@ async def create_article(
 
 @router.get("/{article_id}", response_model=APIResponse[Article])
 async def get_article(
-    article_id: int, request: Request, db=Depends(get_db_with_trace_id)
+    article_id: UUID, request: Request, db=Depends(get_db_with_trace_id)
 ):
     logger = get_logger(request)
     logger.info(f"Retrieving article with ID: {article_id}")
@@ -72,7 +73,7 @@ async def list_articles(
 
 @router.patch("/{article_id}", response_model=Article)
 async def update_article(
-    article_id: int,
+    article_id: UUID,
     payload: ArticleUpdate,
     request: Request,
     db=Depends(get_db_with_trace_id),
@@ -93,7 +94,7 @@ async def update_article(
 
 @router.delete("/{article_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_article(
-    article_id: int, request: Request, db=Depends(get_db_with_trace_id)
+    article_id: UUID, request: Request, db=Depends(get_db_with_trace_id)
 ):
     logger = get_logger(request)
     logger.info(f"Deleting article with ID: {article_id}")

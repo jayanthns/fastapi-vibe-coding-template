@@ -177,8 +177,8 @@ make db-init
 # Reset database completely (development only!)
 make db-reset
 
-# Seed database with initial data
-make db-seed
+# Initialize database
+make db-init
 ```
 
 #### **Development Setup**
@@ -316,6 +316,7 @@ psql -h localhost -U postgres -d postgres -c "CREATE DATABASE fastapi_vibe_codin
 - No data pollution between test runs
 - Fast execution with dedicated test environment
 
+
 ## 8) Makefile commands
 
 Use these shortcuts to manage your environment, dependencies, and Docker. Run from the project root.
@@ -372,7 +373,6 @@ Use these shortcuts to manage your environment, dependencies, and Docker. Run fr
   - Example: `make test-db-drop`
 - **make db-init**: Initialize database with all migrations.
 - **make db-reset**: Reset database completely (development only!).
-- **make db-seed**: Seed database with initial data.
 - **make dev-setup**: Complete development environment setup.
 - **make dev-reset**: Reset development database.
 - **make help**: Show all available commands with examples.

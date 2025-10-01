@@ -1,0 +1,92 @@
+[
+  {
+    "field_name": "password",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "User password field"
+  },
+  {
+    "field_name": "email",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "User email address"
+  },
+  {
+    "field_name": "ssn",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "Social Security Number"
+  },
+  {
+    "field_name": "credit_card",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "Credit card number"
+  },
+  {
+    "field_name": "phone",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "Phone number"
+  },
+  {
+    "field_name": "address",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "Physical address"
+  },
+  {
+    "field_name": "api_key",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "API key or secret"
+  },
+  {
+    "field_name": "token",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "Authentication token"
+  },
+  {
+    "field_name": "secret",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "Secret key or password"
+  },
+  {
+    "field_name": "private_key",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "Private encryption key"
+  },
+  {
+    "field_name": ".*password.*",
+    "is_exact_match": false,
+    "is_active": true,
+    "description": "Any field containing 'password' (regex pattern)"
+  },
+  {
+    "field_name": ".*secret.*",
+    "is_exact_match": false,
+    "is_active": true,
+    "description": "Any field containing 'secret' (regex pattern)"
+  },
+  {
+    "field_name": ".*key.*",
+    "is_exact_match": false,
+    "is_active": true,
+    "description": "Any field containing 'key' (regex pattern)"
+  },
+  {
+    "field_name": ".*token.*",
+    "is_exact_match": false,
+    "is_active": true,
+    "description": "Any field containing 'token' (regex pattern)"
+  },
+  {
+    "field_name": ".*auth.*",
+    "is_exact_match": false,
+    "is_active": true,
+    "description": "Any field containing 'auth' (regex pattern)"
+  }
+]

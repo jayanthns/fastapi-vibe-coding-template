@@ -1,7 +1,12 @@
 from collections.abc import AsyncGenerator
 
 from fastapi import Request
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import settings
@@ -16,6 +21,11 @@ engine = create_async_engine(settings.database_url, echo=False, future=True)  # 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine, class_=AsyncSession, expire_on_commit=False
 )
+
+
+def get_async_engine() -> AsyncEngine:
+    """Get the async engine instance."""
+    return engine
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -33,8 +43,8 @@ async def get_db_with_trace_id(request: Request) -> AsyncGenerator[AsyncSession,
             # Database operations will be logged with trace_id (development only)
             pass
     """
-    from app.middleware.trace import get_trace_id
     from app.core.sqlalchemy_logging import setup_sqlalchemy_logging
+    from app.middleware.trace import get_trace_id
 
     trace_id = get_trace_id(request)
 
