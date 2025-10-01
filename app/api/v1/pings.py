@@ -15,6 +15,97 @@ from app.schemas.article import APIResponse
 router = APIRouter(tags=["cache-health"])
 
 
+def _mask_redis_url(redis_url: str | None) -> str | None:
+    """Mask sensitive information in Redis URL for security."""
+    if not redis_url:
+        return None
+
+    # Parse the URL to mask password and host details
+    if "://" in redis_url:
+        protocol, rest = redis_url.split("://", 1)
+
+        if "@" in rest:
+            # URL has authentication: redis://user:pass@host:port/db
+            auth_part, host_part = rest.split("@", 1)
+
+            # Mask host details (IP/domain) for security
+            if ":" in host_part:
+                host, port_db = host_part.split(":", 1)
+                if "/" in port_db:
+                    port, db = port_db.split("/", 1)
+                    masked_host = _mask_host(host)
+                    return f"{protocol}://***:***@{masked_host}:{port}/{db}"
+                else:
+                    masked_host = _mask_host(host)
+                    return f"{protocol}://***:***@{masked_host}:{port_db}"
+            else:
+                masked_host = _mask_host(host_part)
+                return f"{protocol}://***:***@{masked_host}"
+        else:
+            # No authentication: redis://host:port/db
+            if ":" in rest:
+                host, port_db = rest.split(":", 1)
+                if "/" in port_db:
+                    port, db = port_db.split("/", 1)
+                    masked_host = _mask_host(host)
+                    return f"{protocol}://{masked_host}:{port}/{db}"
+                else:
+                    masked_host = _mask_host(host)
+                    return f"{protocol}://{masked_host}:{port_db}"
+            else:
+                masked_host = _mask_host(rest)
+                return f"{protocol}://{masked_host}"
+
+    return "***"
+
+
+def _mask_host(host: str) -> str:
+    """Mask host information for security (IP addresses, domains)."""
+    if not host:
+        return "***"
+
+    # Handle IP addresses (IPv4 and IPv6)
+    if ":" in host and not host.startswith("["):
+        # IPv6 address
+        return "[***]"
+    elif host.replace(".", "").replace(":", "").isdigit():
+        # IPv4 address
+        parts = host.split(".")
+        if len(parts) == 4:
+            return f"{parts[0]}.{parts[1]}.***.***"
+        return "***.***.***.***"
+    elif "." in host:
+        # Domain name - mask subdomain and show only main domain
+        parts = host.split(".")
+        if len(parts) >= 2:
+            return f"***.{'.'.join(parts[-2:])}"
+        return "***"
+    else:
+        # Single hostname (like localhost)
+        return host if host in ["localhost", "127.0.0.1"] else "***"
+
+
+def _is_sensitive_key(key: str) -> bool:
+    """Check if a key contains sensitive information that shouldn't be exposed."""
+    sensitive_patterns = [
+        "password",
+        "passwd",
+        "pwd",
+        "secret",
+        "token",
+        "key",
+        "auth",
+        "credential",
+        "session",
+        "jwt",
+        "api_key",
+        "private",
+        "sensitive",
+    ]
+    key_lower = key.lower()
+    return any(pattern in key_lower for pattern in sensitive_patterns)
+
+
 @router.get(
     "/cache",
     response_model=APIResponse[Dict[str, Any]],
@@ -24,6 +115,8 @@ async def ping_cache(request: Request):
     """
     Ping cache service to check connectivity.
 
+    ⚠️  SECURITY NOTE: Redis URLs are masked for security - passwords and
+    host details are replaced with *** to prevent credential and infrastructure exposure.
     Returns:
         Cache connection status and response time
     """
@@ -50,7 +143,9 @@ async def ping_cache(request: Request):
         response_data = {
             "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
-            "redis_url": settings.redis_url if settings.use_redis else None,
+            "redis_url": (
+                _mask_redis_url(settings.redis_url) if settings.use_redis else None
+            ),
             "sync_connection": {
                 "status": "connected" if sync_pong else "failed",
                 "response_time_ms": round(sync_response_time, 2),
@@ -94,7 +189,9 @@ async def ping_cache(request: Request):
         error_data = {
             "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
-            "redis_url": settings.redis_url if settings.use_redis else None,
+            "redis_url": (
+                _mask_redis_url(settings.redis_url) if settings.use_redis else None
+            ),
             "error": str(e),
             "overall_status": "unhealthy",
         }
@@ -118,6 +215,8 @@ async def get_cache_info(request: Request):
     """
     Get cache service information and statistics.
 
+    ⚠️  SECURITY NOTE: Redis URLs are masked for security - passwords and
+    host details are replaced with *** to prevent credential and infrastructure exposure.
     Returns:
         Cache service info, memory usage, and connection details
     """
@@ -141,7 +240,9 @@ async def get_cache_info(request: Request):
         redis_info = {
             "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
-            "redis_url": settings.redis_url if settings.use_redis else None,
+            "redis_url": (
+                _mask_redis_url(settings.redis_url) if settings.use_redis else None
+            ),
             "server": {
                 "version": info.get("redis_version", "unknown"),
                 "mode": info.get("redis_mode", "unknown"),
@@ -192,7 +293,9 @@ async def get_cache_info(request: Request):
         error_data = {
             "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
-            "redis_url": settings.redis_url if settings.use_redis else None,
+            "redis_url": (
+                _mask_redis_url(settings.redis_url) if settings.use_redis else None
+            ),
             "error": str(e),
             "status": "unhealthy",
         }
@@ -216,12 +319,15 @@ async def get_cache_keys(request: Request, pattern: str = "*", limit: int = 100)
     """
     Get cache keys matching a pattern.
 
+    ⚠️  SECURITY NOTE: Sensitive keys containing passwords, tokens, or secrets
+    are automatically filtered out for security. Only safe keys are returned.
+
     Args:
         pattern: Key pattern to match (default: "*")
         limit: Maximum number of keys to return (default: 100)
 
     Returns:
-        List of cache keys matching the pattern
+        List of safe cache keys matching the pattern (sensitive keys filtered)
     """
     logger = get_logger(request)
     trace_id = get_trace_id(request)
@@ -239,8 +345,12 @@ async def get_cache_keys(request: Request, pattern: str = "*", limit: int = 100)
         # Get keys matching pattern
         keys = cache.keys_sync(pattern)
 
-        # Limit the number of keys returned
-        limited_keys = keys[:limit] if len(keys) > limit else keys
+        # Filter out sensitive keys for security
+        safe_keys = [key for key in keys if not _is_sensitive_key(key)]
+        limited_keys = safe_keys[:limit] if len(safe_keys) > limit else safe_keys
+
+        # Count sensitive keys (without exposing them)
+        sensitive_count = len(keys) - len(safe_keys)
 
         # Get key types and TTL for each key
         key_info = []
@@ -261,17 +371,27 @@ async def get_cache_keys(request: Request, pattern: str = "*", limit: int = 100)
         response_data = {
             "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
-            "redis_url": settings.redis_url if settings.use_redis else None,
+            "redis_url": (
+                _mask_redis_url(settings.redis_url) if settings.use_redis else None
+            ),
             "pattern": pattern,
             "total_keys": len(keys),
+            "safe_keys": len(safe_keys),
+            "sensitive_keys_filtered": sensitive_count,
             "returned_keys": len(limited_keys),
             "limit": limit,
             "keys": key_info,
             "status": "healthy",
+            "security_note": (
+                "Sensitive keys containing passwords, tokens, or secrets are "
+                "automatically filtered out for security. Redis URLs are masked "
+                "to prevent credential and infrastructure exposure."
+            ),
         }
 
         logger.info(
-            f"Retrieved {len(limited_keys)} cache keys out of {len(keys)} total"
+            f"Retrieved {len(limited_keys)} safe cache keys out of {len(keys)} total "
+            f"({sensitive_count} sensitive keys filtered for security)"
         )
 
         return APIResponse.create_with_trace_id(
@@ -294,7 +414,9 @@ async def get_cache_keys(request: Request, pattern: str = "*", limit: int = 100)
         error_data = {
             "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
-            "redis_url": settings.redis_url if settings.use_redis else None,
+            "redis_url": (
+                _mask_redis_url(settings.redis_url) if settings.use_redis else None
+            ),
             "pattern": pattern,
             "error": str(e),
             "status": "unhealthy",
