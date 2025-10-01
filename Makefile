@@ -9,7 +9,7 @@ endif
 
 run:
 	@echo "Running FastAPI server..."
-	@$(VENV_ACTIVATE) && uvicorn main:app --reload
+	@$(VENV_ACTIVATE) && ./deploy/uvicorn_start.sh
 
 venv_init:
 	python3 -m venv venv

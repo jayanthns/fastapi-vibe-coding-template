@@ -53,6 +53,8 @@ filelock==3.19.1
     # via virtualenv
 flake8==6.1.0
     # via -r requirements_raw/requirements.in
+gunicorn==23.0.0
+    # via -r requirements_raw/requirements.in
 h11==0.16.0
     # via uvicorn
 httptools==0.6.4
@@ -85,6 +87,7 @@ nodeenv==1.9.1
 packaging==25.0
     # via
     #   black
+    #   gunicorn
     #   pytest
 passlib==1.7.4
     # via -r requirements_raw/requirements.in

@@ -35,3 +35,5 @@ requests-mock==1.11.0
 requests==2.32.4
 types-requests==2.32.4.20250809
 pre-commit==3.4.0
+uvicorn==0.37.0
+gunicorn==23.0.0
