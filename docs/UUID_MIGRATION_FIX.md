@@ -7,12 +7,14 @@ This document outlines the fix for UUID column type inconsistency across migrati
 We had two migration files with inconsistent UUID column definitions:
 
 ### Migration 1: `4f35e18d_init_with_uuid_ids.py` (Articles & Sensitive Fields)
+
 ```python
 # ✅ Correct PostgreSQL UUID format
 sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False)
 ```
 
 ### Migration 2: `4abcc6b81598_add_users_table.py` (Users)
+
 ```python
 # ❌ Generic SQLAlchemy UUID format
 sa.Column("id", sa.UUID(), nullable=False)
@@ -21,6 +23,7 @@ sa.Column("id", sa.UUID(), nullable=False)
 ## 🛠️ Solution Implemented
 
 ### 1. Updated Users Migration File
+
 Changed the users table migration to use the correct PostgreSQL UUID format:
 
 ```python
@@ -32,6 +35,7 @@ sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False)
 ```
 
 ### 2. Created Fix Migration
+
 Generated a new migration `8aed20b7993d_fix_users_uuid_column_type.py` to fix the existing database:
 
 ```python
@@ -45,11 +49,13 @@ def upgrade() -> None:
 ```
 
 ### 3. Applied Migration
+
 Successfully applied the fix migration to ensure database consistency.
 
 ## ✅ Results
 
 ### Database Schema Verification
+
 All UUID columns now use consistent PostgreSQL UUID type:
 
 | Table | Column | Data Type | Nullable |
@@ -59,7 +65,8 @@ All UUID columns now use consistent PostgreSQL UUID type:
 | users | id | uuid | NO |
 
 ### Migration Status
-```
+
+```sh
 Current revision: 8aed20b7993d (head)
 Migration chain:
 1. 4f35e18d - init_with_uuid_ids (articles, sensitive_fields)
@@ -84,14 +91,17 @@ Migration chain:
 ## 🔧 Migration Files Summary
 
 ### File: `alembic/versions/4f35e18d_init_with_uuid_ids.py`
+
 - **Purpose**: Initial migration with articles and sensitive_fields tables
 - **UUID Format**: `postgresql.UUID(as_uuid=True)` ✅
 
 ### File: `alembic/versions/4abcc6b81598_add_users_table.py`
+
 - **Purpose**: Add users table
 - **UUID Format**: `postgresql.UUID(as_uuid=True)` ✅ (Fixed)
 
 ### File: `alembic/versions/8aed20b7993d_fix_users_uuid_column_type.py`
+
 - **Purpose**: Fix UUID column type consistency
 - **Action**: Convert users.id from `sa.UUID()` to `postgresql.UUID(as_uuid=True)`
 

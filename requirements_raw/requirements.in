@@ -15,8 +15,7 @@ python-dotenv>=1.0.1
 asyncpg>=0.29.0
 
 # Redis support for caching and background jobs
-redis>=5.0.1
-aioredis>=2.0.1
+redis[hiredis]>=5.0.1
 
 # Authentication and security
 PyJWT>=2.8.0
@@ -37,3 +36,5 @@ types-requests==2.32.4.20250809
 pre-commit==3.4.0
 uvicorn==0.37.0
 gunicorn==23.0.0
+setuptools>=68.0.0
+aioredis==2.0.1

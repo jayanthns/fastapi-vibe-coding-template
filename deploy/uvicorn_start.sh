@@ -1,16 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Load environment variables from env/.env file
-echo "Loading the environment variables..."
-if [ -f .env ]; then
-    set -a
-    . .env || handle_error "Failed to load environment variables"
-    set +a
-    echo "Environment variables loaded successfully."
-else
-    echo "Warning: .env file not found. Skipping environment variable loading."
-fi
+# Environment variables are loaded by Docker or system environment
+echo "Using system environment variables..."
 
 echo "DISPLAYING THE ENVIRONMENT VARIABLES..."
 echo "APP_MODULE: ${APP_MODULE:-app.main:app}"

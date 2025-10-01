@@ -6,8 +6,8 @@ Provides both sync and async Redis clients as singletons.
 import asyncio
 from typing import Optional
 
-import aioredis
-import redis
+import redis as redis_sync
+import redis.asyncio as redis
 from redis import Redis
 
 from app.core.cache.base_cache import BaseCacheService
@@ -22,7 +22,7 @@ class RedisCacheService(BaseCacheService):
 
     _instance: Optional["RedisCacheService"] = None
     _sync_client: Optional[Redis] = None
-    _async_client: Optional[aioredis.Redis] = None
+    _async_client: Optional[redis.Redis] = None
     _lock = asyncio.Lock()
 
     def __new__(cls) -> "RedisCacheService":
@@ -39,15 +39,15 @@ class RedisCacheService(BaseCacheService):
     def sync_client(self) -> Redis:
         """Get sync Redis client (creates if not exists)."""
         if self._sync_client is None:
-            self._sync_client = redis.from_url(settings.redis_url)
+            self._sync_client = redis_sync.from_url(settings.redis_url)
         return self._sync_client
 
-    async def get_async_client(self) -> aioredis.Redis:
+    async def get_async_client(self) -> redis.Redis:
         """Get async Redis client (creates if not exists)."""
         if self._async_client is None:
             async with self._lock:
                 if self._async_client is None:
-                    self._async_client = await aioredis.from_url(settings.redis_url)
+                    self._async_client = redis.from_url(settings.redis_url)
         return self._async_client
 
     async def close_async_client(self) -> None:
@@ -73,7 +73,7 @@ class RedisCacheService(BaseCacheService):
     def ping_sync(self) -> bool:
         """Ping Redis server using sync client."""
         try:
-            return self.sync_client.ping()
+            return self.sync_client.ping()  # type: ignore
         except Exception:
             return False
 
@@ -121,36 +121,36 @@ class RedisCacheService(BaseCacheService):
     # Sync methods for non-async contexts
     def get_sync(self, key: str) -> Optional[str]:
         """Get value from Redis (sync)."""
-        return self.sync_client.get(key)
+        return self.sync_client.get(key)  # type: ignore
 
     def set_sync(self, key: str, value: str, expire: Optional[int] = None) -> bool:
         """Set value in Redis with optional expiration (sync)."""
-        return self.sync_client.set(key, value, ex=expire)
+        return self.sync_client.set(key, value, ex=expire)  # type: ignore
 
     def delete_sync(self, key: str) -> bool:
         """Delete key from Redis (sync)."""
-        return self.sync_client.delete(key)
+        return self.sync_client.delete(key)  # type: ignore
 
     def exists_sync(self, key: str) -> bool:
         """Check if key exists in Redis (sync)."""
-        return self.sync_client.exists(key)
+        return self.sync_client.exists(key)  # type: ignore
 
     def expire_sync(self, key: str, seconds: int) -> bool:
         """Set expiration for key (sync)."""
-        return self.sync_client.expire(key, seconds)
+        return self.sync_client.expire(key, seconds)  # type: ignore
 
     def ttl_sync(self, key: str) -> int:
         """Get TTL for key (sync)."""
-        return self.sync_client.ttl(key)
+        return self.sync_client.ttl(key)  # type: ignore
 
     def keys_sync(self, pattern: str = "*") -> list[str]:
         """Get keys matching pattern (sync)."""
         keys = self.sync_client.keys(pattern)
-        return [key.decode("utf-8") if isinstance(key, bytes) else key for key in keys]
+        return [key.decode("utf-8") if isinstance(key, bytes) else key for key in keys]  # type: ignore
 
     def info_sync(self) -> dict:
         """Get Redis server information (sync)."""
-        return self.sync_client.info()
+        return self.sync_client.info()  # type: ignore
 
 
 # Global Redis cache service instance

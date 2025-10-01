@@ -15,29 +15,73 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
   - [2) Environment variables (.env)](#2-environment-variables-env)
   - [3) Dependencies with uv (recommended)](#3-dependencies-with-uv-recommended)
   - [4) Database migrations (Alembic)](#4-database-migrations-alembic)
+    - [Using Makefile Commands (Recommended - Django-style)](#using-makefile-commands-recommended---django-style)
+      - [**Create Migrations**](#create-migrations)
+      - [**Apply Migrations**](#apply-migrations)
+      - [**Migration Management**](#migration-management)
+      - [**Database Management**](#database-management)
+      - [**Development Setup**](#development-setup)
+    - [Using Alembic Directly (Alternative)](#using-alembic-directly-alternative)
   - [5) Run the application](#5-run-the-application)
   - [6) Quick project structure](#6-quick-project-structure)
   - [7) Tests (optional)](#7-tests-optional)
+    - [Running Tests](#running-tests)
+    - [Test Database Configuration](#test-database-configuration)
+      - [Environment Variables for Testing](#environment-variables-for-testing)
+      - [Test Database Setup](#test-database-setup)
+      - [Manual Test Database Setup](#manual-test-database-setup)
+      - [Test Isolation](#test-isolation)
   - [8) Makefile commands](#8-makefile-commands)
     - [Local app](#local-app)
     - [Python virtualenv](#python-virtualenv)
     - [Using uv for dependencies (faster)](#using-uv-for-dependencies-faster)
     - [Security auditing](#security-auditing)
     - [Database migrations (Django-style)](#database-migrations-django-style)
+    - [Test database management](#test-database-management)
     - [Docker helpers](#docker-helpers)
   - [10) Run with Docker](#10-run-with-docker)
   - [11) Debug/start scripts](#11-debugstart-scripts)
   - [12) Production deployment](#12-production-deployment)
   - [13) VS Code tasks](#13-vs-code-tasks)
   - [14) Testing guidance](#14-testing-guidance)
+    - [Test Database Strategy](#test-database-strategy)
+    - [Testing Patterns](#testing-patterns)
+    - [Test Structure](#test-structure)
+    - [Running Tests](#running-tests-1)
   - [15) Alembic tips](#15-alembic-tips)
   - [16) Security notes](#16-security-notes)
   - [17) Architecture overview](#17-architecture-overview)
   - [18) Request tracing and logging](#18-request-tracing-and-logging)
-  - [19) Redis Caching](#19-redis-caching)
+    - [Trace ID System](#trace-id-system)
+    - [Request-Level Logging](#request-level-logging)
+      - [Log Format](#log-format)
+      - [Usage in API Endpoints](#usage-in-api-endpoints)
+      - [Usage in Background/Async Tasks](#usage-in-backgroundasync-tasks)
+      - [Usage in Services and Repositories](#usage-in-services-and-repositories)
+      - [Response Headers](#response-headers)
+      - [API Response Format](#api-response-format)
+      - [Configuration](#configuration)
+      - [Architecture](#architecture)
+      - [File Logging](#file-logging)
+      - [Environment-Based SQL Logging](#environment-based-sql-logging)
+      - [Key Benefits](#key-benefits)
+  - [19) Industry-Standard Caching with Automatic Fallback](#19-industry-standard-caching-with-automatic-fallback)
+    - [Key Features](#key-features)
+    - [Quick Start](#quick-start)
+    - [How It Works](#how-it-works)
+    - [Basic Usage](#basic-usage)
+    - [Health Checks](#health-checks)
+    - [Startup Behavior](#startup-behavior)
+    - [Documentation](#documentation)
   - [20) Background Jobs API (Template Feature)](#20-background-jobs-api-template-feature)
+    - [Features](#features)
+    - [API Endpoints](#api-endpoints)
+    - [Usage Example](#usage-example)
+    - [Testing](#testing)
     - [Background Jobs Code Cleanup](#background-jobs-code-cleanup)
   - [21) Documentation](#21-documentation)
+    - [📚 Available Documentation](#-available-documentation)
+    - [🔗 Quick Links](#-quick-links)
   - [22) API docs \& versioning](#22-api-docs--versioning)
   - [23) VS Code mandatory extensions](#23-vs-code-mandatory-extensions)
   - [9) How to extend this template (step‑by‑step guide)](#9-how-to-extend-this-template-stepbystep-guide)
@@ -139,6 +183,7 @@ pip install -e '.[dev]'
 The project includes Django-style migration commands via Makefile for easier database management:
 
 #### **Create Migrations**
+
 ```bash
 # Create a new migration (like Django makemigrations)
 make makemigrations MSG='add user table'
@@ -146,12 +191,14 @@ make makemigrations MSG='update article schema'
 ```
 
 #### **Apply Migrations**
+
 ```bash
 # Apply all pending migrations (like Django migrate)
 make migrate
 ```
 
 #### **Migration Management**
+
 ```bash
 # Show migration history
 make migrate-history
@@ -170,6 +217,7 @@ make migrate-reset
 ```
 
 #### **Database Management**
+
 ```bash
 # Initialize database with all migrations
 make db-init
@@ -182,6 +230,7 @@ make db-init
 ```
 
 #### **Development Setup**
+
 ```bash
 # Complete development environment setup
 make dev-setup
