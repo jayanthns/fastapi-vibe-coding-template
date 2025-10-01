@@ -5,6 +5,7 @@ This guide explains how to use the industry-standard caching system with automat
 ## 🎯 **Overview**
 
 The caching system provides:
+
 - **High Availability**: Automatic fallback from Redis to memory cache
 - **Industry Standard**: Follows Netflix/Uber patterns for cache resilience
 - **Zero Downtime**: Seamless switching when Redis is unavailable
@@ -12,6 +13,7 @@ The caching system provides:
 - **Comprehensive Monitoring**: Detailed logging and statistics
 
 ### **Cache Architecture:**
+
 - **Primary Cache**: Redis (shared, persistent, distributed)
 - **Fallback Cache**: Memory (local, fast, reliable)
 - **Automatic Switching**: Based on Redis health checks
@@ -71,18 +73,21 @@ The cache system implements industry-standard fallback patterns for high availab
 ### **Fallback Behavior:**
 
 #### **When Redis is Available:**
-```
+
+```sh
 ✅ Redis cache connection established successfully
 ```
 
 #### **When Redis is Unavailable:**
-```
+
+```sh
 ✅ Memory cache (fallback) connection established successfully
    Redis unavailable, using memory cache fallback
 ```
 
 #### **When Redis Recovers:**
-```
+
+```sh
 Redis recovered, switched back to primary cache
 ```
 
@@ -124,7 +129,7 @@ The system tracks comprehensive fallback metrics:
 
 The cache system follows industry best practices with a clean, modular architecture:
 
-```
+```sh
 app/core/cache/
 ├── __init__.py              # Main exports and public API
 ├── base_cache.py            # Abstract base class for all implementations
@@ -504,6 +509,7 @@ async def test_caching():
 ## 📚 **Examples**
 
 See `app/examples/redis_usage.py` for comprehensive usage examples including:
+
 - Direct Redis service usage
 - Cache manager patterns
 - Function result caching

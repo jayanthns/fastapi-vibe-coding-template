@@ -18,7 +18,7 @@ The project uses **pytest** as the testing framework with comprehensive configur
 
 ## Test Structure
 
-```
+```sh
 tests/
 ├── conftest.py              # Shared fixtures and configuration
 ├── test_background_jobs.py  # Background jobs tests
@@ -28,6 +28,7 @@ tests/
 ## Test Discovery
 
 Tests are automatically discovered from:
+
 - `tests/` directory
 - Files matching `test_*.py` or `*_test.py` patterns
 - Classes starting with `Test`
@@ -36,6 +37,7 @@ Tests are automatically discovered from:
 ## Excluded Directories
 
 The following directories are automatically excluded from test discovery:
+
 - `venv`, `.venv` - Virtual environments
 - `env`, `.env` - Environment directories
 - `.git` - Git repository
@@ -312,6 +314,7 @@ pytest -v -s tests/test_background_jobs.py::TestBackgroundJobService::test_creat
 ## Examples
 
 See `tests/test_background_jobs.py` for comprehensive examples of:
+
 - Unit tests for service classes
 - Integration tests for background jobs
 - Async test patterns

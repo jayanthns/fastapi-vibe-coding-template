@@ -14,14 +14,22 @@ services:
     env_file:
       - .env
     environment:
+      - DOCKER_CONTAINER=true
       - DATABASE_HOST=${DATABASE_DOCKER_HOST:-fastapi_vibe_coding_db_svc}
       - DATABASE_PORT=5432
-      - REDIS_HOST_AND_PORT=fastapi_vibe_coding_redis_svc:6379
+      - DATABASE_DRIVER=postgresql+asyncpg
+      - DATABASE_USERNAME=${DATABASE_USERNAME:-postgres}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres}
+      - DATABASE_NAME=${DATABASE_NAME:-fastapi_vibe_coding}
+      - USE_REDIS=1
       - REDIS_HOST=fastapi_vibe_coding_redis_svc
       - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
+      - REDIS_HOST_AND_PORT=fastapi_vibe_coding_redis_svc:6379
     depends_on:
       - fastapi_vibe_coding_db_svc
-      # - fastapi_vibe_coding_redis_svc
+      - fastapi_vibe_coding_redis_svc
     stdin_open: true
     tty: true
     networks:
