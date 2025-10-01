@@ -52,23 +52,23 @@ curl "http://localhost:8000/api/v1/pings/redis/keys"
 
 ## 🔧 **Usage Patterns**
 
-### **1. Direct Redis Service Usage**
+### **1. Direct Cache Usage**
 
 ```python
-from app.core.cache import get_redis
+from app.core.cache import cache
 
 # In API endpoint
 async def my_endpoint(request: Request):
-    redis = await get_redis()
+    # Use cache directly
 
     # Set value
-    await redis.set("key", "value", expire=300)  # 5 minutes
+    await cache.set("key", "value", expire=300)  # 5 minutes
 
     # Get value
-    value = await redis.get("key")
+    value = await cache.get("key")
 
     # Check existence
-    exists = await redis.exists("key")
+    exists = await cache.exists("key")
 
     return {"value": value, "exists": exists}
 ```

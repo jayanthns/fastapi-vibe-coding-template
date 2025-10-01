@@ -661,15 +661,15 @@ REDIS_URL=redis://:password@localhost:6379/0
 ### Basic Usage
 
 ```python
-from app.core.cache import unified_cache_service, cache
+from app.core.cache import cache
 
 # Async methods (use in FastAPI endpoints)
-await unified_cache_service.set("key", "value", expire=300)
-value = await unified_cache_service.get("key")
+await cache.set("key", "value", expire=300)
+value = await cache.get("key")
 
 # Sync methods (use in regular functions)
-unified_cache_service.set_sync("key", "value", expire=300)
-value = unified_cache_service.get_sync("key")
+cache.set_sync("key", "value", expire=300)
+value = cache.get_sync("key")
 
 # Cache manager (automatic serialization)
 await cache.set("user:123", {"name": "John"}, expire=600)

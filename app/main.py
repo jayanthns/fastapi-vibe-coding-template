@@ -8,7 +8,7 @@ from app.api.urls import api_router
 from app.core.background_tasks import background_task_manager
 from app.core.config import settings
 from app.core.logging import setup_logging
-from app.core.cache import unified_cache_service
+from app.core.cache import cache
 from app.db.session import engine
 from app.middleware.trace import TraceIDMiddleware
 
@@ -23,8 +23,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Initialize cache service
     try:
-        await unified_cache_service.ping()
-        cache_type = unified_cache_service.service_type
+        await cache.ping()
+        cache_type = cache.service_type
         print(f"✅ {cache_type.title()} cache connection established successfully")
     except Exception as e:
         print(f"⚠️  Cache connection failed: {e}")
@@ -37,8 +37,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Cleanup
     await background_task_manager.stop()
-    if unified_cache_service.is_redis:
-        await unified_cache_service._get_service().close_async_client()
+    if cache.is_redis:
+        await cache._get_service().close_async_client()
 
 
 app = FastAPI(title=settings.app_name, debug=settings.debug, lifespan=lifespan)

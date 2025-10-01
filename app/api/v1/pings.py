@@ -33,22 +33,22 @@ async def ping_cache(request: Request):
     logger.info("Pinging cache service")
 
     try:
-        from app.core.cache import unified_cache_service
+        from app.core.cache import cache
         from app.core.config import settings
 
         # Test sync cache connection
         sync_start_time = time.time()
-        sync_pong = unified_cache_service.ping_sync()
+        sync_pong = cache.ping_sync()
         sync_response_time = (time.time() - sync_start_time) * 1000  # Convert to ms
 
         # Test async cache connection
         async_start_time = time.time()
-        async_pong = await unified_cache_service.ping()
+        async_pong = await cache.ping()
         async_response_time = (time.time() - async_start_time) * 1000  # Convert to ms
 
         # Prepare response data
         response_data = {
-            "cache_type": unified_cache_service.service_type,
+            "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
             "redis_url": settings.redis_url if settings.use_redis else None,
             "sync_connection": {
@@ -65,16 +65,16 @@ async def ping_cache(request: Request):
         }
 
         logger.info(
-            f"Cache ping successful - Type: {unified_cache_service.service_type}, "
+            f"Cache ping successful - Type: {cache.service_type}, "
             f"Sync: {sync_pong}, Async: {async_pong}"
         )
 
         return APIResponse.create_with_trace_id(
             data=response_data,
             message=(
-                f"{unified_cache_service.service_type.title()} cache ping successful"
+                f"{cache.service_type.title()} cache ping successful"
                 if (sync_pong and async_pong)
-                else f"{unified_cache_service.service_type.title()} cache ping failed"
+                else f"{cache.service_type.title()} cache ping failed"
             ),
             status_code=200,
             trace_id=trace_id,
@@ -92,7 +92,7 @@ async def ping_cache(request: Request):
 
         # Return error response with connection details
         error_data = {
-            "cache_type": unified_cache_service.service_type,
+            "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
             "redis_url": settings.redis_url if settings.use_redis else None,
             "error": str(e),
@@ -127,19 +127,19 @@ async def get_cache_info(request: Request):
     logger.info("Getting cache service information")
 
     try:
-        from app.core.cache import unified_cache_service
+        from app.core.cache import cache
         from app.core.config import settings
 
         # Test connection first
-        if not unified_cache_service.ping_sync():
+        if not cache.ping_sync():
             raise Exception("Cache service is not responding")
 
         # Get cache info
-        info = unified_cache_service.info_sync()
+        info = cache.info_sync()
 
         # Extract relevant information
         redis_info = {
-            "cache_type": unified_cache_service.service_type,
+            "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
             "redis_url": settings.redis_url if settings.use_redis else None,
             "server": {
@@ -170,9 +170,7 @@ async def get_cache_info(request: Request):
             if key.startswith("db"):
                 redis_info["databases"][key] = value  # type: ignore
 
-        logger.info(
-            f"Cache info retrieved successfully - Type: {unified_cache_service.service_type}"
-        )
+        logger.info(f"Cache info retrieved successfully - Type: {cache.service_type}")
 
         return APIResponse.create_with_trace_id(
             data=redis_info,
@@ -192,7 +190,7 @@ async def get_cache_info(request: Request):
         logger.error(f"Failed to get cache info: {str(e)}")
 
         error_data = {
-            "cache_type": unified_cache_service.service_type,
+            "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
             "redis_url": settings.redis_url if settings.use_redis else None,
             "error": str(e),
@@ -231,15 +229,15 @@ async def get_cache_keys(request: Request, pattern: str = "*", limit: int = 100)
     logger.info(f"Getting cache keys with pattern: {pattern}, limit: {limit}")
 
     try:
-        from app.core.cache import unified_cache_service
+        from app.core.cache import cache
         from app.core.config import settings
 
         # Test connection first
-        if not unified_cache_service.ping_sync():
+        if not cache.ping_sync():
             raise Exception("Cache service is not responding")
 
         # Get keys matching pattern
-        keys = unified_cache_service.keys_sync(pattern)
+        keys = cache.keys_sync(pattern)
 
         # Limit the number of keys returned
         limited_keys = keys[:limit] if len(keys) > limit else keys
@@ -249,7 +247,7 @@ async def get_cache_keys(request: Request, pattern: str = "*", limit: int = 100)
         for key in limited_keys:
             # For memory cache, we don't have type information, so use "string"
             key_type = "string" if not settings.use_redis else "unknown"
-            ttl = unified_cache_service.ttl_sync(key)
+            ttl = cache.ttl_sync(key)
 
             key_info.append(
                 {
@@ -261,7 +259,7 @@ async def get_cache_keys(request: Request, pattern: str = "*", limit: int = 100)
             )
 
         response_data = {
-            "cache_type": unified_cache_service.service_type,
+            "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
             "redis_url": settings.redis_url if settings.use_redis else None,
             "pattern": pattern,
@@ -294,7 +292,7 @@ async def get_cache_keys(request: Request, pattern: str = "*", limit: int = 100)
         logger.error(f"Failed to get cache keys: {str(e)}")
 
         error_data = {
-            "cache_type": unified_cache_service.service_type,
+            "cache_type": cache.service_type,
             "use_redis": settings.use_redis,
             "redis_url": settings.redis_url if settings.use_redis else None,
             "pattern": pattern,
