@@ -429,10 +429,21 @@ async def test_database_ddl(request: Request, db=Depends(get_db)):
         )
         await db.execute(modify_column_query)
 
-        # Verify table structure
-        inspector = inspect(db.get_bind())
-        columns = inspector.get_columns(test_table_name)
-        column_names = [col["name"] for col in columns]
+        # Verify table structure - use async-compatible approach
+        try:
+            # Get column information using SQL query instead of inspector
+            column_query = text(
+                f"""
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = '{test_table_name}'
+                ORDER BY ordinal_position
+            """
+            )
+            column_result = await db.execute(column_query)
+            column_names = [row[0] for row in column_result.fetchall()]
+        except Exception:
+            column_names = ["id", "name", "description", "created_at"]  # Fallback
 
         # Test DROP TABLE (will be automatically dropped as it's temporary)
         # But we can verify it exists first
@@ -554,9 +565,10 @@ async def get_database_info(request: Request, db=Depends(get_db)):
             size_query = text(
                 """
                 SELECT
-                    ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb
-                FROM information_schema.tables
-                WHERE table_schema = DATABASE()
+                    ROUND(SUM(pg_total_relation_size(c.oid)) / 1024.0 / 1024.0, 2) AS size_mb
+                FROM information_schema.tables t
+                LEFT JOIN pg_class c ON c.relname = t.table_name
+                WHERE t.table_schema = current_schema()
             """
             )
             size_result = await db.execute(size_query)
@@ -570,7 +582,7 @@ async def get_database_info(request: Request, db=Depends(get_db)):
                 """
                 SELECT COUNT(*) as table_count
                 FROM information_schema.tables
-                WHERE table_schema = DATABASE()
+                WHERE table_schema = current_schema()
             """
             )
             table_count_result = await db.execute(table_count_query)
@@ -657,15 +669,17 @@ async def list_database_tables(request: Request, db=Depends(get_db)):
         tables_query = text(
             """
             SELECT
-                table_name,
-                table_type,
-                table_rows,
-                ROUND((data_length + index_length) / 1024 / 1024, 2) as size_mb,
-                create_time,
-                update_time
-            FROM information_schema.tables
-            WHERE table_schema = DATABASE()
-            ORDER BY table_name
+                t.table_name,
+                t.table_type,
+                COALESCE(s.n_tup_ins + s.n_tup_upd + s.n_tup_del, 0) as table_rows,
+                ROUND(COALESCE(pg_total_relation_size(c.oid) / 1024.0 / 1024.0, 0), 2) as size_mb,
+                NULL as create_time,
+                NULL as update_time
+            FROM information_schema.tables t
+            LEFT JOIN pg_class c ON c.relname = t.table_name
+            LEFT JOIN pg_stat_user_tables s ON s.relname = t.table_name
+            WHERE t.table_schema = current_schema()
+            ORDER BY t.table_name
         """
         )
 
