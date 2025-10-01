@@ -255,9 +255,66 @@ requirements/
 
 ## 7) Tests (optional)
 
+### Running Tests
+
 ```bash
+# Run all tests
 pytest -q
+
+# Run with coverage
+pytest --cov
+
+# Run specific test file
+pytest tests/test_api/test_database_pings.py -v
 ```
+
+### Test Database Configuration
+
+The test suite uses a **separate PostgreSQL test database** to ensure test isolation and prevent data pollution. The test database is automatically configured using environment variables:
+
+- **Test Database Name**: `{DATABASE_NAME}_test` (e.g., `fastapi_vibe_coding_test`)
+- **Credentials**: Uses the same database credentials as your main database
+- **Auto-setup**: The test database is created automatically when running tests
+
+#### Environment Variables for Testing
+
+The test configuration reads from these environment variables (with defaults):
+
+```bash
+DATABASE_HOST=localhost          # Database host
+DATABASE_PORT=5432              # Database port
+DATABASE_USERNAME=postgres      # Database username
+DATABASE_PASSWORD=postgres      # Database password
+DATABASE_NAME=fastapi_vibe_coding  # Base database name
+```
+
+#### Test Database Setup
+
+Before running tests, ensure your PostgreSQL server is running and accessible. The test suite will:
+
+1. **Create test database** if it doesn't exist
+2. **Run migrations** to set up the schema
+3. **Execute tests** in isolation
+4. **Clean up** after completion
+
+#### Manual Test Database Setup
+
+If you need to manually create the test database:
+
+```bash
+# Run the setup script
+python scripts/setup_test_db.py
+
+# Or create manually via psql
+psql -h localhost -U postgres -d postgres -c "CREATE DATABASE fastapi_vibe_coding_test;"
+```
+
+#### Test Isolation
+
+- Each test run uses a fresh test database
+- Tests don't interfere with your development database
+- No data pollution between test runs
+- Fast execution with dedicated test environment
 
 ## 8) Makefile commands
 
@@ -306,6 +363,13 @@ Use these shortcuts to manage your environment, dependencies, and Docker. Run fr
 - **make migrate-show**: Show latest migration details.
 - **make migrate-downgrade**: Downgrade one migration.
 - **make migrate-reset**: Reset all migrations (development only!).
+
+### Test database management
+
+- **make test-db-setup**: Create test database for running tests.
+  - Example: `make test-db-setup`
+- **make test-db-drop**: Drop test database (cleanup).
+  - Example: `make test-db-drop`
 - **make db-init**: Initialize database with all migrations.
 - **make db-reset**: Reset database completely (development only!).
 - **make db-seed**: Seed database with initial data.
@@ -381,9 +445,47 @@ This repo includes `/.vscode/tasks.json` with common tasks (run server, tests, D
 
 ## 14) Testing guidance
 
-- Use `pytest` with `httpx.AsyncClient` for async API tests.
-- Provide an async SQLAlchemy test session fixture; roll back between tests or use a test DB.
-- Keep unit tests for services (business logic) separate from API/integration tests.
+### Test Database Strategy
+
+- **Separate Test Database**: Uses `{DATABASE_NAME}_test` PostgreSQL database for complete isolation
+- **Environment-based Configuration**: Test database credentials read from environment variables
+- **Automatic Setup**: Test database created and migrated automatically before test execution
+- **No Data Pollution**: Tests never touch your development database
+
+### Testing Patterns
+
+- **API Tests**: Use `pytest` with `httpx.AsyncClient` for async API endpoint testing
+- **Database Tests**: Use the provided test database fixture for database operations
+- **Unit Tests**: Keep service layer tests separate from API/integration tests
+- **Test Isolation**: Each test run gets a fresh database schema
+
+### Test Structure
+
+```
+tests/
+├── conftest.py              # Test database configuration
+├── test_api/                # API endpoint tests
+│   ├── test_database_pings.py
+│   └── test_articles.py
+├── test_utils/              # Utility function tests
+│   └── test_security.py
+└── test_services/           # Service layer tests
+    └── test_article.py
+```
+
+### Running Tests
+
+```bash
+# All tests with test database
+pytest
+
+# Specific test categories
+pytest tests/test_api/        # API tests only
+pytest tests/test_utils/      # Utility tests only
+
+# With coverage reporting
+pytest --cov=app --cov-report=html
+```
 
 ## 15) Alembic tips
 
