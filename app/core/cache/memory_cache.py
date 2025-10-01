@@ -3,11 +3,10 @@ In-memory cache implementation as an alternative to Redis.
 Provides the same interface as Redis service but uses local memory.
 """
 
-import asyncio
 import time
 from typing import Any, Dict, Optional
 
-from .base_cache import BaseCacheService
+from app.core.cache.base_cache import BaseCacheService
 
 
 class MemoryCacheService(BaseCacheService):
@@ -234,7 +233,6 @@ class MemoryCacheService(BaseCacheService):
 
     async def _cleanup_expired(self) -> None:
         """Remove expired keys from cache."""
-        current_time = time.time()
         expired_keys = [
             key
             for key, item in self._cache.items()
@@ -245,7 +243,6 @@ class MemoryCacheService(BaseCacheService):
 
     def _cleanup_expired_sync(self) -> None:
         """Remove expired keys from cache (sync)."""
-        current_time = time.time()
         expired_keys = [
             key
             for key, item in self._cache.items()

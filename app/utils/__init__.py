@@ -5,7 +5,7 @@ This package contains various utility functions and helpers used throughout
 the application, including security, logging, and other common functionality.
 """
 
-from .security import (
+from app.utils.security import (
     create_masked_response,
     mask_credentials,
     mask_sensitive_data,

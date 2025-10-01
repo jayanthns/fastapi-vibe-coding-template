@@ -8,7 +8,7 @@ import pickle
 from functools import wraps
 from typing import Any, Callable, Optional
 
-from .unified_cache import unified_cache_service
+from app.core.cache.unified_cache import unified_cache_service
 
 
 class CacheManager:

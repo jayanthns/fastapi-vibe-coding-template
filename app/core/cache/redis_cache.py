@@ -10,7 +10,7 @@ import aioredis
 import redis
 from redis import Redis
 
-from .base_cache import BaseCacheService
+from app.core.cache.base_cache import BaseCacheService
 from app.core.config import settings
 
 

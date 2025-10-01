@@ -5,7 +5,7 @@ Base cache service that provides common functionality for both Redis and memory 
 import asyncio
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Optional
 
 
 class BaseCacheService(ABC):

@@ -6,8 +6,8 @@ based on the USE_REDIS configuration flag.
 from typing import Any, Optional
 
 from app.core.config import settings
-from .memory_cache import memory_cache_service
-from .redis_cache import redis_cache_service
+from app.core.cache.memory_cache import memory_cache_service
+from app.core.cache.redis_cache import redis_cache_service
 
 
 class UnifiedCacheService:
