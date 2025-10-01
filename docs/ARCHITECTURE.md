@@ -191,20 +191,23 @@ Why: Version control for database schema, safe upgrades/downgrades.
 ## Logging Architecture
 
 ### File Structure
-```
+
+```sh
 tmp/logs/
 ├── app-YYYY-MM-DD.log        # All application logs
 └── sqlalchemy-YYYY-MM-DD.log # Database queries (dev only)
 ```
 
 ### Log Format
-```
+
+```sh
 2024-09-29 20:06:15,123 | INFO | 32471740-1d73-4cc7-a437-a85083301776 | app.request | Request started: GET /api/v1/articles/
 2024-09-29 20:06:15,124 | INFO | 32471740-1d73-4cc7-a437-a85083301776 | app.request | Listing articles - skip: 0, limit: 100
 2024-09-29 20:06:15,125 | INFO | 32471740-1d73-4cc7-a437-a85083301776 | app.access | ACCESS: GET /api/v1/articles/ - 200 - 0.0242s
 ```
 
 ### Key Features
+
 - **Trace ID**: Every log entry includes the request's trace_id
 - **Dual output**: Console + file logging simultaneously
 - **Daily rotation**: New log file each day
@@ -273,20 +276,24 @@ The project follows a clean, logical directory structure:
 ## Where to start reading
 
 ### Core Application
+
 - `app/main.py` to see app bootstrapping, middleware, and centralized URL routing.
 - `app/core/config.py` to understand application configuration and settings.
 - `app/core/logging.py` to see comprehensive logging system.
 
 ### Request Flow
+
 - `app/middleware/trace.py` to understand request tracing and logging setup.
 - `app/api/urls.py` to see how API routes are organized and configured.
 - `app/api/v1/articles.py` to see individual router implementation with logging.
 
 ### Business Logic
+
 - `app/services/article.py` and `app/repositories/article.py` for domain + data layers.
 - `app/models/article.py` and `app/schemas/article.py` for persisted and transport shapes.
 
 ### Database Integration
+
 - `app/db/session.py` for database session management with trace_id integration.
 - `app/core/sqlalchemy_logging.py` for database logging integration.
 

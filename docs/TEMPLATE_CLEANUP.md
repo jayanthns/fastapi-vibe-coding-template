@@ -23,26 +23,31 @@ This guide helps you create a completely clean FastAPI template by removing all 
 ### 1. Remove Articles CRUD Code
 
 #### Remove Article Model
+
 ```bash
 rm app/models/article.py
 ```
 
 #### Remove Article Repository
+
 ```bash
 rm app/repositories/article.py
 ```
 
 #### Remove Article Service
+
 ```bash
 rm app/services/article.py
 ```
 
 #### Remove Article Schemas
+
 ```bash
 rm app/schemas/article.py
 ```
 
 #### Remove Articles API
+
 ```bash
 rm app/api/v1/articles.py
 ```
@@ -50,16 +55,19 @@ rm app/api/v1/articles.py
 ### 2. Remove Background Jobs Code
 
 #### Remove Background Jobs API
+
 ```bash
 rm app/api/v1/background_jobs.py
 ```
 
 #### Remove Background Job Service
+
 ```bash
 rm app/services/background_job_service.py
 ```
 
 #### Remove Background Task Manager
+
 ```bash
 rm app/core/background_tasks.py
 ```
@@ -213,8 +221,8 @@ Remove background jobs test command from `Makefile`:
 ```makefile
 # Remove this section
 test-background:
-	@echo "Running background job tests only..."
-	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "background"
+    @echo "Running background job tests only..."
+    @$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "background"
 ```
 
 And update the help section to remove the background jobs test command.
@@ -257,16 +265,19 @@ make makemigrations MSG="initial migration"
 After cleanup, verify everything works:
 
 ### 1. Test Application Startup
+
 ```bash
 make run
 ```
 
 ### 2. Check Health Endpoint
+
 ```bash
 curl http://localhost:8000/healthz
 ```
 
 Expected response:
+
 ```json
 {
   "status": "healthy",
@@ -277,14 +288,17 @@ Expected response:
 ```
 
 ### 3. Check API Documentation
+
 Visit `http://localhost:8000/docs` - you should see only the health endpoint.
 
 ### 4. Run Tests
+
 ```bash
 make test
 ```
 
 ### 5. Check Logs
+
 ```bash
 tail -f tmp/logs/app-*.log
 ```
@@ -294,6 +308,7 @@ tail -f tmp/logs/app-*.log
 After cleanup, you'll have a clean FastAPI template with:
 
 ### ✅ Core Infrastructure
+
 - **FastAPI Application**: Properly configured with middleware
 - **Database Setup**: SQLAlchemy + Alembic ready for your models
 - **Logging System**: Request tracing and comprehensive logging
@@ -301,12 +316,14 @@ After cleanup, you'll have a clean FastAPI template with:
 - **Health Check**: Basic health endpoint with trace ID
 
 ### ✅ Development Tools
+
 - **Makefile**: Database migrations, testing, and development commands
 - **Testing Framework**: pytest with async support and coverage
 - **Code Formatting**: ruff for linting and formatting
 - **Docker Support**: Ready for containerization
 
 ### ✅ Production Features
+
 - **Request Tracing**: Trace ID middleware for request tracking
 - **Structured Logging**: File and console logging with rotation
 - **CORS Support**: Configurable CORS middleware
@@ -317,6 +334,7 @@ After cleanup, you'll have a clean FastAPI template with:
 Now you can start building your own application:
 
 ### 1. Create Your Model
+
 ```python
 # app/models/your_model.py
 from sqlalchemy import Column, Integer, String, DateTime
@@ -334,12 +352,14 @@ class YourModel(Base):
 ```
 
 ### 2. Create Migration
+
 ```bash
 make makemigrations MSG="add your_model table"
 make migrate
 ```
 
 ### 3. Create Schemas
+
 ```python
 # app/schemas/your_model.py
 from datetime import datetime
@@ -369,6 +389,7 @@ class YourModel(YourModelInDBBase):
 ```
 
 ### 4. Create Repository
+
 ```python
 # app/repositories/your_model.py
 from typing import List
@@ -406,6 +427,7 @@ class YourModelRepository:
 ```
 
 ### 5. Create Service
+
 ```python
 # app/services/your_model.py
 from typing import List
@@ -438,6 +460,7 @@ class YourModelService:
 ```
 
 ### 6. Create API Endpoints
+
 ```python
 # app/api/v1/your_models.py
 from typing import List
@@ -539,6 +562,7 @@ async def delete_your_model(
 ```
 
 ### 7. Add to API Router
+
 ```python
 # app/api/urls.py
 from app.api.v1 import your_models
@@ -547,6 +571,7 @@ api_router.include_router(your_models.router, prefix="/v1/your-models", tags=["y
 ```
 
 ### 8. Test Your API
+
 ```bash
 # Start the server
 make run
