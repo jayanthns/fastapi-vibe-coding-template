@@ -1,0 +1,68 @@
+[
+  {
+    "field_name": "first_name",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "User first name (PII)"
+  },
+  {
+    "field_name": "last_name",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "User last name (PII)"
+  },
+  {
+    "field_name": "full_name",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "User full name (PII)"
+  },
+  {
+    "field_name": "age",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "User age (PII)"
+  },
+  {
+    "field_name": "username",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "Username (PII)"
+  },
+  {
+    "field_name": "password_hash",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "Hashed password (sensitive)"
+  },
+  {
+    "field_name": "access_token",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "JWT access token (sensitive)"
+  },
+  {
+    "field_name": "refresh_token",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "JWT refresh token (sensitive)"
+  },
+  {
+    "field_name": "last_login",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "Last login timestamp (PII)"
+  },
+  {
+    "field_name": "created_at",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "User creation timestamp (PII)"
+  },
+  {
+    "field_name": "updated_at",
+    "is_exact_match": true,
+    "is_active": true,
+    "description": "User update timestamp (PII)"
+  }
+]

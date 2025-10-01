@@ -5,7 +5,14 @@ This file acts as the main URL dispatcher, similar to Django's urls.py.
 
 from fastapi import APIRouter
 
-from app.api.v1 import articles, background_jobs, database_pings, pings, sensitive_fields
+from app.api.v1 import (
+    articles,
+    background_jobs,
+    database_pings,
+    pings,
+    sensitive_fields,
+    users,
+)
 
 # Create the main API router
 api_router = APIRouter()
@@ -22,6 +29,7 @@ api_router.include_router(
 api_router.include_router(
     sensitive_fields.router, prefix="/v1/sensitive-fields", tags=["sensitive-fields"]
 )
+api_router.include_router(users.router, prefix="/v1/users", tags=["users"])
 
 # You can add more versioned routes here as your API grows
 # Example:

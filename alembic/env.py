@@ -18,6 +18,7 @@ from app.db.session import Base  # noqa: E402
 from app.models import (  # noqa: E402, F401 - ensure models are imported
     article,
     sensitive_field,
+    user,
 )
 
 # this is the Alembic Config object, which provides

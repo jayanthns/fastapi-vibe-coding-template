@@ -4,7 +4,6 @@ Handles periodic cleanup of old jobs and system maintenance.
 """
 
 import asyncio
-from datetime import datetime, timedelta
 
 from app.core.logging import get_logger_for_trace_id
 from app.services.background_job_service import background_job_service
@@ -14,7 +13,7 @@ class BackgroundTaskManager:
     """Manages background tasks and cleanup operations."""
 
     def __init__(self):
-        self._cleanup_task: asyncio.Task | None = None
+        self._cleanup_task: asyncio.Task | None = None  # type: ignore
         self._running = False
 
     async def start(self):

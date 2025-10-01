@@ -17,6 +17,11 @@ asyncpg>=0.29.0
 # Redis support for caching and background jobs
 redis>=5.0.1
 aioredis>=2.0.1
+
+# Authentication and security
+PyJWT>=2.8.0
+passlib[bcrypt]>=1.7.4
+email-validator>=2.1.0
 pytest>=8.3.2
 pytest-cov==4.1.0
 pytest-asyncio==1.2.0
