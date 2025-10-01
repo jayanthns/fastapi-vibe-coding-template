@@ -4,6 +4,7 @@ Pydantic schemas for sensitive field configuration.
 
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -49,7 +50,7 @@ class SensitiveFieldUpdate(BaseModel):
 class SensitiveFieldResponse(SensitiveFieldBase):
     """Schema for sensitive field response."""
 
-    id: int
+    id: UUID
     created_at: datetime
     updated_at: datetime
 

@@ -1,4 +1,5 @@
 from typing import Sequence
+from uuid import UUID
 
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +15,7 @@ class ArticleRepository:
         await db.refresh(article)
         return article
 
-    async def get(self, db: AsyncSession, article_id: int) -> Article | None:
+    async def get(self, db: AsyncSession, article_id: UUID) -> Article | None:
         result = await db.execute(select(Article).where(Article.id == article_id))
         return result.scalar_one_or_none()
 
@@ -32,7 +33,7 @@ class ArticleRepository:
     async def update(
         self,
         db: AsyncSession,
-        article_id: int,
+        article_id: UUID,
         *,
         title: str | None,
         content: str | None
@@ -50,7 +51,7 @@ class ArticleRepository:
         await db.commit()
         return await self.get(db, article_id)
 
-    async def delete(self, db: AsyncSession, article_id: int) -> bool:
+    async def delete(self, db: AsyncSession, article_id: UUID) -> bool:
         result = await db.execute(delete(Article).where(Article.id == article_id))
         await db.commit()
         return result.rowcount > 0

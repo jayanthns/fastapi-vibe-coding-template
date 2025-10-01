@@ -3,6 +3,7 @@ API router for sensitive field configuration management.
 """
 
 from typing import Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -92,7 +93,7 @@ async def get_active_sensitive_fields(
 @router.get("/{sensitive_field_id}", response_model=dict)
 async def get_sensitive_field(
     request: Request,
-    sensitive_field_id: int,
+    sensitive_field_id: UUID,
     service: SensitiveFieldService = Depends(get_sensitive_field_service),
 ):
     """Get a sensitive field pattern by ID."""
@@ -110,7 +111,7 @@ async def get_sensitive_field(
 @router.put("/{sensitive_field_id}", response_model=dict)
 async def update_sensitive_field(
     request: Request,
-    sensitive_field_id: int,
+    sensitive_field_id: UUID,
     sensitive_field: SensitiveFieldUpdate,
     service: SensitiveFieldService = Depends(get_sensitive_field_service),
 ):
@@ -131,7 +132,7 @@ async def update_sensitive_field(
 @router.delete("/{sensitive_field_id}", response_model=dict)
 async def delete_sensitive_field(
     request: Request,
-    sensitive_field_id: int,
+    sensitive_field_id: UUID,
     service: SensitiveFieldService = Depends(get_sensitive_field_service),
 ):
     """Delete a sensitive field pattern."""
@@ -150,7 +151,7 @@ async def delete_sensitive_field(
 @router.patch("/{sensitive_field_id}/deactivate", response_model=dict)
 async def deactivate_sensitive_field(
     request: Request,
-    sensitive_field_id: int,
+    sensitive_field_id: UUID,
     service: SensitiveFieldService = Depends(get_sensitive_field_service),
 ):
     """Deactivate a sensitive field pattern (soft delete)."""
@@ -171,7 +172,7 @@ async def deactivate_sensitive_field(
 @router.patch("/{sensitive_field_id}/activate", response_model=dict)
 async def activate_sensitive_field(
     request: Request,
-    sensitive_field_id: int,
+    sensitive_field_id: UUID,
     service: SensitiveFieldService = Depends(get_sensitive_field_service),
 ):
     """Activate a sensitive field pattern."""

@@ -3,6 +3,7 @@ Repository for sensitive field configuration operations.
 """
 
 from typing import List, Optional
+from uuid import UUID
 
 from sqlalchemy import and_, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,7 +27,7 @@ class SensitiveFieldRepository:
         await self.db.refresh(db_sensitive_field)
         return db_sensitive_field
 
-    async def get_by_id(self, sensitive_field_id: int) -> Optional[SensitiveField]:
+    async def get_by_id(self, sensitive_field_id: UUID) -> Optional[SensitiveField]:
         """Get a sensitive field pattern by ID."""
         result = await self.db.execute(
             select(SensitiveField).where(SensitiveField.id == sensitive_field_id)
@@ -94,7 +95,7 @@ class SensitiveFieldRepository:
         return items, total
 
     async def update(
-        self, sensitive_field_id: int, sensitive_field: SensitiveFieldUpdate
+        self, sensitive_field_id: UUID, sensitive_field: SensitiveFieldUpdate
     ) -> Optional[SensitiveField]:
         """Update a sensitive field pattern."""
         db_sensitive_field = await self.get_by_id(sensitive_field_id)
@@ -109,7 +110,7 @@ class SensitiveFieldRepository:
         await self.db.refresh(db_sensitive_field)
         return db_sensitive_field
 
-    async def delete(self, sensitive_field_id: int) -> bool:
+    async def delete(self, sensitive_field_id: UUID) -> bool:
         """Delete a sensitive field pattern."""
         db_sensitive_field = await self.get_by_id(sensitive_field_id)
         if not db_sensitive_field:
@@ -119,7 +120,7 @@ class SensitiveFieldRepository:
         await self.db.commit()
         return True
 
-    async def deactivate(self, sensitive_field_id: int) -> Optional[SensitiveField]:
+    async def deactivate(self, sensitive_field_id: UUID) -> Optional[SensitiveField]:
         """Deactivate a sensitive field pattern (soft delete)."""
         db_sensitive_field = await self.get_by_id(sensitive_field_id)
         if not db_sensitive_field:
@@ -130,7 +131,7 @@ class SensitiveFieldRepository:
         await self.db.refresh(db_sensitive_field)
         return db_sensitive_field
 
-    async def activate(self, sensitive_field_id: int) -> Optional[SensitiveField]:
+    async def activate(self, sensitive_field_id: UUID) -> Optional[SensitiveField]:
         """Activate a sensitive field pattern."""
         db_sensitive_field = await self.get_by_id(sensitive_field_id)
         if not db_sensitive_field:

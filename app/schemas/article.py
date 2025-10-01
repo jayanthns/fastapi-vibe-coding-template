@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Generic, TypeVar
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
 
@@ -70,7 +70,7 @@ class ArticleUpdate(BaseModel):
 
 
 class ArticleInDBBase(ArticleBase):
-    id: int
+    id: UUID
     created_at: datetime
     updated_at: datetime | None = None
 

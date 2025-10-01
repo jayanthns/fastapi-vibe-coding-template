@@ -5,7 +5,10 @@ This model allows dynamic configuration of which fields should be masked
 and how they should be matched (exact match vs regex pattern).
 """
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
+import uuid
+
+from sqlalchemy import Boolean, Column, DateTime, String, Text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
 from app.db.session import Base
@@ -16,7 +19,7 @@ class SensitiveField(Base):
 
     __tablename__ = "sensitive_fields"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     field_name = Column(
         String(255),
         nullable=False,
@@ -41,4 +44,7 @@ class SensitiveField(Base):
     )
 
     def __repr__(self):
-        return f"<SensitiveField(id={self.id}, field_name='{self.field_name}', is_exact_match={self.is_exact_match}, is_active={self.is_active})>"
+        return (
+            f"<SensitiveField(id={self.id}, field_name='{self.field_name}', "
+            f"is_exact_match={self.is_exact_match}, is_active={self.is_active})>"
+        )
