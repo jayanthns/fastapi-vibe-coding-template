@@ -1,10 +1,10 @@
-# Redis Caching Guide
+# Flexible Caching Guide
 
-This guide explains how to use Redis caching throughout the FastAPI application.
+This guide explains how to use flexible caching (Redis or Memory) throughout the FastAPI application.
 
 ## 🎯 **Overview**
 
-Redis is integrated as a singleton service that provides:
+The caching system provides:
 - **Caching**: Store and retrieve data with expiration
 - **Session Storage**: Manage user sessions
 - **Rate Limiting**: Control API request rates

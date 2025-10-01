@@ -688,13 +688,13 @@ Test cache connectivity:
 
 ```bash
 # Test cache ping (works with both Redis and memory cache)
-curl "http://localhost:8000/api/v1/pings/redis"
+curl "http://localhost:8000/api/v1/pings/cache"
 
 # Get cache info
-curl "http://localhost:8000/api/v1/pings/redis/info"
+curl "http://localhost:8000/api/v1/pings/cache/info"
 
 # List cache keys
-curl "http://localhost:8000/api/v1/pings/redis/keys"
+curl "http://localhost:8000/api/v1/pings/cache/keys"
 ```
 
 ### Documentation

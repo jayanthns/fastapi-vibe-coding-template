@@ -15,7 +15,7 @@ api_router.include_router(articles.router, prefix="/v1/articles", tags=["article
 api_router.include_router(
     background_jobs.router, prefix="/v1", tags=["background-jobs"]
 )
-api_router.include_router(pings.router, prefix="/v1/pings", tags=["pings"])
+api_router.include_router(pings.router, prefix="/v1/pings", tags=["cache-health"])
 
 # You can add more versioned routes here as your API grows
 # Example:
