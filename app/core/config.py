@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     backend_cors_origins: list[str] | str = "*"
 
     # Redis
+    use_redis: bool = False
     redis_url: Optional[str] = None
     redis_host: Optional[str] = None
     redis_port: Optional[int] = None

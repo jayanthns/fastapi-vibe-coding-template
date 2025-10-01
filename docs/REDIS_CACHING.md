@@ -55,7 +55,7 @@ curl "http://localhost:8000/api/v1/pings/redis/keys"
 ### **1. Direct Redis Service Usage**
 
 ```python
-from app.core.redis import get_redis
+from app.core.cache import get_redis
 
 # In API endpoint
 async def my_endpoint(request: Request):

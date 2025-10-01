@@ -34,21 +34,23 @@ async def ping_redis(request: Request):
 
     try:
         from app.core.config import settings
-        from app.core.redis import redis_service
+        from app.core.cache import unified_cache_service
 
-        # Test sync Redis connection
+        # Test sync cache connection
         sync_start_time = time.time()
-        sync_pong = redis_service.ping_sync()
+        sync_pong = unified_cache_service.ping_sync()
         sync_response_time = (time.time() - sync_start_time) * 1000  # Convert to ms
 
-        # Test async Redis connection
+        # Test async cache connection
         async_start_time = time.time()
-        async_pong = await redis_service.ping()
+        async_pong = await unified_cache_service.ping()
         async_response_time = (time.time() - async_start_time) * 1000  # Convert to ms
 
         # Prepare response data
         response_data = {
-            "redis_url": settings.redis_url,
+            "cache_type": unified_cache_service.service_type,
+            "use_redis": settings.use_redis,
+            "redis_url": settings.redis_url if settings.use_redis else None,
             "sync_connection": {
                 "status": "connected" if sync_pong else "failed",
                 "response_time_ms": round(sync_response_time, 2),
@@ -62,14 +64,14 @@ async def ping_redis(request: Request):
             "overall_status": "healthy" if (sync_pong and async_pong) else "unhealthy",
         }
 
-        logger.info(f"Redis ping successful - Sync: {sync_pong}, Async: {async_pong}")
+        logger.info(f"Cache ping successful - Type: {unified_cache_service.service_type}, Sync: {sync_pong}, Async: {async_pong}")
 
         return APIResponse.create_with_trace_id(
             data=response_data,
             message=(
-                "Redis ping successful"
+                f"{unified_cache_service.service_type.title()} cache ping successful"
                 if (sync_pong and async_pong)
-                else "Redis ping failed"
+                else f"{unified_cache_service.service_type.title()} cache ping failed"
             ),
             status_code=200,
             trace_id=trace_id,
@@ -87,7 +89,9 @@ async def ping_redis(request: Request):
 
         # Return error response with connection details
         error_data = {
-            "redis_url": settings.redis_url,
+            "cache_type": unified_cache_service.service_type,
+            "use_redis": settings.use_redis,
+            "redis_url": settings.redis_url if settings.use_redis else None,
             "error": str(e),
             "overall_status": "unhealthy",
         }
@@ -121,18 +125,20 @@ async def get_redis_info(request: Request):
 
     try:
         from app.core.config import settings
-        from app.core.redis import redis_service
+        from app.core.cache import unified_cache_service
 
         # Test connection first
-        if not redis_service.ping_sync():
-            raise Exception("Redis server is not responding")
+        if not unified_cache_service.ping_sync():
+            raise Exception("Cache service is not responding")
 
-        # Get Redis info
-        info = redis_service.info_sync()
+        # Get cache info
+        info = unified_cache_service.info_sync()
 
         # Extract relevant information
         redis_info = {
-            "redis_url": settings.redis_url,
+            "cache_type": unified_cache_service.service_type,
+            "use_redis": settings.use_redis,
+            "redis_url": settings.redis_url if settings.use_redis else None,
             "server": {
                 "version": info.get("redis_version", "unknown"),
                 "mode": info.get("redis_mode", "unknown"),
@@ -183,7 +189,9 @@ async def get_redis_info(request: Request):
         logger.error(f"Failed to get Redis info: {str(e)}")
 
         error_data = {
-            "redis_url": settings.redis_url,
+            "cache_type": unified_cache_service.service_type,
+            "use_redis": settings.use_redis,
+            "redis_url": settings.redis_url if settings.use_redis else None,
             "error": str(e),
             "status": "unhealthy",
         }
@@ -221,14 +229,14 @@ async def get_redis_keys(request: Request, pattern: str = "*", limit: int = 100)
 
     try:
         from app.core.config import settings
-        from app.core.redis import redis_service
+        from app.core.cache import unified_cache_service
 
         # Test connection first
-        if not redis_service.ping_sync():
-            raise Exception("Redis server is not responding")
+        if not unified_cache_service.ping_sync():
+            raise Exception("Cache service is not responding")
 
         # Get keys matching pattern
-        keys = redis_service.keys_sync(pattern)
+        keys = unified_cache_service.keys_sync(pattern)
 
         # Limit the number of keys returned
         limited_keys = keys[:limit] if len(keys) > limit else keys
@@ -236,8 +244,9 @@ async def get_redis_keys(request: Request, pattern: str = "*", limit: int = 100)
         # Get key types and TTL for each key
         key_info = []
         for key in limited_keys:
-            key_type = redis_service.sync_client.type(key).decode("utf-8")
-            ttl = redis_service.ttl_sync(key)
+            # For memory cache, we don't have type information, so use "string"
+            key_type = "string" if not settings.use_redis else "unknown"
+            ttl = unified_cache_service.ttl_sync(key)
 
             key_info.append(
                 {
@@ -249,7 +258,9 @@ async def get_redis_keys(request: Request, pattern: str = "*", limit: int = 100)
             )
 
         response_data = {
-            "redis_url": settings.redis_url,
+            "cache_type": unified_cache_service.service_type,
+            "use_redis": settings.use_redis,
+            "redis_url": settings.redis_url if settings.use_redis else None,
             "pattern": pattern,
             "total_keys": len(keys),
             "returned_keys": len(limited_keys),
@@ -280,7 +291,9 @@ async def get_redis_keys(request: Request, pattern: str = "*", limit: int = 100)
         logger.error(f"Failed to get Redis keys: {str(e)}")
 
         error_data = {
-            "redis_url": settings.redis_url,
+            "cache_type": unified_cache_service.service_type,
+            "use_redis": settings.use_redis,
+            "redis_url": settings.redis_url if settings.use_redis else None,
             "pattern": pattern,
             "error": str(e),
             "status": "unhealthy",

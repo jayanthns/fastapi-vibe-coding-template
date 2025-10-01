@@ -1,5 +1,5 @@
 """
-Redis singleton service for caching and background jobs.
+Redis cache service for caching and background jobs.
 Provides both sync and async Redis clients as singletons.
 """
 
@@ -10,24 +10,30 @@ import aioredis
 import redis
 from redis import Redis
 
+from .base_cache import BaseCacheService
 from app.core.config import settings
 
 
-class RedisService:
+class RedisCacheService(BaseCacheService):
     """
     Singleton Redis service that manages Redis connections.
     Provides both sync and async Redis clients.
     """
 
-    _instance: Optional["RedisService"] = None
+    _instance: Optional["RedisCacheService"] = None
     _sync_client: Optional[Redis] = None
     _async_client: Optional[aioredis.Redis] = None
     _lock = asyncio.Lock()
 
-    def __new__(cls) -> "RedisService":
+    def __new__(cls) -> "RedisCacheService":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
+
+    def __init__(self):
+        super().__init__()
+        self._sync_client = None
+        self._async_client = None
 
     @property
     def sync_client(self) -> Redis:
@@ -147,16 +153,16 @@ class RedisService:
         return self.sync_client.info()
 
 
-# Global Redis service instance
-redis_service = RedisService()
+# Global Redis cache service instance
+redis_cache_service = RedisCacheService()
 
 
 # Dependency functions for FastAPI
-async def get_redis() -> RedisService:
-    """FastAPI dependency to get Redis service."""
-    return redis_service
+async def get_redis() -> RedisCacheService:
+    """FastAPI dependency to get Redis cache service."""
+    return redis_cache_service
 
 
-def get_redis_sync() -> RedisService:
-    """Get Redis service for sync contexts."""
-    return redis_service
+def get_redis_sync() -> RedisCacheService:
+    """Get Redis cache service for sync contexts."""
+    return redis_cache_service

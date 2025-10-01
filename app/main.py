@@ -8,7 +8,7 @@ from app.api.urls import api_router
 from app.core.background_tasks import background_task_manager
 from app.core.config import settings
 from app.core.logging import setup_logging
-from app.core.redis import redis_service
+from app.core.cache import unified_cache_service
 from app.db.session import engine
 from app.middleware.trace import TraceIDMiddleware
 
@@ -21,13 +21,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Start background task manager
     await background_task_manager.start()
 
-    # Initialize Redis connection
+    # Initialize cache service
     try:
-        await redis_service.ping()
-        print("✅ Redis connection established successfully")
+        await unified_cache_service.ping()
+        cache_type = unified_cache_service.service_type
+        print(f"✅ {cache_type.title()} cache connection established successfully")
     except Exception as e:
-        print(f"⚠️  Redis connection failed: {e}")
-        print("   Redis features will be disabled")
+        print(f"⚠️  Cache connection failed: {e}")
+        print("   Cache features will be disabled")
 
     # Ensure engine is created during startup for early DB feedback
     async with engine.begin() as conn:  # noqa: F841
@@ -36,7 +37,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Cleanup
     await background_task_manager.stop()
-    await redis_service.close_async_client()
+    if unified_cache_service.is_redis:
+        await unified_cache_service._get_service().close_async_client()
 
 
 app = FastAPI(title=settings.app_name, debug=settings.debug, lifespan=lifespan)

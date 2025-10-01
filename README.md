@@ -630,16 +630,20 @@ ENVIRONMENT=development  # Enables SQL logging
 6. **Error Tracking**: Automatic exception logging with trace_id
 7. **Flexible**: Works in endpoints, services, repositories, and background tasks
 
-## 19) Redis Caching
+## 19) Flexible Caching
 
-This application includes a Redis singleton service for caching, session management, rate limiting, and more. Redis is configured as a singleton to ensure efficient connection management throughout the application.
+This application includes a flexible caching system that can use either Redis or in-memory cache based on configuration. The system automatically switches between Redis and memory cache based on the `USE_REDIS` flag.
 
 ### Quick Start
 
-Redis is configured using environment variables:
+Configure caching using environment variables:
 
 ```bash
 # .env
+# Set to 1 to use Redis, 0 to use in-memory cache
+USE_REDIS=0
+
+# Redis Configuration (only used when USE_REDIS=1)
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_DB=0
@@ -649,43 +653,53 @@ REDIS_PASSWORD=redis
 REDIS_URL=redis://:password@localhost:6379/0
 ```
 
+### Cache Types
+
+- **Memory Cache** (`USE_REDIS=0`): Fast in-memory caching, perfect for development and single-instance deployments
+- **Redis Cache** (`USE_REDIS=1`): Distributed caching, ideal for production and multi-instance deployments
+
 ### Basic Usage
 
 ```python
-from app.core.redis import redis_service
-from app.core.cache import cache
+from app.core.cache import unified_cache_service, cache
 
 # Async methods (use in FastAPI endpoints)
-await redis_service.set("key", "value", expire=300)
-value = await redis_service.get("key")
+await unified_cache_service.set("key", "value", expire=300)
+value = await unified_cache_service.get("key")
 
 # Sync methods (use in regular functions)
-redis_service.set_sync("key", "value", expire=300)
-value = redis_service.get_sync("key")
+unified_cache_service.set_sync("key", "value", expire=300)
+value = unified_cache_service.get_sync("key")
 
 # Cache manager (automatic serialization)
 await cache.set("user:123", {"name": "John"}, expire=600)
 user_data = await cache.get("user:123")
+
+# Check cache type
+if unified_cache_service.is_redis:
+    print("Using Redis cache")
+else:
+    print("Using memory cache")
 ```
 
 ### Health Checks
 
-Test Redis connectivity:
+Test cache connectivity:
 
 ```bash
-# Test Redis ping
+# Test cache ping (works with both Redis and memory cache)
 curl "http://localhost:8000/api/v1/pings/redis"
 
-# Get Redis server info
+# Get cache info
 curl "http://localhost:8000/api/v1/pings/redis/info"
 
-# List Redis keys
+# List cache keys
 curl "http://localhost:8000/api/v1/pings/redis/keys"
 ```
 
 ### Documentation
 
-For comprehensive Redis usage examples, async/sync method explanations, caching patterns, and advanced features, see:
+For comprehensive caching usage examples, async/sync method explanations, caching patterns, and advanced features, see:
 
 **[📚 Redis Caching Guide](docs/REDIS_CACHING.md)**
 

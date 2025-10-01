@@ -8,7 +8,7 @@ import pickle
 from functools import wraps
 from typing import Any, Callable, Optional
 
-from app.core.redis import redis_service
+from .unified_cache import unified_cache_service
 
 
 class CacheManager:
@@ -18,7 +18,7 @@ class CacheManager:
     async def get(key: str, default: Any = None) -> Any:
         """Get value from cache with automatic deserialization."""
         try:
-            value = await redis_service.get(key)
+            value = await unified_cache_service.get(key)
             if value is None:
                 return default
 
@@ -46,40 +46,40 @@ class CacheManager:
             else:
                 serialized_value = str(value)
 
-            return await redis_service.set(key, serialized_value, expire)
+            return await unified_cache_service.set(key, serialized_value, expire)
         except Exception:
             return False
 
     @staticmethod
     async def delete(key: str) -> bool:
         """Delete key from cache."""
-        return await redis_service.delete(key)
+        return await unified_cache_service.delete(key)
 
     @staticmethod
     async def exists(key: str) -> bool:
         """Check if key exists in cache."""
-        return await redis_service.exists(key)
+        return await unified_cache_service.exists(key)
 
     @staticmethod
     async def expire(key: str, seconds: int) -> bool:
         """Set expiration for key."""
-        return await redis_service.expire(key, seconds)
+        return await unified_cache_service.expire(key, seconds)
 
     @staticmethod
     async def ttl(key: str) -> int:
         """Get TTL for key."""
-        return await redis_service.ttl(key)
+        return await unified_cache_service.ttl(key)
 
     @staticmethod
     async def clear_pattern(pattern: str) -> int:
         """Clear all keys matching pattern."""
-        keys = await redis_service.keys(pattern)
+        keys = await unified_cache_service.keys(pattern)
         if not keys:
             return 0
 
         deleted_count = 0
         for key in keys:
-            if await redis_service.delete(key):
+            if await unified_cache_service.delete(key):
                 deleted_count += 1
 
         return deleted_count
@@ -160,7 +160,7 @@ def cached_sync(key_prefix: str, expire: Optional[int] = None, serialize: str = 
 
             # Try to get from cache (sync)
             try:
-                cached_result = redis_service.get_sync(key)
+                cached_result = unified_cache_service.get_sync(key)
                 if cached_result is not None:
                     if serialize == "json":
                         return json.loads(cached_result)
@@ -182,7 +182,7 @@ def cached_sync(key_prefix: str, expire: Optional[int] = None, serialize: str = 
                 else:
                     serialized_value = str(result)
 
-                redis_service.set_sync(key, serialized_value, expire)
+                unified_cache_service.set_sync(key, serialized_value, expire)
             except Exception:
                 pass
 
