@@ -6,12 +6,52 @@ all API endpoints to protect sensitive data based on configuration flags.
 """
 
 import re
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
+
+from app.services.sensitive_field_cache import SensitiveFieldCacheService
 
 
-def mask_sensitive_data(data: Any, mask: bool = False) -> Any:
+async def get_sensitive_patterns() -> List[Dict[str, Any]]:
+    """Get sensitive field patterns from database cache."""
+    try:
+        return await SensitiveFieldCacheService.get_sensitive_patterns()
+    except Exception:
+        # If database access fails, return empty list to use fallback
+        return []
+
+
+def mask_sensitive_data(
+    data: Any,
+    mask: bool = False,
+    sensitive_patterns: Optional[List[Dict[str, Any]]] = None,
+) -> Any:
     """
     Recursively mask sensitive data in response objects.
+
+    Args:
+        data: The data to potentially mask
+        mask: Whether to apply masking (default: False)
+        sensitive_patterns: List of sensitive field patterns from database
+
+    Returns:
+        Masked data if mask=True, original data otherwise
+    """
+    if not mask:
+        return data
+
+    if isinstance(data, dict):
+        return _mask_dict(data, sensitive_patterns)
+    elif isinstance(data, list):
+        return [mask_sensitive_data(item, mask, sensitive_patterns) for item in data]
+    elif isinstance(data, str):
+        return _mask_string(data)
+    else:
+        return data
+
+
+async def mask_sensitive_data_async(data: Any, mask: bool = False) -> Any:
+    """
+    Async version that automatically loads sensitive patterns from database.
 
     Args:
         data: The data to potentially mask
@@ -23,17 +63,13 @@ def mask_sensitive_data(data: Any, mask: bool = False) -> Any:
     if not mask:
         return data
 
-    if isinstance(data, dict):
-        return _mask_dict(data)
-    elif isinstance(data, list):
-        return [mask_sensitive_data(item, mask) for item in data]
-    elif isinstance(data, str):
-        return _mask_string(data)
-    else:
-        return data
+    sensitive_patterns = await get_sensitive_patterns()
+    return mask_sensitive_data(data, mask, sensitive_patterns)
 
 
-def _mask_dict(data: Dict[str, Any]) -> Dict[str, Any]:
+def _mask_dict(
+    data: Dict[str, Any], sensitive_patterns: Optional[List[Dict[str, Any]]] = None
+) -> Dict[str, Any]:
     """Mask sensitive fields in a dictionary."""
     masked_data = {}
 
@@ -41,20 +77,59 @@ def _mask_dict(data: Dict[str, Any]) -> Dict[str, Any]:
         key_lower = key.lower()
 
         # Check if this is a sensitive field
-        if _is_sensitive_field(key_lower):
+        if _is_sensitive_field(key_lower, sensitive_patterns):
             masked_data[key] = _mask_value_by_type(value)
         elif isinstance(value, (dict, list)):
-            masked_data[key] = mask_sensitive_data(value, True)
+            masked_data[key] = mask_sensitive_data(value, True, sensitive_patterns)
         else:
             masked_data[key] = value
 
     return masked_data
 
 
-def _is_sensitive_field(field_name: str) -> bool:
-    """Check if a field name indicates sensitive data."""
+def _is_sensitive_field(
+    field_name: str, sensitive_patterns: Optional[List[Dict[str, Any]]] = None
+) -> bool:
+    """
+    Check if a field name indicates sensitive data that should be masked.
+
+    Args:
+        field_name: The field name to check (should be lowercase)
+        sensitive_patterns: List of sensitive field patterns from database
+
+    Returns:
+        True if the field should be masked, False otherwise
+    """
     field_lower = field_name.lower()
 
+    # If no patterns provided, use hardcoded fallback
+    if not sensitive_patterns:
+        return _is_sensitive_field_fallback(field_lower)
+
+    # Check against database patterns
+    for pattern in sensitive_patterns:
+        pattern_name = pattern.get("field_name", "").lower()
+        is_exact_match = pattern.get("is_exact_match", True)
+
+        if is_exact_match:
+            # Exact match
+            if field_lower == pattern_name:
+                return True
+        else:
+            # Regex pattern match
+            try:
+                if re.search(pattern_name, field_lower):
+                    return True
+            except re.error:
+                # If regex is invalid, fall back to exact match
+                if field_lower == pattern_name:
+                    return True
+
+    return False
+
+
+def _is_sensitive_field_fallback(field_name: str) -> bool:
+    """Fallback function with hardcoded sensitive field patterns."""
     # Exclude common non-sensitive field patterns first
     non_sensitive_patterns = [
         "cache_type",
@@ -71,7 +146,7 @@ def _is_sensitive_field(field_name: str) -> bool:
     ]
 
     # If it matches a non-sensitive pattern, it's not sensitive
-    if any(pattern in field_lower for pattern in non_sensitive_patterns):
+    if any(pattern in field_name for pattern in non_sensitive_patterns):
         return False
 
     # Check for specific sensitive patterns
@@ -137,7 +212,7 @@ def _is_sensitive_field(field_name: str) -> bool:
     ]
 
     # Check for exact matches
-    return field_lower in sensitive_patterns
+    return field_name in sensitive_patterns
 
 
 def _mask_value_by_type(value: Any) -> str:
@@ -353,6 +428,52 @@ def public_response(data: Any, **kwargs) -> Dict[str, Any]:
         Response dictionary with original data
     """
     return create_masked_response(data, mask=False, **kwargs)
+
+
+async def create_masked_response_async(
+    data: Any, mask: bool = False, **kwargs
+) -> Dict[str, Any]:
+    """
+    Create a response with optional data masking using database patterns.
+
+    Args:
+        data: The response data
+        mask: Whether to apply masking (default: False)
+        **kwargs: Additional response fields
+
+    Returns:
+        Response dictionary with potentially masked data
+    """
+    response = {
+        "data": await mask_sensitive_data_async(data, mask),
+        "masked": mask,
+        **kwargs,
+    }
+
+    if mask:
+        response["security_note"] = (
+            "Sensitive information has been masked for security. "
+            "Set mask=false to see actual values (development only)."
+        )
+
+    return response
+
+
+async def secure_response_async(data: Any, **kwargs) -> Dict[str, Any]:
+    """
+    Create a secure response with automatic data masking using database patterns.
+
+    This is a convenience function for developers who want to always
+    mask sensitive data in their responses using database-configured patterns.
+
+    Args:
+        data: The response data to mask
+        **kwargs: Additional response fields
+
+    Returns:
+        Response dictionary with masked data
+    """
+    return await create_masked_response_async(data, mask=True, **kwargs)
 
 
 # Convenience functions for common masking scenarios
