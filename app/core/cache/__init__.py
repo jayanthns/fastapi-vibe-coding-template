@@ -15,15 +15,16 @@ Main Components:
 
 from app.core.cache.base_cache import BaseCacheService
 from app.core.cache.cache import CacheManager, cached, cached_sync
+from app.core.cache.fallback_cache import FallbackCacheService, fallback_cache_service
 from app.core.cache.memory_cache import MemoryCacheService, memory_cache_service
 from app.core.cache.redis_cache import RedisCacheService, redis_cache_service
 from app.core.cache.unified_cache import UnifiedCacheService, unified_cache_service
 
-# Main cache interface - simplified and framework-like
-cache = unified_cache_service
+# Main cache interface - industry standard fallback pattern
+cache = fallback_cache_service
 
 __all__ = [
-    # Main cache interface (simplified)
+    # Main cache interface (industry standard fallback)
     "cache",
     # Base classes
     "BaseCacheService",
@@ -31,10 +32,12 @@ __all__ = [
     "RedisCacheService",
     "MemoryCacheService",
     "UnifiedCacheService",
+    "FallbackCacheService",
     # Service instances (for advanced usage)
     "redis_cache_service",
     "memory_cache_service",
     "unified_cache_service",
+    "fallback_cache_service",
     # Cache manager and utilities
     "CacheManager",
     "cached",

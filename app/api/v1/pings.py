@@ -68,6 +68,18 @@ async def ping_cache(request: Request):
         async_pong = await cache.ping()
         async_response_time = (time.time() - async_start_time) * 1000  # Convert to ms
 
+        # Log Redis unavailability if both connections failed
+        if not sync_pong and not async_pong:
+            logger.warning(
+                f"Redis cache is unavailable - Sync: {sync_pong}, Async: {async_pong}, "
+                f"Response times: Sync={sync_response_time:.2f}ms, Async={async_response_time:.2f}ms"
+            )
+        elif not sync_pong or not async_pong:
+            logger.warning(
+                f"Redis cache partial failure - Sync: {sync_pong}, Async: {async_pong}, "
+                f"Response times: Sync={sync_response_time:.2f}ms, Async={async_response_time:.2f}ms"
+            )
+
         # Prepare response data
         response_data = {
             "cache_type": cache.service_type,
@@ -86,10 +98,19 @@ async def ping_cache(request: Request):
             "overall_status": "healthy" if (sync_pong and async_pong) else "unhealthy",
         }
 
-        logger.info(
-            f"Cache ping successful - Type: {cache.service_type}, "
-            f"Sync: {sync_pong}, Async: {async_pong}"
-        )
+        # Log success or failure status
+        if sync_pong and async_pong:
+            logger.info(
+                f"Cache ping successful - Type: {cache.service_type}, "
+                f"Sync: {sync_pong}, Async: {async_pong}, "
+                f"Response times: Sync={sync_response_time:.2f}ms, Async={async_response_time:.2f}ms"
+            )
+        else:
+            logger.info(
+                f"Cache ping completed with issues - Type: {cache.service_type}, "
+                f"Sync: {sync_pong}, Async: {async_pong}, "
+                f"Response times: Sync={sync_response_time:.2f}ms, Async={async_response_time:.2f}ms"
+            )
 
         # Create secure response with automatic masking
         secure_data = secure_response(response_data)
