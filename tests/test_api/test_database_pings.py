@@ -381,7 +381,4 @@ class TestDatabasePingEndpoints:
         assert response.status_code == 200
 
 
-@pytest.fixture
-def client():
-    """Create test client for database ping endpoints."""
-    return TestClient(app)
+# Client fixture is now defined in conftest.py

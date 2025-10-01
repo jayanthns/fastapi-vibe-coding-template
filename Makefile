@@ -157,6 +157,15 @@ test-unit:
 	@echo "Running unit tests only..."
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "unit"
 
+# Test database management
+test-db-setup:
+	@echo "Setting up test database..."
+	@$(VENV_ACTIVATE) && python scripts/setup_test_db.py
+
+test-db-drop:
+	@echo "Dropping test database..."
+	@$(VENV_ACTIVATE) && python -c "import asyncio; from scripts.setup_test_db import get_database_urls; from sqlalchemy.ext.asyncio import create_async_engine; from sqlalchemy import text; async def drop_db(): admin_url, _, test_db_name = get_database_urls(); engine = create_async_engine(admin_url); async with engine.connect() as conn: await conn.execute(text('COMMIT')); await conn.execute(text(f'DROP DATABASE IF EXISTS {test_db_name}')); await engine.dispose(); asyncio.run(drop_db())"
+
 test-integration:
 	@echo "Running integration tests only..."
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "integration"
@@ -201,6 +210,8 @@ help:
 	@echo "  test-api                      - Run API tests only"
 	@echo "  test-background               - Run background job tests only"
 	@echo "  test-watch                    - Run tests in watch mode"
+	@echo "  test-db-setup                 - Setup test database"
+	@echo "  test-db-drop                  - Drop test database"
 	@echo ""
 	@echo "Development:"
 	@echo "  dev-setup                     - Setup development environment"
