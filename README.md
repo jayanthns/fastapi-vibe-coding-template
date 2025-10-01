@@ -630,9 +630,17 @@ ENVIRONMENT=development  # Enables SQL logging
 6. **Error Tracking**: Automatic exception logging with trace_id
 7. **Flexible**: Works in endpoints, services, repositories, and background tasks
 
-## 19) Flexible Caching
+## 19) Industry-Standard Caching with Automatic Fallback
 
-This application includes a flexible caching system that can use either Redis or in-memory cache based on configuration. The system automatically switches between Redis and memory cache based on the `USE_REDIS` flag.
+This application includes an industry-standard caching system with automatic fallback from Redis to memory cache for high availability. The system follows Netflix/Uber patterns for cache resilience.
+
+### Key Features
+
+- **🔄 Automatic Fallback**: Seamlessly switches from Redis to memory cache when Redis is unavailable
+- **🔄 Automatic Recovery**: Switches back to Redis when it recovers
+- **⚡ Zero Downtime**: Application continues working even when Redis fails
+- **📊 Comprehensive Monitoring**: Detailed logging and statistics for operational visibility
+- **🏗️ Industry Standard**: Follows best practices for high-availability systems
 
 ### Quick Start
 
@@ -640,10 +648,10 @@ Configure caching using environment variables:
 
 ```bash
 # .env
-# Set to 1 to use Redis, 0 to use in-memory cache
-USE_REDIS=0
+# Set to 1 to use Redis with fallback, 0 to use memory cache only
+USE_REDIS=1
 
-# Redis Configuration (only used when USE_REDIS=1)
+# Redis Configuration (used as primary cache when USE_REDIS=1)
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_DB=0
@@ -653,17 +661,20 @@ REDIS_PASSWORD=redis
 REDIS_URL=redis://:password@localhost:6379/0
 ```
 
-### Cache Types
+### How It Works
 
-- **Memory Cache** (`USE_REDIS=0`): Fast in-memory caching, perfect for development and single-instance deployments
-- **Redis Cache** (`USE_REDIS=1`): Distributed caching, ideal for production and multi-instance deployments
+1. **Primary Cache**: Tries Redis first for all operations
+2. **Health Monitoring**: Checks Redis every 30 seconds when using fallback
+3. **Automatic Fallback**: Switches to memory cache when Redis fails
+4. **Automatic Recovery**: Switches back to Redis when it recovers
+5. **Transparent Operation**: Your code works unchanged
 
 ### Basic Usage
 
 ```python
 from app.core.cache import cache
 
-# Async methods (use in FastAPI endpoints)
+# Async methods (use in FastAPI endpoints) - works with Redis or fallback automatically
 await cache.set("key", "value", expire=300)
 value = await cache.get("key")
 
@@ -675,31 +686,35 @@ value = cache.get_sync("key")
 await cache.set("user:123", {"name": "John"}, expire=600)
 user_data = await cache.get("user:123")
 
-# Check cache type
-if unified_cache_service.is_redis:
-    print("Using Redis cache")
-else:
-    print("Using memory cache")
+# Check which cache is currently active
+cache_type = cache.service_type  # "redis" or "memory"
+is_fallback = cache.is_fallback_active  # True if using fallback
 ```
 
 ### Health Checks
 
-Test cache connectivity:
+Test cache connectivity and get information:
 
 ```bash
-# Test cache ping (works with both Redis and memory cache)
+# Test cache ping (works with both Redis and fallback)
 curl "http://localhost:8000/api/v1/pings/cache"
 
-# Get cache info
+# Get cache info (shows current cache type and fallback status)
 curl "http://localhost:8000/api/v1/pings/cache/info"
 
-# List cache keys
+# List cache keys (works with both Redis and memory cache)
 curl "http://localhost:8000/api/v1/pings/cache/keys"
 ```
 
+### Startup Behavior
+
+- **With Redis Available**: `✅ Redis cache connection established successfully`
+- **With Redis Unavailable**: `✅ Memory cache (fallback) connection established successfully`
+- **When Redis Recovers**: `Redis recovered, switched back to primary cache`
+
 ### Documentation
 
-For comprehensive caching usage examples, async/sync method explanations, caching patterns, and advanced features, see:
+For comprehensive caching usage examples, fallback patterns, monitoring, and advanced features, see:
 
 **[📚 Redis Caching Guide](docs/REDIS_CACHING.md)**
 

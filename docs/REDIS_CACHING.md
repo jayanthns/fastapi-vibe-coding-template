@@ -1,15 +1,21 @@
 # Flexible Caching Guide
 
-This guide explains how to use flexible caching (Redis or Memory) throughout the FastAPI application.
+This guide explains how to use the industry-standard caching system with automatic fallback throughout the FastAPI application.
 
 ## 🎯 **Overview**
 
 The caching system provides:
-- **Caching**: Store and retrieve data with expiration
-- **Session Storage**: Manage user sessions
-- **Rate Limiting**: Control API request rates
-- **Background Jobs**: Track job status and results
-- **Distributed Locking**: Coordinate between processes
+- **High Availability**: Automatic fallback from Redis to memory cache
+- **Industry Standard**: Follows Netflix/Uber patterns for cache resilience
+- **Zero Downtime**: Seamless switching when Redis is unavailable
+- **Automatic Recovery**: Switches back to Redis when it recovers
+- **Comprehensive Monitoring**: Detailed logging and statistics
+
+### **Cache Architecture:**
+- **Primary Cache**: Redis (shared, persistent, distributed)
+- **Fallback Cache**: Memory (local, fast, reliable)
+- **Automatic Switching**: Based on Redis health checks
+- **Health Monitoring**: Every 30 seconds when using fallback
 
 ## 🚀 **Quick Start**
 
@@ -37,40 +43,136 @@ REDIS_PASSWORD=your_password  # Optional
 REDIS_URL=redis://:password@localhost:6379/0
 ```
 
-### **3. Test Redis Connection**
+### **3. Test Cache Connection**
 
 ```bash
-# Test Redis ping
-curl "http://localhost:8000/api/v1/pings/redis"
+# Test cache ping (works with both Redis and fallback)
+curl "http://localhost:8000/api/v1/pings/cache"
 
-# Get Redis info
-curl "http://localhost:8000/api/v1/pings/redis/info"
+# Get cache info (shows current cache type and fallback status)
+curl "http://localhost:8000/api/v1/pings/cache/info"
 
-# List Redis keys
-curl "http://localhost:8000/api/v1/pings/redis/keys"
+# List cache keys (works with both Redis and memory cache)
+curl "http://localhost:8000/api/v1/pings/cache/keys"
 ```
 
-## 🔧 **Usage Patterns**
+## 🔄 **Automatic Fallback System**
 
-### **1. Direct Cache Usage**
+The cache system implements industry-standard fallback patterns for high availability:
+
+### **How It Works:**
+
+1. **Primary Cache**: Tries Redis first for all operations
+2. **Health Monitoring**: Checks Redis every 30 seconds when using fallback
+3. **Automatic Fallback**: Switches to memory cache when Redis fails
+4. **Automatic Recovery**: Switches back to Redis when it recovers
+5. **Transparent Operation**: Your code works unchanged
+
+### **Fallback Behavior:**
+
+#### **When Redis is Available:**
+```
+✅ Redis cache connection established successfully
+```
+
+#### **When Redis is Unavailable:**
+```
+✅ Memory cache (fallback) connection established successfully
+   Redis unavailable, using memory cache fallback
+```
+
+#### **When Redis Recovers:**
+```
+Redis recovered, switched back to primary cache
+```
+
+### **Monitoring Fallback Status:**
 
 ```python
 from app.core.cache import cache
 
-# In API endpoint
-async def my_endpoint(request: Request):
-    # Use cache directly
+# Check current cache type
+print(f"Cache type: {cache.service_type}")  # "redis" or "memory"
+print(f"Is Redis: {cache.is_redis}")        # True or False
+print(f"Fallback active: {cache.is_fallback_active}")  # True or False
 
-    # Set value
+# Get detailed fallback statistics
+info = await cache.info()
+fallback_stats = info["fallback_stats"]
+print(f"Fallback events: {fallback_stats['events']}")
+```
+
+### **Fallback Statistics:**
+
+The system tracks comprehensive fallback metrics:
+
+```python
+{
+    "fallback_active": true,
+    "primary_cache_type": "redis",
+    "active_cache_type": "memory",
+    "events": {
+        "switched_to_fallback": 1,    # Times Redis failed
+        "switched_to_primary": 0,     # Times Redis recovered
+        "redis_failures": 1           # Total Redis failures
+    },
+    "last_redis_check": 1759312308.236404
+}
+```
+
+## 📁 **Cache Module Structure**
+
+The cache system follows industry best practices with a clean, modular architecture:
+
+```
+app/core/cache/
+├── __init__.py              # Main exports and public API
+├── base_cache.py            # Abstract base class for all implementations
+├── redis_cache.py           # Redis-based cache implementation
+├── memory_cache.py          # In-memory cache implementation
+├── fallback_cache.py        # Industry-standard fallback service
+├── unified_cache.py         # Legacy unified service (deprecated)
+└── cache.py                 # High-level cache manager with serialization
+```
+
+### **Key Components:**
+
+- **`FallbackCacheService`**: Main cache service with automatic Redis/Memory switching
+- **`BaseCacheService`**: Abstract base class ensuring consistent interface
+- **`RedisCacheService`**: Redis implementation with connection pooling
+- **`MemoryCacheService`**: In-memory implementation with TTL support
+- **`CacheManager`**: High-level operations with automatic serialization
+
+## 🔧 **Usage Patterns**
+
+### **1. Direct Cache Usage (With Automatic Fallback)**
+
+```python
+from app.core.cache import cache
+
+# In API endpoint - works with Redis or fallback automatically
+async def my_endpoint(request: Request):
+    # Use cache directly - fallback is transparent
+
+    # Set value (tries Redis, falls back to memory if needed)
     await cache.set("key", "value", expire=300)  # 5 minutes
 
-    # Get value
+    # Get value (works with current active cache)
     value = await cache.get("key")
 
     # Check existence
     exists = await cache.exists("key")
 
-    return {"value": value, "exists": exists}
+    # Check which cache is currently active
+    cache_type = cache.service_type  # "redis" or "memory"
+    is_fallback = cache.is_fallback_active  # True if using fallback
+
+    return {
+        "value": value,
+        "exists": exists,
+        "cache_type": cache_type,
+        "is_fallback": is_fallback
+    }
 ```
 
 ### **2. Cache Manager Usage**
