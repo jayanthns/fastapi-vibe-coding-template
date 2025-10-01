@@ -46,29 +46,31 @@ services:
     networks:
       - fastapi_vibe_coding_network
 
-  # fastapi_vibe_coding_redis_svc:
-  #   image: redis:7-alpine
-  #   container_name: fastapi_vibe_coding_redis_container
-  #   restart: always
-  #   command: >
-  #     redis-server --requirepass redis --appendonly yes --save 60 1
-  #   ports:
-  #     - "6379:6379"
-  #   expose:
-  #     - 6379
-  #   volumes:
-  #     # - /var/lib/docker-data/fastapi_vibe_coding_redis_data:/data  # Store Redis data persistently
-  #     - ./local_scripts/redis.conf:/usr/local/etc/redis/redis.conf
-  #     - ./local_scripts/redis-entrypoint.sh:/usr/local/bin/redis-entrypoint.sh # Mount entrypoint script
-  #   environment:
-  #     - REDIS_PASSWORD=redis
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "-a", "redis", "ping"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 3
-  #   networks:
-  #     - fastapi_vibe_coding_network
+  fastapi_vibe_coding_redis_svc:
+    image: redis:7-alpine
+    container_name: fastapi_vibe_coding_redis_container
+    restart: always
+    command: >
+      redis-server --requirepass redis --appendonly yes --save 60 1
+    ports:
+      - "6379:6379"
+    expose:
+      - 6379
+    volumes:
+      - /var/lib/docker-data/fastapi_vibe_coding_redis_data:/data  # Store Redis data persistently
+      # - ./local_scripts/redis.conf:/usr/local/etc/redis/redis.conf
+      # - ./local_scripts/redis-entrypoint.sh:/usr/local/bin/redis-entrypoint.sh # Mount entrypoint script
+    env_file:
+      - .env
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - fastapi_vibe_coding_network
 
 
 volumes:

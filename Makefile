@@ -60,6 +60,18 @@ uv-pip-audit-all:
 d-db:
 	docker compose up fastapi_vibe_coding_db_svc -d
 
+d-redis:
+	docker compose up fastapi_vibe_coding_redis_svc -d
+
+d-redis-logs:
+	docker compose logs -f fastapi_vibe_coding_redis_svc
+
+d-db-and-redis:
+	docker compose up -d fastapi_vibe_coding_db_svc fastapi_vibe_coding_redis_svc
+
+d-db-and-redis-logs:
+	docker compose logs -f fastapi_vibe_coding_db_svc fastapi_vibe_coding_redis_svc
+
 d-app:
 	docker compose up fastapi_vibe_coding_app_svc -d
 

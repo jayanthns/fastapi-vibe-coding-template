@@ -34,11 +34,12 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
   - [16) Security notes](#16-security-notes)
   - [17) Architecture overview](#17-architecture-overview)
   - [18) Request tracing and logging](#18-request-tracing-and-logging)
-  - [19) Background Jobs API (Template Feature)](#19-background-jobs-api-template-feature)
+  - [19) Redis Caching](#19-redis-caching)
+  - [20) Background Jobs API (Template Feature)](#20-background-jobs-api-template-feature)
     - [Background Jobs Code Cleanup](#background-jobs-code-cleanup)
-  - [20) Documentation](#20-documentation)
-  - [21) API docs \& versioning](#21-api-docs--versioning)
-  - [22) VS Code mandatory extensions](#22-vs-code-mandatory-extensions)
+  - [21) Documentation](#21-documentation)
+  - [22) API docs \& versioning](#22-api-docs--versioning)
+  - [23) VS Code mandatory extensions](#23-vs-code-mandatory-extensions)
   - [9) How to extend this template (step‑by‑step guide)](#9-how-to-extend-this-template-stepbystep-guide)
     - [1) Define the database model](#1-define-the-database-model)
     - [2) Create Pydantic schemas](#2-create-pydantic-schemas)
@@ -629,7 +630,95 @@ ENVIRONMENT=development  # Enables SQL logging
 6. **Error Tracking**: Automatic exception logging with trace_id
 7. **Flexible**: Works in endpoints, services, repositories, and background tasks
 
-## 19) Background Jobs API (Template Feature)
+## 19) Industry-Standard Caching with Automatic Fallback
+
+This application includes an industry-standard caching system with automatic fallback from Redis to memory cache for high availability. The system follows Netflix/Uber patterns for cache resilience.
+
+### Key Features
+
+- **🔄 Automatic Fallback**: Seamlessly switches from Redis to memory cache when Redis is unavailable
+- **🔄 Automatic Recovery**: Switches back to Redis when it recovers
+- **⚡ Zero Downtime**: Application continues working even when Redis fails
+- **📊 Comprehensive Monitoring**: Detailed logging and statistics for operational visibility
+- **🏗️ Industry Standard**: Follows best practices for high-availability systems
+
+### Quick Start
+
+Configure caching using environment variables:
+
+```bash
+# .env
+# Set to 1 to use Redis with fallback, 0 to use memory cache only
+USE_REDIS=1
+
+# Redis Configuration (used as primary cache when USE_REDIS=1)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
+REDIS_PASSWORD=redis
+
+# Or use full URL
+REDIS_URL=redis://:password@localhost:6379/0
+```
+
+### How It Works
+
+1. **Primary Cache**: Tries Redis first for all operations
+2. **Health Monitoring**: Checks Redis every 30 seconds when using fallback
+3. **Automatic Fallback**: Switches to memory cache when Redis fails
+4. **Automatic Recovery**: Switches back to Redis when it recovers
+5. **Transparent Operation**: Your code works unchanged
+
+### Basic Usage
+
+```python
+from app.core.cache import cache
+
+# Async methods (use in FastAPI endpoints) - works with Redis or fallback automatically
+await cache.set("key", "value", expire=300)
+value = await cache.get("key")
+
+# Sync methods (use in regular functions)
+cache.set_sync("key", "value", expire=300)
+value = cache.get_sync("key")
+
+# Cache manager (automatic serialization)
+await cache.set("user:123", {"name": "John"}, expire=600)
+user_data = await cache.get("user:123")
+
+# Check which cache is currently active
+cache_type = cache.service_type  # "redis" or "memory"
+is_fallback = cache.is_fallback_active  # True if using fallback
+```
+
+### Health Checks
+
+Test cache connectivity and get information:
+
+```bash
+# Test cache ping (works with both Redis and fallback)
+curl "http://localhost:8000/api/v1/pings/cache"
+
+# Get cache info (shows current cache type and fallback status)
+curl "http://localhost:8000/api/v1/pings/cache/info"
+
+# List cache keys (works with both Redis and memory cache)
+curl "http://localhost:8000/api/v1/pings/cache/keys"
+```
+
+### Startup Behavior
+
+- **With Redis Available**: `✅ Redis cache connection established successfully`
+- **With Redis Unavailable**: `✅ Memory cache (fallback) connection established successfully`
+- **When Redis Recovers**: `Redis recovered, switched back to primary cache`
+
+### Documentation
+
+For comprehensive caching usage examples, fallback patterns, monitoring, and advanced features, see:
+
+**[📚 Redis Caching Guide](docs/REDIS_CACHING.md)**
+
+## 20) Background Jobs API (Template Feature)
 
 The project includes a complete background jobs system with status tracking and caching.
 
@@ -687,11 +776,12 @@ If you don't need the background jobs functionality, you can remove it completel
 
 After cleanup, you'll still have a fully functional FastAPI application with articles CRUD, database integration, logging, and all core features.
 
-## 20) Documentation
+## 21) Documentation
 
 ### 📚 Available Documentation
 
 - **[Architecture Overview](docs/ARCHITECTURE.md)** - System architecture, components, and design patterns
+- **[Redis Caching Guide](docs/REDIS_CACHING.md)** - Complete Redis caching system documentation
 - **[Background Jobs API](docs/BACKGROUND_JOBS_API.md)** - Complete background jobs system documentation
 - **[Background Jobs Cleanup](docs/BACKGROUND_JOBS_CLEANUP.md)** - How to remove background jobs feature
 - **[Template Cleanup](docs/TEMPLATE_CLEANUP.md)** - Complete cleanup guide to remove all demo code
@@ -704,13 +794,13 @@ After cleanup, you'll still have a fully functional FastAPI application with art
 - **Articles API**: `GET /api/v1/articles/` - Article CRUD operations
 - **Background Jobs**: `GET /api/v1/jobs/` - Background job management (if enabled)
 
-## 21) API docs & versioning
+## 22) API docs & versioning
 
 - The API is namespaced under `/api/v1`. Add new routers under `app/api/v1/` and include them in `app/api/urls.py`.
 - Use response models to keep OpenAPI accurate. Docs available at `/docs` and `/openapi.json`.
 - URL configuration follows Django-style organization with centralized routing in `app/api/urls.py`.
 
-## 22) VS Code mandatory extensions
+## 23) VS Code mandatory extensions
 
 This repo recommends the following VS Code extensions (see `.vscode/extensions.json`). Installing them ensures consistent formatting and linting:
 

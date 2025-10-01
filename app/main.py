@@ -5,10 +5,11 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.urls import api_router
-from app.core.config import settings
 from app.core.background_tasks import background_task_manager
-from app.db.session import engine
+from app.core.cache import cache
+from app.core.config import settings
 from app.core.logging import setup_logging
+from app.db.session import engine
 from app.middleware.trace import TraceIDMiddleware
 
 
@@ -20,6 +21,25 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Start background task manager
     await background_task_manager.start()
 
+    # Initialize cache service with fallback support
+    try:
+        ping_result = await cache.ping()
+        cache_type = cache.service_type
+        is_fallback = getattr(cache, 'is_fallback_active', False)
+
+        if ping_result:
+            if is_fallback:
+                print(f"✅ {cache_type.title()} cache (fallback) connection established successfully")
+                print("   Redis unavailable, using memory cache fallback")
+            else:
+                print(f"✅ {cache_type.title()} cache connection established successfully")
+        else:
+            print("⚠️  Cache connection failed - both Redis and memory cache unavailable")
+            print("   Cache features will be disabled")
+    except Exception as e:
+        print(f"⚠️  Cache connection failed: {e}")
+        print("   Cache features will be disabled")
+
     # Ensure engine is created during startup for early DB feedback
     async with engine.begin() as conn:  # noqa: F841
         pass
@@ -27,6 +47,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Cleanup
     await background_task_manager.stop()
+    if cache.is_redis:
+        await cache.close_async_client()
 
 
 app = FastAPI(title=settings.app_name, debug=settings.debug, lifespan=lifespan)

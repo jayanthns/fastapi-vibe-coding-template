@@ -5,6 +5,7 @@ This guide helps you remove the background jobs feature from your FastAPI projec
 ## Overview
 
 The background jobs feature is a complete example of:
+
 - Asynchronous job processing
 - Status tracking with in-memory caching
 - Trace ID integration
@@ -16,6 +17,7 @@ The background jobs feature is a complete example of:
 ### 1. Remove Background Jobs API Endpoints
 
 Delete the background jobs API file:
+
 ```bash
 rm app/api/v1/background_jobs.py
 ```
@@ -39,6 +41,7 @@ api_router.include_router(articles.router, prefix="/v1/articles", tags=["article
 ### 3. Remove Background Job Service
 
 Delete the background job service files:
+
 ```bash
 rm app/services/background_job_service.py
 rm app/core/background_tasks.py
@@ -60,6 +63,7 @@ await background_task_manager.stop()
 ### 5. Remove Background Jobs Tests
 
 Delete the background jobs test file:
+
 ```bash
 rm tests/test_background_jobs.py
 ```
@@ -67,6 +71,7 @@ rm tests/test_background_jobs.py
 ### 6. Update Documentation
 
 Remove or update these files:
+
 ```bash
 rm BACKGROUND_JOBS_API.md
 rm test_background_jobs.py  # If it exists in root
@@ -75,6 +80,7 @@ rm test_background_jobs.py  # If it exists in root
 ### 7. Update README.md
 
 Remove the background jobs section from `README.md`:
+
 - Remove "Background Jobs API" section
 - Remove background jobs examples
 - Update the API endpoints list
@@ -82,6 +88,7 @@ Remove the background jobs section from `README.md`:
 ### 8. Update TESTING.md
 
 Remove background jobs test examples from `TESTING.md`:
+
 - Remove `@pytest.mark.background` references
 - Remove background jobs test examples
 - Update test structure documentation
@@ -89,11 +96,12 @@ Remove background jobs test examples from `TESTING.md`:
 ### 9. Update Makefile
 
 Remove background jobs test commands from `Makefile`:
+
 ```makefile
 # Remove this line
 test-background:
-	@echo "Running background job tests only..."
-	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "background"
+   @echo "Running background job tests only..."
+   @$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "background"
 ```
 
 And update the help section to remove the background jobs test command.
@@ -101,6 +109,7 @@ And update the help section to remove the background jobs test command.
 ### 10. Update pyproject.toml
 
 Remove the background marker from pytest configuration:
+
 ```toml
 # Remove "background: marks tests as background job tests" from markers
 markers = [
@@ -116,21 +125,25 @@ markers = [
 After cleanup, verify everything works:
 
 1. **Test the application starts:**
+
    ```bash
    make run
    ```
 
 2. **Check API endpoints:**
+
    ```bash
    curl http://localhost:8000/api/v1/articles/
    ```
 
 3. **Run tests:**
+
    ```bash
    make test
    ```
 
 4. **Check logs:**
+
    ```bash
    tail -f tmp/logs/app-*.log
    ```
@@ -140,18 +153,21 @@ After cleanup, verify everything works:
 After removing background jobs, you'll still have:
 
 ✅ **Core FastAPI Application**
+
 - Article CRUD API
 - Database integration (SQLAlchemy + Alembic)
 - Request tracing and logging
 - Health check endpoint
 
 ✅ **Development Tools**
+
 - Makefile commands for migrations
 - Testing framework (pytest)
 - Code formatting (ruff)
 - Documentation
 
 ✅ **Production Features**
+
 - Docker support
 - Environment configuration
 - Logging system

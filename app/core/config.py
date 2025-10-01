@@ -37,6 +37,14 @@ class Settings(BaseSettings):
     # CORS
     backend_cors_origins: list[str] | str = "*"
 
+    # Redis
+    use_redis: bool = False
+    redis_url: Optional[str] = None
+    redis_host: Optional[str] = None
+    redis_port: Optional[int] = None
+    redis_db: Optional[int] = None
+    redis_password: Optional[str] = None
+
     # Pydantic v2 uses model_config; legacy Config kept for reference was removed
 
     @model_validator(mode="after")
@@ -61,6 +69,25 @@ class Settings(BaseSettings):
 
         # Fallback to local SQLite async database
         self.database_url = "sqlite+aiosqlite:///./app.db"
+        return self
+
+    @model_validator(mode="after")
+    def assemble_redis_url(self) -> "Settings":
+        # If a full Redis URL is provided, use it as-is
+        if self.redis_url:
+            return self
+
+        # Try to construct from discrete credentials if provided
+        host = self.redis_host or "localhost"
+        port = self.redis_port or 6379
+        db = self.redis_db or 0
+        password = self.redis_password
+
+        if password:
+            self.redis_url = f"redis://:{password}@{host}:{port}/{db}"
+        else:
+            self.redis_url = f"redis://{host}:{port}/{db}"
+
         return self
 
     @model_validator(mode="after")
