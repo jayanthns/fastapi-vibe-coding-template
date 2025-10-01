@@ -34,11 +34,12 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
   - [16) Security notes](#16-security-notes)
   - [17) Architecture overview](#17-architecture-overview)
   - [18) Request tracing and logging](#18-request-tracing-and-logging)
-  - [19) Background Jobs API (Template Feature)](#19-background-jobs-api-template-feature)
+  - [19) Redis Caching](#19-redis-caching)
+  - [20) Background Jobs API (Template Feature)](#20-background-jobs-api-template-feature)
     - [Background Jobs Code Cleanup](#background-jobs-code-cleanup)
-  - [20) Documentation](#20-documentation)
-  - [21) API docs \& versioning](#21-api-docs--versioning)
-  - [22) VS Code mandatory extensions](#22-vs-code-mandatory-extensions)
+  - [21) Documentation](#21-documentation)
+  - [22) API docs \& versioning](#22-api-docs--versioning)
+  - [23) VS Code mandatory extensions](#23-vs-code-mandatory-extensions)
   - [9) How to extend this template (step‑by‑step guide)](#9-how-to-extend-this-template-stepbystep-guide)
     - [1) Define the database model](#1-define-the-database-model)
     - [2) Create Pydantic schemas](#2-create-pydantic-schemas)
@@ -629,7 +630,66 @@ ENVIRONMENT=development  # Enables SQL logging
 6. **Error Tracking**: Automatic exception logging with trace_id
 7. **Flexible**: Works in endpoints, services, repositories, and background tasks
 
-## 19) Background Jobs API (Template Feature)
+## 19) Redis Caching
+
+This application includes a Redis singleton service for caching, session management, rate limiting, and more. Redis is configured as a singleton to ensure efficient connection management throughout the application.
+
+### Quick Start
+
+Redis is configured using environment variables:
+
+```bash
+# .env
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
+REDIS_PASSWORD=redis
+
+# Or use full URL
+REDIS_URL=redis://:password@localhost:6379/0
+```
+
+### Basic Usage
+
+```python
+from app.core.redis import redis_service
+from app.core.cache import cache
+
+# Async methods (use in FastAPI endpoints)
+await redis_service.set("key", "value", expire=300)
+value = await redis_service.get("key")
+
+# Sync methods (use in regular functions)
+redis_service.set_sync("key", "value", expire=300)
+value = redis_service.get_sync("key")
+
+# Cache manager (automatic serialization)
+await cache.set("user:123", {"name": "John"}, expire=600)
+user_data = await cache.get("user:123")
+```
+
+### Health Checks
+
+Test Redis connectivity:
+
+```bash
+# Test Redis ping
+curl "http://localhost:8000/api/v1/pings/redis"
+
+# Get Redis server info
+curl "http://localhost:8000/api/v1/pings/redis/info"
+
+# List Redis keys
+curl "http://localhost:8000/api/v1/pings/redis/keys"
+```
+
+### Documentation
+
+For comprehensive Redis usage examples, async/sync method explanations, caching patterns, and advanced features, see:
+
+**[📚 Redis Caching Guide](docs/REDIS_CACHING.md)**
+
+## 20) Background Jobs API (Template Feature)
 
 The project includes a complete background jobs system with status tracking and caching.
 
@@ -687,11 +747,12 @@ If you don't need the background jobs functionality, you can remove it completel
 
 After cleanup, you'll still have a fully functional FastAPI application with articles CRUD, database integration, logging, and all core features.
 
-## 20) Documentation
+## 21) Documentation
 
 ### 📚 Available Documentation
 
 - **[Architecture Overview](docs/ARCHITECTURE.md)** - System architecture, components, and design patterns
+- **[Redis Caching Guide](docs/REDIS_CACHING.md)** - Complete Redis caching system documentation
 - **[Background Jobs API](docs/BACKGROUND_JOBS_API.md)** - Complete background jobs system documentation
 - **[Background Jobs Cleanup](docs/BACKGROUND_JOBS_CLEANUP.md)** - How to remove background jobs feature
 - **[Template Cleanup](docs/TEMPLATE_CLEANUP.md)** - Complete cleanup guide to remove all demo code
@@ -704,13 +765,13 @@ After cleanup, you'll still have a fully functional FastAPI application with art
 - **Articles API**: `GET /api/v1/articles/` - Article CRUD operations
 - **Background Jobs**: `GET /api/v1/jobs/` - Background job management (if enabled)
 
-## 21) API docs & versioning
+## 22) API docs & versioning
 
 - The API is namespaced under `/api/v1`. Add new routers under `app/api/v1/` and include them in `app/api/urls.py`.
 - Use response models to keep OpenAPI accurate. Docs available at `/docs` and `/openapi.json`.
 - URL configuration follows Django-style organization with centralized routing in `app/api/urls.py`.
 
-## 22) VS Code mandatory extensions
+## 23) VS Code mandatory extensions
 
 This repo recommends the following VS Code extensions (see `.vscode/extensions.json`). Installing them ensures consistent formatting and linting:
 
