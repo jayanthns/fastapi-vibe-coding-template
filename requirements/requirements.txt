@@ -44,6 +44,8 @@ filelock==3.19.1
     # via virtualenv
 flake8==6.1.0
     # via -r requirements_raw/requirements.in
+greenlet==3.2.4
+    # via -r requirements_raw/requirements.in
 gunicorn==23.0.0
     # via -r requirements_raw/requirements.in
 h11==0.16.0

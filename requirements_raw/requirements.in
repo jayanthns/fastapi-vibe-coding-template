@@ -38,3 +38,4 @@ uvicorn==0.37.0
 gunicorn==23.0.0
 setuptools>=68.0.0
 aioredis==2.0.1
+greenlet==3.2.4
