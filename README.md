@@ -1,6 +1,6 @@
 # FastAPI Vibe Coding — Local Development
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-0.118.x-009688?logo=fastapi&logoColor=white) ![Uvicorn](https://img.shields.io/badge/Uvicorn-Server-000000?logo=uvicorn&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.x-D71F00?logo=sqlalchemy&logoColor=white) ![Alembic](https://img.shields.io/badge/Alembic-Migrations-2C3E50) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13%2B-336791?logo=postgresql&logoColor=white) ![Redis](https://img.shields.io/badge/Redis-7.x-DC382D?logo=redis&logoColor=white) ![JWT](https://img.shields.io/badge/JWT-Authentication-000000?logo=jsonwebtokens&logoColor=white) ![UUID](https://img.shields.io/badge/UUID-Primary_Keys-FFA500) ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white) ![uv](https://img.shields.io/badge/uv-Dependencies-FF6600) ![Ruff](https://img.shields.io/badge/Ruff-Linting-FFD43B) ![pytest](https://img.shields.io/badge/pytest-Tests-0A9EDC?logo=pytest&logoColor=white) ![License](https://img.shields.io/badge/License-MIT-blue)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-0.118.x-009688?logo=fastapi&logoColor=white) ![Uvicorn](https://img.shields.io/badge/Uvicorn-Server-000000?logo=uvicorn&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.x-D71F00?logo=sqlalchemy&logoColor=white) ![Alembic](https://img.shields.io/badge/Alembic-Migrations-2C3E50) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13%2B-336791?logo=postgresql&logoColor=white) ![Redis](https://img.shields.io/badge/Redis-7.x-DC382D?logo=redis&logoColor=white) ![JWT](https://img.shields.io/badge/JWT-Authentication-000000?logo=jsonwebtokens&logoColor=white) ![UUID](https://img.shields.io/badge/UUID-Primary_Keys-FFA500) ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white) ![uv](https://img.shields.io/badge/uv-Dependencies-FF6600) ![Ruff](https://img.shields.io/badge/Ruff-Linting-FFD43B) ![pytest](https://img.shields.io/badge/pytest-Tests-0A9EDC?logo=pytest&logoColor=white)
 
 This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Alembic, comprehensive user management, JWT authentication, Redis caching, and PII data masking. Features include UUID primary keys, secure password handling, industry-standard caching with automatic fallback, and extensive logging with request tracing.
 
@@ -48,7 +48,7 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
     - [Test Database Strategy](#test-database-strategy)
     - [Testing Patterns](#testing-patterns)
     - [Test Structure](#test-structure)
-    - [Running Tests](#running-tests-1)
+    - [Running All Tests](#running-all-tests)
   - [15) Alembic tips](#15-alembic-tips)
   - [16) Security notes](#16-security-notes)
   - [17) Architecture overview](#17-architecture-overview)
@@ -68,22 +68,22 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
       - [Key Benefits](#key-benefits)
   - [19) Redis Caching](#19-redis-caching)
     - [Key Features](#key-features)
-    - [Configuration](#configuration-1)
+    - [Redis Configuration](#redis-configuration)
     - [Usage Examples](#usage-examples)
-    - [Health Checks](#health-checks)
+    - [Redis Health Checks](#redis-health-checks)
   - [20) User Management System](#20-user-management-system)
-    - [Features](#features)
+    - [User Management Features](#user-management-features)
     - [User Model Fields](#user-model-fields)
     - [API Endpoints](#api-endpoints)
-    - [Usage Example](#usage-example)
+    - [User Registration Example](#user-registration-example)
   - [21) JWT Authentication](#21-jwt-authentication)
-    - [Features](#features-1)
+    - [JWT Features](#jwt-features)
     - [Authentication Flow](#authentication-flow)
-    - [Configuration](#configuration-2)
+    - [JWT Configuration](#jwt-configuration)
     - [Protected Endpoints](#protected-endpoints)
-    - [Usage Example](#usage-example-1)
+    - [JWT Authentication Example](#jwt-authentication-example)
   - [22) UUID Primary Keys](#22-uuid-primary-keys)
-    - [Benefits](#benefits)
+    - [UUID Benefits](#uuid-benefits)
     - [Implementation](#implementation)
     - [Database Migrations](#database-migrations)
     - [API Usage](#api-usage)
@@ -94,24 +94,24 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
     - [Password Policies](#password-policies)
     - [Testing Password Security](#testing-password-security)
   - [24) PII Data Masking](#24-pii-data-masking)
-    - [Features](#features-2)
+    - [PII Masking Features](#pii-masking-features)
     - [Sensitive Field Configuration](#sensitive-field-configuration)
     - [Automatic Masking](#automatic-masking)
     - [Load Sensitive Field Data](#load-sensitive-field-data)
-    - [API Endpoints](#api-endpoints-1)
+    - [PII Masking API Endpoints](#pii-masking-api-endpoints)
     - [Integration with Services](#integration-with-services)
   - [25) Industry-Standard Caching with Automatic Fallback](#25-industry-standard-caching-with-automatic-fallback)
-    - [Key Features](#key-features-1)
+    - [Caching Key Features](#caching-key-features)
     - [Quick Start](#quick-start)
     - [How It Works](#how-it-works)
     - [Basic Usage](#basic-usage)
-    - [Health Checks](#health-checks-1)
+    - [Cache Health Checks](#cache-health-checks)
     - [Startup Behavior](#startup-behavior)
     - [Documentation](#documentation)
   - [26) Background Jobs API (Template Feature)](#26-background-jobs-api-template-feature)
-    - [Features](#features-3)
-    - [API Endpoints](#api-endpoints-2)
-    - [Usage Example](#usage-example-2)
+    - [Background Jobs Features](#background-jobs-features)
+    - [Background Jobs API Endpoints](#background-jobs-api-endpoints)
+    - [Usage Example](#usage-example)
     - [Testing](#testing)
     - [Background Jobs Code Cleanup](#background-jobs-code-cleanup)
   - [27) Documentation](#27-documentation)
@@ -158,19 +158,42 @@ cp .env_copy .env
 Minimum useful values for local dev:
 
 ```bash
-# Database URL (defaults to SQLite async)
-DATABASE_URL=sqlite+aiosqlite:///./app.db
-
-# Runtime environment
+# Application Configuration
+APP_NAME="FastAPI Vibe Coding"
 ENVIRONMENT=development
-
-# Framework debug mode
 DEBUG=true
 
-# CORS origins (comma-separated). For local dev you can use *
+# Database Configuration
+# Option 1: Direct URL (recommended)
+DATABASE_URL=sqlite+aiosqlite:///./app.db
+# DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/dbname
+
+# Option 2: Discrete credentials (for Docker compose)
+# DATABASE_DRIVER=postgresql+asyncpg
+# DATABASE_HOST=localhost
+# DATABASE_PORT=5432
+# DATABASE_USERNAME=postgres
+# DATABASE_PASSWORD=postgres
+# DATABASE_NAME=fastapi_vibe_coding
+
+# CORS Configuration
 BACKEND_CORS_ORIGINS=*
 
-# Optional: Uvicorn overrides (the scripts have sane defaults)
+# Redis Configuration (Optional - for caching)
+USE_REDIS=false
+# If USE_REDIS=true, configure Redis connection:
+# REDIS_URL=redis://:password@localhost:6379/0
+# Or use discrete settings:
+# REDIS_HOST=localhost
+# REDIS_PORT=6379
+# REDIS_DB=0
+# REDIS_PASSWORD=redis
+
+# JWT Authentication (Required for user auth features)
+# Note: JWT settings are currently hardcoded in app/utils/security.py
+# SECRET_KEY=your-super-secret-jwt-key-here-change-in-production
+
+# Server Configuration (Optional - Uvicorn overrides)
 # HOST=0.0.0.0
 # PORT=8000
 # WORKERS=1
@@ -179,9 +202,11 @@ BACKEND_CORS_ORIGINS=*
 
 Notes:
 
-- To use Postgres (async), set `DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/dbname` and install `asyncpg`.
-- If you run Postgres via docker-compose, these vars are read by compose for the DB container: `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `DATABASE_NAME`. The app in Docker uses `DATABASE_HOST` from compose (defaults to the DB service name) while local runs can leave `DATABASE_HOST=localhost`.
-- Optional Redis (if you enable the service): `REDIS_HOST`, `REDIS_PORT`, `REDIS_HOST_AND_PORT`.
+- **Database**: SQLite is used by default for local development. For production, use PostgreSQL with `DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/dbname`.
+- **Docker Compose**: When using Docker, discrete database credentials (`DATABASE_USERNAME`, `DATABASE_PASSWORD`, `DATABASE_NAME`) are used for the container setup.
+- **Redis Caching**: Set `USE_REDIS=true` to enable Redis caching with automatic fallback to memory cache if Redis is unavailable.
+- **JWT Security**: JWT settings are currently hardcoded in `app/utils/security.py`. The secret key should be configured properly for production use.
+- **Environment**: Set `ENVIRONMENT=production` in production to disable SQL query logging and enable production optimizations.
 
 ## 3) Dependencies with uv (recommended)
 
@@ -413,7 +438,6 @@ psql -h localhost -U postgres -d postgres -c "CREATE DATABASE fastapi_vibe_codin
 - No data pollution between test runs
 - Fast execution with dedicated test environment
 
-
 ## 8) Makefile commands
 
 Use these shortcuts to manage your environment, dependencies, and Docker. Run from the project root.
@@ -502,7 +526,8 @@ docker compose logs -f
 - Stop: `docker compose down`
 
 Common issues:
-- If you can’t reach the app, ensure Uvicorn binds to `0.0.0.0` (already set in Dockerfile).
+
+- If you can't reach the app, ensure Uvicorn binds to `0.0.0.0` (already set in Dockerfile).
 - Port in use: another process uses 8000; stop it or change host port mapping in `docker-compose.yaml`.
 - Env: ensure `.env` exists; see `.env_copy` for a template.
 
@@ -530,6 +555,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
 ```
 
 Notes:
+
 - Behind a reverse proxy (e.g., NGINX) terminate TLS at the proxy and forward to Uvicorn.
 - Health endpoints: expose `/healthz` for liveness/readiness.
 - Sizing: start with workers = CPU cores or cores*2 for IO‑bound workloads; profile and adjust.
@@ -537,7 +563,8 @@ Notes:
 ## 13) VS Code tasks
 
 This repo includes `/.vscode/tasks.json` with common tasks (run server, tests, Docker, etc.).
-- Open the Command Palette → “Run Task” → pick a task.
+
+- Open the Command Palette → "Run Task" → pick a task.
 - Adjust or add tasks in `.vscode/tasks.json` as needed for your workflow.
 
 ## 14) Testing guidance
@@ -558,7 +585,7 @@ This repo includes `/.vscode/tasks.json` with common tasks (run server, tests, D
 
 ### Test Structure
 
-```
+```text
 tests/
 ├── conftest.py              # Test database configuration
 ├── test_api/                # API endpoint tests
@@ -570,7 +597,7 @@ tests/
     └── test_article.py
 ```
 
-### Running Tests
+### Running All Tests
 
 ```bash
 # All tests with test database
@@ -624,7 +651,7 @@ The system provides request-scoped loggers that automatically include the trace_
 
 #### Log Format
 
-```
+```text
 2024-01-01 10:00:00,123 | INFO     | 550e8400-e29b-41d4-a716-446655440000 | app.request | Request started: POST /api/v1/articles
 2024-01-01 10:00:00,124 | INFO     | 550e8400-e29b-41d4-a716-446655440000 | app.request | Creating article: My New Article
 2024-01-01 10:00:00,125 | INFO     | 550e8400-e29b-41d4-a716-446655440000 | app.request | Article created successfully with ID: 1
@@ -775,12 +802,14 @@ The system automatically creates log files in `tmp/logs/` with a **simplified 2-
 - **`sqlalchemy-YYYY-MM-DD.log`**: Database query logs (development only)
 
 **Why Only 2 Files?**
+
 - **Less confusion**: Everything in one place with trace_id for correlation
 - **Easier monitoring**: Only 2 files to watch instead of 4
 - **Better context**: Related logs stay together (request + error + business logic)
 - **Simpler maintenance**: Fewer files to manage and rotate
 
 **Log File Features:**
+
 - **Daily rotation**: New log file each day
 - **Size-based rotation**: 10MB max per file, keeps 5 backup files
 - **UTF-8 encoding**: Proper character support
@@ -788,7 +817,8 @@ The system automatically creates log files in `tmp/logs/` with a **simplified 2-
 - **Clear prefixes**: "ACCESS:", "ERROR:" prefixes for easy filtering
 
 **Log File Location:**
-```
+
+```text
 tmp/
 ├── .gitkeep          # Git-tracked file
 └── logs/             # Git-ignored directory
@@ -797,7 +827,8 @@ tmp/
 ```
 
 **Example App Log Content:**
-```
+
+```text
 2024-09-29 20:06:15,123 | INFO     | 32471740-1d73-4cc7-a437-a85083301776 | app.request | Request started: GET /api/v1/articles/
 2024-09-29 20:06:15,124 | INFO     | 32471740-1d73-4cc7-a437-a85083301776 | app.request | Listing articles - skip: 0, limit: 100
 2024-09-29 20:06:15,125 | INFO     | 32471740-1d73-4cc7-a437-a85083301776 | app.access | ACCESS: GET /api/v1/articles/ - 200 - 0.0242s
@@ -842,7 +873,7 @@ This application includes full Redis caching support with both sync and async op
 - **Secure Configuration**: Password-protected Redis connections
 - **Docker Integration**: Redis container with persistent data storage
 
-### Configuration
+### Redis Configuration
 
 Redis is configured through environment variables:
 
@@ -878,7 +909,7 @@ exists = cache.exists_sync("key")
 cache.delete_sync("key")
 ```
 
-### Health Checks
+### Redis Health Checks
 
 Check Redis connectivity:
 
@@ -890,7 +921,7 @@ curl <http://localhost:8000/api/v1/pings/cache/keys>
 
 A comprehensive user management system with industry-standard features including registration, authentication, profile management, and admin operations.
 
-### Features
+### User Management Features
 
 - **User Registration**: Email and username-based registration
 - **Profile Management**: Update user information and preferences
@@ -933,7 +964,7 @@ class User(Base):
 - `PUT /api/v1/users/{user_id}/deactivate` - Deactivate user (admin only)
 - `PUT /api/v1/users/{user_id}/make-superuser` - Grant admin rights (admin only)
 
-### Usage Example
+### User Registration Example
 
 ```python
 # Register a new user
@@ -961,7 +992,7 @@ curl -X POST "<http://localhost:8000/api/v1/users/login>" \
 
 Secure JWT-based authentication system with access and refresh tokens, supporting both username and email login.
 
-### Features
+### JWT Features
 
 - **JWT Access Tokens**: Short-lived tokens for API access
 - **Refresh Tokens**: Long-lived tokens for token renewal
@@ -978,7 +1009,7 @@ Secure JWT-based authentication system with access and refresh tokens, supportin
 4. **Token Refresh**: Use refresh token to get new access token when expired
 5. **Logout**: Client discards tokens
 
-### Configuration
+### JWT Configuration
 
 JWT settings in environment variables:
 
@@ -1006,7 +1037,7 @@ async def admin_endpoint(current_user: User = Depends(get_current_superuser)):
     return {"message": "Admin access granted"}
 ```
 
-### Usage Example
+### JWT Authentication Example
 
 ```bash
 # Login to get tokens
@@ -1026,7 +1057,7 @@ curl -X GET "<http://localhost:8000/api/v1/users/me>" \
 
 All models use UUID primary keys instead of auto-incrementing integers for better security, distributed systems support, and privacy.
 
-### Benefits
+### UUID Benefits
 
 - **Security**: UUIDs are not predictable or enumerable
 - **Privacy**: Prevents information leakage about record counts
@@ -1161,7 +1192,7 @@ python scripts/test_password_security.py
 
 Automatic masking of Personally Identifiable Information (PII) in logs, API responses, and database operations for GDPR and privacy compliance.
 
-### Features
+### PII Masking Features
 
 - **Automatic Detection**: Identifies PII fields like email, phone, SSN, credit cards
 - **Configurable Patterns**: Custom regex patterns for sensitive data detection
@@ -1217,7 +1248,7 @@ python scripts/load_sensitive_fields.py
 python scripts/manual_sensitive_field_entry.py
 ```
 
-### API Endpoints
+### PII Masking API Endpoints
 
 - `GET /api/v1/sensitive-fields/` - List sensitive field configurations
 - `POST /api/v1/sensitive-fields/` - Create new sensitive field rule
@@ -1242,7 +1273,7 @@ is_sensitive = await sensitive_field_service.is_field_sensitive("email")
 
 This application includes an industry-standard caching system with automatic fallback from Redis to memory cache for high availability. The system follows Netflix/Uber patterns for cache resilience.
 
-### Key Features
+### Caching Key Features
 
 - **🔄 Automatic Fallback**: Seamlessly switches from Redis to memory cache when Redis is unavailable
 - **🔄 Automatic Recovery**: Switches back to Redis when it recovers
@@ -1299,7 +1330,7 @@ cache_type = cache.service_type  # "redis" or "memory"
 is_fallback = cache.is_fallback_active  # True if using fallback
 ```
 
-### Health Checks
+### Cache Health Checks
 
 Test cache connectivity and get information:
 
@@ -1332,14 +1363,16 @@ The project includes a complete background jobs system with status tracking and 
 
 > **📝 Template Note**: This is a demo/template feature. If you don't need background job functionality, see [Background Jobs Code Cleanup](#background-jobs-code-cleanup) section below for instructions on how to remove it.
 
-### Features
+### Background Jobs Features
+
 - ✅ Asynchronous job processing
 - ✅ Status tracking with in-memory caching
 - ✅ Trace ID integration
 - ✅ RESTful API endpoints
 - ✅ Comprehensive testing
 
-### API Endpoints
+### Background Jobs API Endpoints
+
 - `POST /api/v1/jobs/process-article` - Create article processing job
 - `POST /api/v1/jobs/send-email` - Create email sending job
 - `POST /api/v1/jobs/generate-report` - Create report generation job
@@ -1349,6 +1382,7 @@ The project includes a complete background jobs system with status tracking and 
 - `GET /api/v1/jobs/all` - List all jobs (dedicated endpoint)
 
 ### Usage Example
+
 ```bash
 # Create a background job
 curl -X POST "<http://localhost:8000/api/v1/jobs/process-article?article_id=123&processing_time=5>"
@@ -1361,6 +1395,7 @@ curl "<http://localhost:8000/api/v1/jobs>"
 ```
 
 ### Testing
+
 ```bash
 # Run background job tests
 make test-background
@@ -1376,6 +1411,7 @@ For complete documentation, see [docs/BACKGROUND_JOBS_API.md](docs/BACKGROUND_JO
 If you don't need the background jobs functionality, you can remove it completely. See [docs/BACKGROUND_JOBS_CLEANUP.md](docs/BACKGROUND_JOBS_CLEANUP.md) for detailed step-by-step instructions.
 
 **Quick cleanup summary:**
+
 1. Remove `app/api/v1/background_jobs.py`
 2. Remove `app/services/background_job_service.py` and `app/core/background_tasks.py`
 3. Update `app/api/urls.py` and `app/main.py`
