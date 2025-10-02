@@ -114,11 +114,22 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
     - [Usage Example](#usage-example)
     - [Testing](#testing)
     - [Background Jobs Code Cleanup](#background-jobs-code-cleanup)
-  - [27) Documentation](#27-documentation)
+  - [27) Notification System](#27-notification-system)
+    - [📧 OOP-Based Email & SMS Notifications](#-oop-based-email--sms-notifications)
+    - [Key Features](#key-features-4)
+    - [Quick Usage](#quick-usage)
+    - [Bulk Email Example](#bulk-email-example)
+    - [Advanced Usage with Classes](#advanced-usage-with-classes)
+    - [Configuration](#configuration-1)
+    - [Integration with FastAPI](#integration-with-fastapi)
+    - [Available Classes & Functions](#available-classes--functions)
+    - [Error Handling & Validation](#error-handling--validation)
+    - [📖 Complete Documentation](#-complete-documentation)
+  - [28) Documentation](#28-documentation)
     - [📚 Available Documentation](#-available-documentation)
     - [🔗 Quick Links](#-quick-links)
-  - [28) API docs \& versioning](#28-api-docs--versioning)
-  - [29) VS Code mandatory extensions](#29-vs-code-mandatory-extensions)
+  - [29) API docs \& versioning](#29-api-docs--versioning)
+  - [30) VS Code mandatory extensions](#30-vs-code-mandatory-extensions)
   - [9) How to extend this template (step‑by‑step guide)](#9-how-to-extend-this-template-stepbystep-guide)
     - [1) Define the database model](#1-define-the-database-model)
     - [2) Create Pydantic schemas](#2-create-pydantic-schemas)
@@ -1474,12 +1485,162 @@ If you don't need the background jobs functionality, you can remove it completel
 
 After cleanup, you'll still have a fully functional FastAPI application with articles CRUD, database integration, logging, and all core features.
 
-## 27) Documentation
+## 27) Notification System
+
+### 📧 OOP-Based Email & SMS Notifications
+
+The application includes a comprehensive notification system built with object-oriented programming principles, supporting email notifications with a foundation for SMS and other notification types.
+
+#### Key Features
+
+- **OOP Design**: Abstract base class with derived implementations
+- **Email Support**: Full SMTP integration with HTML/plain text
+- **SMS Ready**: Placeholder implementation for Twilio, AWS SNS, etc.
+- **Factory Pattern**: Easy notification instance creation
+- **Bulk Operations**: Send to multiple recipients efficiently
+- **Error Handling**: Comprehensive error tracking and validation
+- **Logging Integration**: Full trace ID support for debugging
+- **Template System**: Reusable email templates for common scenarios
+
+#### Quick Usage
+
+```python
+from src.utils.notifications import send_email
+
+# Send a simple email
+result = await send_email(
+    to_email="user@example.com",
+    to_name="John Doe",
+    subject="Welcome to Our Service!",
+    content="Hello John, welcome to our amazing service!",
+    html_content="<h1>Welcome!</h1><p>Hello John!</p>",
+    trace_id="welcome-001"
+)
+
+print(f"Email sent: {result.success}")
+```
+
+#### Bulk Email Example
+
+```python
+from src.utils.notifications import send_bulk_email
+
+recipients = [
+    {"email": "user1@example.com", "name": "Alice Smith"},
+    {"email": "user2@example.com", "name": "Bob Johnson"},
+]
+
+results = await send_bulk_email(
+    recipients=recipients,
+    subject="Monthly Newsletter",
+    content="Here's your monthly newsletter!",
+    trace_id="newsletter-001"
+)
+```
+
+#### Advanced Usage with Classes
+
+```python
+from src.utils.notifications import EmailNotification, NotificationRecipient
+
+# Create email notification instance
+email_notifier = EmailNotification(
+    smtp_server="smtp.gmail.com",
+    from_email="noreply@company.com",
+    from_name="My Company",
+    trace_id="system-alert-001"
+)
+
+# Create recipients
+recipients = [
+    NotificationRecipient(id="user1", email="admin@example.com", name="Admin"),
+    NotificationRecipient(id="user2", email="manager@example.com", name="Manager"),
+]
+
+# Send notification
+results = await email_notifier.send(
+    recipients=recipients,
+    subject="System Alert",
+    content="Important system alert message.",
+    html_content="<h3>🚨 System Alert</h3><p>Important message.</p>"
+)
+```
+
+#### Configuration
+
+Configure email settings via environment variables:
+
+```bash
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+FROM_EMAIL=noreply@yourcompany.com
+FROM_NAME=Your Company Name
+```
+
+#### Integration with FastAPI
+
+```python
+from fastapi import APIRouter, BackgroundTasks
+from src.utils.notifications import send_email
+
+router = APIRouter()
+
+@router.post("/send-welcome")
+async def send_welcome_email_endpoint(
+    user_email: str,
+    user_name: str,
+    background_tasks: BackgroundTasks
+):
+    # Send email in background
+    background_tasks.add_task(
+        send_email,
+        user_email,
+        user_name,
+        "Welcome to our platform!",
+        f"Hello {user_name}, welcome!",
+        trace_id=f"welcome-{user_email}"
+    )
+
+    return {"message": "Welcome email queued"}
+```
+
+#### Available Classes & Functions
+
+- **`EmailNotification`** - SMTP email implementation
+- **`SMSNotification`** - SMS placeholder (Twilio, AWS SNS ready)
+- **`NotificationRecipient`** - Recipient data structure
+- **`NotificationResult`** - Result tracking with success/failure
+- **`send_email()`** - Convenience function for single emails
+- **`send_bulk_email()`** - Convenience function for bulk emails
+- **`create_notification()`** - Factory function for notification instances
+
+#### Error Handling & Validation
+
+```python
+result = await send_email(...)
+
+if result.success:
+    print(f"Email sent successfully: {result.notification_id}")
+else:
+    print(f"Email failed: {result.message}")
+    print(f"Error details: {result.error_details}")
+```
+
+#### 📖 Complete Documentation
+
+For comprehensive documentation, examples, templates, and integration guides, see:
+
+**[📧 Notification System Documentation](docs/NOTIFICATIONS.md)**
+
+## 28) Documentation
 
 ### 📚 Available Documentation
 
 - **[Architecture Overview](docs/ARCHITECTURE.md)** - System architecture, components, and design patterns
 - **[Redis Caching Guide](docs/REDIS_CACHING.md)** - Complete Redis caching system documentation
+- **[Notification System](docs/NOTIFICATIONS.md)** - OOP-based email & SMS notification system with templates
 - **[Background Jobs API](docs/BACKGROUND_JOBS_API.md)** - Complete background jobs system documentation
 - **[Background Jobs Cleanup](docs/BACKGROUND_JOBS_CLEANUP.md)** - How to remove background jobs feature
 - **[Template Cleanup](docs/TEMPLATE_CLEANUP.md)** - Complete cleanup guide to remove all demo code
@@ -1492,13 +1653,13 @@ After cleanup, you'll still have a fully functional FastAPI application with art
 - **Articles API**: `GET /api/v1/articles/` - Article CRUD operations
 - **Background Jobs**: `GET /api/v1/jobs/` - Background job management (if enabled)
 
-## 28) API docs & versioning
+## 29) API docs & versioning
 
 - The API is namespaced under `/api/v1`. Add new routers under `app/api/v1/` and include them in `app/api/urls.py`.
 - Use response models to keep OpenAPI accurate. Docs available at `/docs` and `/openapi.json`.
 - URL configuration follows Django-style organization with centralized routing in `app/api/urls.py`.
 
-## 29) VS Code mandatory extensions
+## 30) VS Code mandatory extensions
 
 This repo recommends the following VS Code extensions (see `.vscode/extensions.json`). Installing them ensures consistent formatting and linting:
 
