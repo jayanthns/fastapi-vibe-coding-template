@@ -13,10 +13,10 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
-from app.db.session import get_db
-from app.repositories.sensitive_field import SensitiveFieldRepository
-from app.schemas.sensitive_field import SensitiveFieldCreate
+from src.apps.sensitive_fields.repository import SensitiveFieldRepository
+from src.apps.sensitive_fields.schemas import SensitiveFieldCreate
+from src.core.config import settings
+from src.db.session import get_db
 
 
 async def load_sensitive_fields_from_json(json_file_path: str) -> None:

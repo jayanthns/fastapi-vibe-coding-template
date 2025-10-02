@@ -11,10 +11,10 @@ from pathlib import Path
 # Add the parent directory to the path so we can import from app
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from app.db.session import get_db
-from app.repositories.user import UserRepository
-from app.schemas.user import UserCreate
-from app.services.user import UserService
+from src.db.session import get_db
+from src.apps.users.repository import UserRepository
+from src.apps.users.schemas import UserCreate
+from src.apps.users.service import UserService
 
 
 async def test_password_security():
@@ -106,7 +106,7 @@ async def test_password_security():
 
             print("\n7. Testing service-level password verification...")
             # Test through service layer
-            from app.schemas.user import UserLogin
+            from src.apps.users.schemas import UserLogin
 
             login_data = UserLogin(email=unique_email, password="NewSecurePassword456!")
             auth_user, auth_token = await service.authenticate_user(login_data)

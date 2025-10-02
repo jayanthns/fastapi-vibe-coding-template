@@ -128,7 +128,7 @@ class LoggingConfig:
         app_logger.propagate = False
 
         # Setup SQLAlchemy logger
-        sqlalchemy_logger = logging.getLogger("app.sqlalchemy")
+        sqlalchemy_logger = logging.getLogger("src.sqlalchemy")
         sqlalchemy_logger.setLevel(logging.INFO)
 
         # SQLAlchemy log file handler
@@ -212,7 +212,7 @@ def get_logger(request: Request) -> RequestLogger:
     """
     from src.middleware.trace import get_trace_id
     trace_id = get_trace_id(request)
-    return RequestLogger(trace_id, "app.request")
+    return RequestLogger(trace_id, "src.request")
 
 
 def log_request_access(
@@ -228,7 +228,7 @@ def log_request_access(
         status_code: Response status code
         processing_time: Request processing time in seconds
     """
-    request_logger = RequestLogger(trace_id, "app.access")
+    request_logger = RequestLogger(trace_id, "src.access")
     request_logger.info(f"ACCESS: {method} {path} - {status_code} - {processing_time:.4f}s")
 
 
@@ -243,7 +243,7 @@ def log_error(
         error_message: Error message
         exception: Optional exception object
     """
-    request_logger = RequestLogger(trace_id, "app.error")
+    request_logger = RequestLogger(trace_id, "src.error")
     request_logger.error(f"ERROR: {error_message}")
 
 

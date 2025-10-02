@@ -32,7 +32,7 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
         request.state.trace_id = trace_id
 
         # Create and attach request-scoped logger
-        request_logger = RequestLogger(trace_id, "app.request")
+        request_logger = RequestLogger(trace_id, "src.request")
         request.state.logger = request_logger
 
         # Add request start time for performance tracking

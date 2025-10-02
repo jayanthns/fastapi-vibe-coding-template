@@ -25,7 +25,7 @@ class SQLAlchemyTraceIDHandler(logging.Handler):
         # Add trace_id to the log record
         record.trace_id = self.trace_id
         # Use the app logger to emit the record
-        logger = logging.getLogger("app.sqlalchemy")
+        logger = logging.getLogger("src.sqlalchemy")
         logger.handle(record)
 
 
@@ -94,10 +94,10 @@ def setup_sqlalchemy_event_logging(engine: Engine, trace_id: str) -> None:
         conn, cursor, statement, parameters, context, executemany
     ):
         """Log SQL statements before execution."""
-        logger = logging.getLogger("app.sqlalchemy")
+        logger = logging.getLogger("src.sqlalchemy")
         # Create a custom log record with trace_id
         record = logging.LogRecord(
-            name="app.sqlalchemy",
+            name="src.sqlalchemy",
             level=logging.INFO,
             pathname="",
             lineno=0,
@@ -113,9 +113,9 @@ def setup_sqlalchemy_event_logging(engine: Engine, trace_id: str) -> None:
         conn, cursor, statement, parameters, context, executemany
     ):
         """Log SQL execution completion."""
-        logger = logging.getLogger("app.sqlalchemy")
+        logger = logging.getLogger("src.sqlalchemy")
         record = logging.LogRecord(
-            name="app.sqlalchemy",
+            name="src.sqlalchemy",
             level=logging.INFO,
             pathname="",
             lineno=0,
@@ -137,7 +137,7 @@ def get_sqlalchemy_logger(trace_id: str):
     Returns:
         Logger instance with trace_id
     """
-    logger = logging.getLogger("app.sqlalchemy")
+    logger = logging.getLogger("src.sqlalchemy")
 
     # Create a custom adapter that adds trace_id
     class TraceIDAdapter(logging.LoggerAdapter):

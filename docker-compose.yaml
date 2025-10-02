@@ -15,6 +15,7 @@ services:
       - .env
     environment:
       - DOCKER_CONTAINER=true
+      - APP_MODULE=src.main:app
       - DATABASE_HOST=${DATABASE_DOCKER_HOST:-fastapi_vibe_coding_db_svc}
       - DATABASE_PORT=5432
       - DATABASE_DRIVER=postgresql+asyncpg

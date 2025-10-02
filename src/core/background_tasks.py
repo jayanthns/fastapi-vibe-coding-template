@@ -24,7 +24,7 @@ class BackgroundTaskManager:
         self._running = True
         self._cleanup_task = asyncio.create_task(self._cleanup_loop())
 
-        logger = get_logger_for_trace_id("system", "app.background_tasks")
+        logger = get_logger_for_trace_id("system", "src.background_tasks")
         logger.info("Background task manager started")
 
     async def stop(self):
@@ -41,12 +41,12 @@ class BackgroundTaskManager:
             except asyncio.CancelledError:
                 pass
 
-        logger = get_logger_for_trace_id("system", "app.background_tasks")
+        logger = get_logger_for_trace_id("system", "src.background_tasks")
         logger.info("Background task manager stopped")
 
     async def _cleanup_loop(self):
         """Main cleanup loop that runs every hour."""
-        logger = get_logger_for_trace_id("system", "app.background_tasks")
+        logger = get_logger_for_trace_id("system", "src.background_tasks")
 
         while self._running:
             try:

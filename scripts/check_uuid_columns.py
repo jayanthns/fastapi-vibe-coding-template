@@ -12,7 +12,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from sqlalchemy import text
 
-from app.db.session import get_async_engine
+from src.db.session import get_async_engine
 
 
 async def check_uuid_columns():

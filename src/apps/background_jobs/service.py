@@ -77,7 +77,7 @@ class BackgroundJobService:
         )
         self._running_jobs[job_id] = task
 
-        logger = get_logger_for_trace_id(trace_id, "app.background_jobs")
+        logger = get_logger_for_trace_id(trace_id, "src.background_jobs")
         logger.info(f"Created background job {job_id} of type {job_type}")
 
         return job_id
@@ -121,7 +121,7 @@ class BackgroundJobService:
         job.status = JobStatus.CANCELLED
         job.completed_at = datetime.now(timezone.utc)
 
-        logger = get_logger_for_trace_id(trace_id, "app.background_jobs")
+        logger = get_logger_for_trace_id(trace_id, "src.background_jobs")
         logger.info(f"Cancelled background job {job_id}")
 
         return True
@@ -150,7 +150,7 @@ class BackgroundJobService:
             if job_id in self._running_jobs:
                 del self._running_jobs[job_id]
 
-        logger = get_logger_for_trace_id("system", "app.background_jobs")
+        logger = get_logger_for_trace_id("system", "src.background_jobs")
         logger.info(f"Cleaned up {len(jobs_to_remove)} old jobs")
 
     async def _execute_job(
@@ -166,7 +166,7 @@ class BackgroundJobService:
             trace_id: Request trace ID
         """
         job = self._jobs[job_id]
-        logger = get_logger_for_trace_id(trace_id, "app.background_jobs")
+        logger = get_logger_for_trace_id(trace_id, "src.background_jobs")
 
         try:
             # Update job status to running

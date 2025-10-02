@@ -10,11 +10,11 @@ from pathlib import Path
 # Add the parent directory to the path so we can import from app
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from app.db.session import get_db
-from app.repositories.user import UserRepository
-from app.schemas.user import UserCreate
-from app.services.user import UserService
-from app.utils.security import get_password_hash, verify_password
+from src.db.session import get_db
+from src.apps.users.repository import UserRepository
+from src.apps.users.schemas import UserCreate
+from src.apps.users.service import UserService
+from src.utils.security import get_password_hash, verify_password
 
 
 async def test_user_service():
@@ -58,7 +58,7 @@ async def test_user_service():
 
             # Test authentication
             print("\n3. Testing user authentication...")
-            from app.schemas.user import UserLogin
+            from src.apps.users.schemas import UserLogin
 
             login_data = UserLogin(
                 email=unique_email, password="TestPassword123!"

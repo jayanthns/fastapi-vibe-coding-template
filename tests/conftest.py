@@ -97,7 +97,7 @@ def mock_request():
 @pytest.fixture
 def mock_logger():
     """Mock logger for testing."""
-    with patch("app.core.logging.get_logger") as mock:
+    with patch("src.core.logging.get_logger") as mock:
         mock_logger = AsyncMock()
         mock.return_value = mock_logger
         yield mock_logger

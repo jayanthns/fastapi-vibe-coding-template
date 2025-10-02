@@ -25,7 +25,7 @@ async def process_article_async(article_id: int, trace_id: str) -> None:
             return {"message": "Processing started"}
     """
     # Create logger with the request's trace_id
-    logger = get_logger_for_trace_id(trace_id, "app.background")
+    logger = get_logger_for_trace_id(trace_id, "src.background")
 
     logger.info(f"Starting background processing for article {article_id}")
 
@@ -51,7 +51,7 @@ async def send_notification_async(user_id: int, message: str, trace_id: str) -> 
     """
     Another example of background task with trace_id logging.
     """
-    logger = get_logger_for_trace_id(trace_id, "app.notifications")
+    logger = get_logger_for_trace_id(trace_id, "src.notifications")
 
     logger.info(f"Sending notification to user {user_id}: {message}")
 
