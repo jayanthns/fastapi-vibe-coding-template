@@ -345,7 +345,7 @@ Troubleshooting:
 ## 5) Run the application
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn src.main:app --reload
 ```
 
 - Swagger UI: <http://localhost:8000/docs>
@@ -354,16 +354,56 @@ uvicorn app.main:app --reload
 
 ## 6) Quick project structure
 
+**Professional Django-Style Architecture:**
+
 ```sh
-app/
-  api/v1/articles.py
-  core/config.py
-  db/session.py
-  models/{__init__.py, article.py}
-  repositories/article.py
-  schemas/article.py
-  services/article.py
-  main.py
+src/                    # Main application directory
+├── apps/               # Domain-level applications
+│   ├── articles/       # Article domain
+│   │   ├── __init__.py
+│   │   ├── models.py      # Article model
+│   │   ├── schemas.py     # Article Pydantic schemas
+│   │   ├── repository.py  # Article data access
+│   │   ├── service.py     # Article business logic
+│   │   └── router.py      # Article API routes
+│   ├── users/          # User domain
+│   │   ├── __init__.py
+│   │   ├── models.py      # User model
+│   │   ├── schemas.py     # User Pydantic schemas
+│   │   ├── repository.py  # User data access
+│   │   ├── service.py     # User business logic
+│   │   └── router.py      # User API routes
+│   ├── sensitive_fields/ # PII masking domain
+│   │   ├── __init__.py
+│   │   ├── models.py      # SensitiveField model
+│   │   ├── schemas.py     # SensitiveField schemas
+│   │   ├── repository.py  # SensitiveField data access
+│   │   ├── service.py     # SensitiveField business logic
+│   │   ├── cache_service.py # Caching service
+│   │   └── router.py      # SensitiveField API routes
+│   ├── background_jobs/ # Background jobs domain
+│   │   ├── __init__.py
+│   │   ├── service.py     # Background job logic
+│   │   └── router.py      # Background job API routes
+│   └── pings/          # Health checks domain
+│       ├── __init__.py
+│       ├── cache_router.py # Cache health checks
+│       ├── database_router.py # Database health checks
+│       └── router.py      # Combined ping routes
+├── core/               # Shared infrastructure
+│   ├── config.py       # Application configuration
+│   ├── auth.py         # Authentication utilities
+│   ├── schemas.py      # Shared schemas (APIResponse)
+│   ├── logging.py      # Logging configuration
+│   └── cache/          # Caching system
+├── db/
+│   └── session.py      # Database session management
+├── middleware/
+│   └── trace.py        # Request tracing
+├── utils/
+│   └── security.py     # Security utilities
+├── urls.py             # Centralized routing
+└── main.py             # FastAPI application
 alembic/
   env.py
   versions/
@@ -374,6 +414,20 @@ requirements/
   requirements.txt                # compiled by uv
   local_requirements.txt          # compiled by uv
 ```
+
+### Architecture Benefits
+
+**🎯 High Cohesion**: All related code for a business domain is grouped together, making it easy to understand and maintain.
+
+**🚀 Easy Feature Development**: When working on articles, everything you need is in the `articles/` directory.
+
+**👥 Better Team Collaboration**: Different teams can work on different apps without conflicts.
+
+**📦 Modular Design**: Easy to add new features or remove existing ones by adding/removing app directories.
+
+**🏗️ Domain-Driven Design**: Structure reflects business domains rather than technical layers.
+
+**🔍 Improved Navigation**: Developers can quickly find all code related to a specific feature.
 
 ## 7) Tests (optional)
 

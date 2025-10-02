@@ -7,7 +7,7 @@ and response helpers.
 
 import pytest
 
-from app.utils.security import (
+from src.utils.security import (
     _is_ip_address,
     _is_sensitive_field,
     _mask_domain,

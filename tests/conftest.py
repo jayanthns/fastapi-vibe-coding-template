@@ -11,8 +11,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.db.session import Base, get_db
-from app.main import app
+from src.db.session import Base, get_db
+from src.main import app
 
 
 # Test database configuration - using PostgreSQL test database
@@ -97,7 +97,7 @@ def mock_request():
 @pytest.fixture
 def mock_logger():
     """Mock logger for testing."""
-    with patch("app.core.logging.get_logger") as mock:
+    with patch("src.core.logging.get_logger") as mock:
         mock_logger = AsyncMock()
         mock.return_value = mock_logger
         yield mock_logger

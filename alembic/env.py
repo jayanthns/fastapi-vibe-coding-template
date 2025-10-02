@@ -13,13 +13,14 @@ from alembic import context
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from app.core.config import settings  # noqa: E402
-from app.db.session import Base  # noqa: E402
-from app.models import (  # noqa: E402, F401 - ensure models are imported
-    article,
-    sensitive_field,
-    user,
+# Import models from apps to ensure they are registered with SQLAlchemy
+from src.apps.articles import models as articles_models  # noqa: E402, F401
+from src.apps.sensitive_fields import (  # noqa: E402, F401
+    models as sensitive_fields_models,
 )
+from src.apps.users import models as users_models  # noqa: E402, F401
+from src.core.config import settings  # noqa: E402
+from src.db.session import Base  # noqa: E402
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

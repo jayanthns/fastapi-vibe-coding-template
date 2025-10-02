@@ -5,7 +5,7 @@ set -euo pipefail
 echo "Using system environment variables..."
 
 echo "DISPLAYING THE ENVIRONMENT VARIABLES..."
-echo "APP_MODULE: ${APP_MODULE:-app.main:app}"
+echo "APP_MODULE: ${APP_MODULE:-src.main:app}"
 echo "HOST: ${HOST:-0.0.0.0}"
 echo "PORT: ${PORT:-8000}"
 echo "WORKERS: ${WORKERS:-1}"
@@ -13,7 +13,7 @@ echo "RELOAD: ${RELOAD:-false}"
 echo "GUNICORN_CMD: ${GUNICORN_CMD:-gunicorn}"
 
 # Defaults (can be overridden via env vars)
-APP_MODULE=${APP_MODULE:-app.main:app}
+APP_MODULE=${APP_MODULE:-src.main:app}
 HOST=${HOST:-0.0.0.0}
 PORT=${PORT:-8000}
 WORKERS=${WORKERS:-1}

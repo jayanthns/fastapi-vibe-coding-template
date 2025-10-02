@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from app.services.background_job_service import (
+from src.apps.background_jobs.service import (
     BackgroundJobService,
     JobResult,
     JobStatus,
@@ -56,7 +56,7 @@ class TestBackgroundJobService:
     def mock_logger(self):
         """Mock logger for testing."""
         with patch(
-            "app.services.background_job_service.get_logger_for_trace_id"
+            "src.apps.background_jobs.service.get_logger_for_trace_id"
         ) as mock:
             mock_logger = AsyncMock()
             mock.return_value = mock_logger
