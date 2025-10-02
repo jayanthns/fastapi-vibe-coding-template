@@ -125,11 +125,22 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
     - [Available Classes & Functions](#available-classes--functions)
     - [Error Handling & Validation](#error-handling--validation)
     - [📖 Complete Documentation](#-complete-documentation)
-  - [28) Documentation](#28-documentation)
+  - [28) File Utilities](#28-file-utilities)
+    - [📁 Comprehensive File Operations](#-comprehensive-file-operations)
+    - [Key Features](#key-features-5)
+    - [Quick Usage](#quick-usage-1)
+    - [Convenience Functions](#convenience-functions-1)
+    - [File Management](#file-management)
+    - [Error Handling](#error-handling-1)
+    - [FastAPI Integration](#fastapi-integration-1)
+    - [Available Functions](#available-functions)
+    - [Security Features](#security-features)
+    - [📖 Complete Documentation](#-complete-documentation-1)
+  - [29) Documentation](#29-documentation)
     - [📚 Available Documentation](#-available-documentation)
     - [🔗 Quick Links](#-quick-links)
-  - [29) API docs \& versioning](#29-api-docs--versioning)
-  - [30) VS Code mandatory extensions](#30-vs-code-mandatory-extensions)
+  - [30) API docs \& versioning](#30-api-docs--versioning)
+  - [31) VS Code mandatory extensions](#31-vs-code-mandatory-extensions)
   - [9) How to extend this template (step‑by‑step guide)](#9-how-to-extend-this-template-stepbystep-guide)
     - [1) Define the database model](#1-define-the-database-model)
     - [2) Create Pydantic schemas](#2-create-pydantic-schemas)
@@ -1634,13 +1645,155 @@ For comprehensive documentation, examples, templates, and integration guides, se
 
 **[📧 Notification System Documentation](docs/NOTIFICATIONS.md)**
 
-## 28) Documentation
+## 28) File Utilities
+
+### 📁 Comprehensive File Operations
+
+The application includes a robust file utilities system for handling various file formats including text files, JSON, CSV, and general file management operations with built-in error handling, security, and logging.
+
+#### Key Features
+
+- **Multiple File Formats**: Text, JSON, and CSV file support
+- **Security**: Path traversal protection and validation
+- **Error Handling**: Comprehensive `FileUtilsError` exception handling
+- **Logging Integration**: Full trace ID support for debugging
+- **Convenience Functions**: Simple one-line functions for common operations
+- **File Management**: Copy, delete, list, and get file information
+- **Encoding Support**: Configurable encoding for all operations
+
+#### Quick Usage
+
+```python
+from src.utils.file_utils import FileUtils, write_text, read_text, write_json, read_json
+
+# Using FileUtils class
+file_utils = FileUtils(trace_id="example-001")
+
+# Text file operations
+file_utils.write_text_file("data/example.txt", "Hello, World!")
+content = file_utils.read_text_file("data/example.txt")
+
+# JSON operations
+data = {"users": [{"name": "Alice", "email": "alice@example.com"}]}
+file_utils.write_json_file("data/users.json", data)
+users = file_utils.read_json_file("data/users.json")
+
+# CSV operations
+csv_data = [{"name": "Alice", "age": "30"}, {"name": "Bob", "age": "25"}]
+file_utils.write_csv_file("data/people.csv", csv_data)
+people = file_utils.read_csv_file("data/people.csv")
+```
+
+#### Convenience Functions
+
+```python
+from src.utils.file_utils import write_text, read_text, write_json, read_json, write_csv, read_csv
+
+# Quick text operations
+write_text("config.txt", "debug=true", trace_id="config-001")
+config = read_text("config.txt", trace_id="config-001")
+
+# Quick JSON operations
+write_json("settings.json", {"theme": "dark"}, trace_id="settings-001")
+settings = read_json("settings.json", trace_id="settings-001")
+
+# Quick CSV operations
+data = [{"product": "Laptop", "price": "999"}]
+write_csv("products.csv", data, trace_id="products-001")
+products = read_csv("products.csv", trace_id="products-001")
+```
+
+#### File Management
+
+```python
+from src.utils.file_utils import FileUtils, file_exists, get_file_info
+
+file_utils = FileUtils(trace_id="file-ops")
+
+# File operations
+if file_utils.file_exists("data/example.txt"):
+    info = file_utils.get_file_info("data/example.txt")
+    print(f"File size: {info['size_human']}")
+
+# Copy and manage files
+file_utils.copy_file("source.txt", "backup/source_backup.txt")
+files = file_utils.list_files("data/", pattern="*.txt")
+file_utils.delete_file("temp/old_file.txt")
+```
+
+#### Error Handling
+
+```python
+from src.utils.file_utils import FileUtils, FileUtilsError
+
+file_utils = FileUtils(trace_id="error-handling")
+
+try:
+    data = file_utils.read_json_file("config.json")
+except FileUtilsError as e:
+    print(f"File error: {e}")
+    # Handle error or use defaults
+    data = {"default": True}
+```
+
+#### FastAPI Integration
+
+```python
+from fastapi import APIRouter, UploadFile, File, HTTPException
+from src.utils.file_utils import FileUtils, FileUtilsError
+
+@router.post("/upload-csv")
+async def upload_csv(file: UploadFile = File(...)):
+    file_utils = FileUtils(trace_id=get_trace_id())
+
+    try:
+        # Save and process uploaded file
+        content = await file.read()
+        file_utils.write_text_file(f"uploads/{file.filename}", content.decode())
+
+        # Process CSV data
+        csv_data = file_utils.read_csv_file(f"uploads/{file.filename}")
+
+        return {"message": f"Processed {len(csv_data)} records"}
+    except FileUtilsError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+```
+
+#### Available Functions
+
+**FileUtils Class Methods:**
+- `read_text_file()`, `write_text_file()`, `read_lines()`
+- `read_json_file()`, `write_json_file()`
+- `read_csv_file()`, `write_csv_file()`, `read_csv_as_list()`
+- `file_exists()`, `directory_exists()`, `get_file_info()`
+- `copy_file()`, `delete_file()`, `list_files()`
+
+**Convenience Functions:**
+- `read_text()`, `write_text()`
+- `read_json()`, `write_json()`
+- `read_csv()`, `write_csv()`
+- `file_exists()`, `get_file_info()`
+
+#### Security Features
+
+- **Path Traversal Protection**: Automatically blocks `../` attempts
+- **Validation**: All file paths are validated before operations
+- **Safe Operations**: Directory creation and file permissions are controlled
+
+#### 📖 Complete Documentation
+
+For comprehensive documentation, examples, advanced usage, and API reference, see:
+
+**[📁 File Utilities Documentation](docs/FILE_UTILS.md)**
+
+## 29) Documentation
 
 ### 📚 Available Documentation
 
 - **[Architecture Overview](docs/ARCHITECTURE.md)** - System architecture, components, and design patterns
 - **[Redis Caching Guide](docs/REDIS_CACHING.md)** - Complete Redis caching system documentation
 - **[Notification System](docs/NOTIFICATIONS.md)** - OOP-based email & SMS notification system with templates
+- **[File Utilities](docs/FILE_UTILS.md)** - Comprehensive file operations for text, JSON, CSV with security
 - **[Background Jobs API](docs/BACKGROUND_JOBS_API.md)** - Complete background jobs system documentation
 - **[Background Jobs Cleanup](docs/BACKGROUND_JOBS_CLEANUP.md)** - How to remove background jobs feature
 - **[Template Cleanup](docs/TEMPLATE_CLEANUP.md)** - Complete cleanup guide to remove all demo code
@@ -1653,13 +1806,13 @@ For comprehensive documentation, examples, templates, and integration guides, se
 - **Articles API**: `GET /api/v1/articles/` - Article CRUD operations
 - **Background Jobs**: `GET /api/v1/jobs/` - Background job management (if enabled)
 
-## 29) API docs & versioning
+## 30) API docs & versioning
 
 - The API is namespaced under `/api/v1`. Add new routers under `app/api/v1/` and include them in `app/api/urls.py`.
 - Use response models to keep OpenAPI accurate. Docs available at `/docs` and `/openapi.json`.
 - URL configuration follows Django-style organization with centralized routing in `app/api/urls.py`.
 
-## 30) VS Code mandatory extensions
+## 31) VS Code mandatory extensions
 
 This repo recommends the following VS Code extensions (see `.vscode/extensions.json`). Installing them ensures consistent formatting and linting:
 
