@@ -11,8 +11,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.db.session import Base, get_db
-from app.main import app
+from src.db.session import Base, get_db
+from src.main import app
 
 
 # Test database configuration - using PostgreSQL test database
