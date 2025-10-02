@@ -1,8 +1,8 @@
 # FastAPI Vibe Coding — Local Development
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-0.116.x-009688?logo=fastapi&logoColor=white) ![Uvicorn](https://img.shields.io/badge/Uvicorn-Server-000000?logo=uvicorn&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.x-D71F00?logo=sqlalchemy&logoColor=white) ![Alembic](https://img.shields.io/badge/Alembic-Migrations-2C3E50) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13%2B-336791?logo=postgresql&logoColor=white) ![SQLite](https://img.shields.io/badge/SQLite-Local_DB-003B57?logo=sqlite&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white) ![uv](https://img.shields.io/badge/uv-Dependencies-FF6600) ![Ruff](https://img.shields.io/badge/Ruff-Linting-FFD43B) ![pytest](https://img.shields.io/badge/pytest-Tests-0A9EDC?logo=pytest&logoColor=white) ![License](https://img.shields.io/badge/License-MIT-blue)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-0.118.x-009688?logo=fastapi&logoColor=white) ![Uvicorn](https://img.shields.io/badge/Uvicorn-Server-000000?logo=uvicorn&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.x-D71F00?logo=sqlalchemy&logoColor=white) ![Alembic](https://img.shields.io/badge/Alembic-Migrations-2C3E50) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13%2B-336791?logo=postgresql&logoColor=white) ![Redis](https://img.shields.io/badge/Redis-7.x-DC382D?logo=redis&logoColor=white) ![JWT](https://img.shields.io/badge/JWT-Authentication-000000?logo=jsonwebtokens&logoColor=white) ![UUID](https://img.shields.io/badge/UUID-Primary_Keys-FFA500) ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white) ![uv](https://img.shields.io/badge/uv-Dependencies-FF6600) ![Ruff](https://img.shields.io/badge/Ruff-Linting-FFD43B) ![pytest](https://img.shields.io/badge/pytest-Tests-0A9EDC?logo=pytest&logoColor=white) ![License](https://img.shields.io/badge/License-MIT-blue)
 
-This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Alembic, and an Article CRUD. This doc covers local setup, environment values, dependency management with uv, database migrations, and how to run the app.
+This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Alembic, comprehensive user management, JWT authentication, Redis caching, and PII data masking. Features include UUID primary keys, secure password handling, industry-standard caching with automatic fallback, and extensive logging with request tracing.
 
 > **📝 Template Options**: This repository includes demo features (articles CRUD and background jobs) that can be removed if you want a completely clean template. See [Template Cleanup](docs/TEMPLATE_CLEANUP.md) for instructions to remove all demo code and start fresh.
 
@@ -14,6 +14,7 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
   - [1) Create and activate a virtualenv](#1-create-and-activate-a-virtualenv)
   - [2) Environment variables (.env)](#2-environment-variables-env)
   - [3) Dependencies with uv (recommended)](#3-dependencies-with-uv-recommended)
+    - [Key Dependencies](#key-dependencies)
   - [4) Database migrations (Alembic)](#4-database-migrations-alembic)
     - [Using Makefile Commands (Recommended - Django-style)](#using-makefile-commands-recommended---django-style)
       - [**Create Migrations**](#create-migrations)
@@ -65,25 +66,59 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
       - [File Logging](#file-logging)
       - [Environment-Based SQL Logging](#environment-based-sql-logging)
       - [Key Benefits](#key-benefits)
-  - [19) Industry-Standard Caching with Automatic Fallback](#19-industry-standard-caching-with-automatic-fallback)
+  - [19) Redis Caching](#19-redis-caching)
     - [Key Features](#key-features)
+    - [Configuration](#configuration-1)
+    - [Usage Examples](#usage-examples)
+    - [Health Checks](#health-checks)
+  - [20) User Management System](#20-user-management-system)
+    - [Features](#features)
+    - [User Model Fields](#user-model-fields)
+    - [API Endpoints](#api-endpoints)
+    - [Usage Example](#usage-example)
+  - [21) JWT Authentication](#21-jwt-authentication)
+    - [Features](#features-1)
+    - [Authentication Flow](#authentication-flow)
+    - [Configuration](#configuration-2)
+    - [Protected Endpoints](#protected-endpoints)
+    - [Usage Example](#usage-example-1)
+  - [22) UUID Primary Keys](#22-uuid-primary-keys)
+    - [Benefits](#benefits)
+    - [Implementation](#implementation)
+    - [Database Migrations](#database-migrations)
+    - [API Usage](#api-usage)
+  - [23) Password Security](#23-password-security)
+    - [Security Features](#security-features)
+    - [Password Handling](#password-handling)
+    - [Security Utilities](#security-utilities)
+    - [Password Policies](#password-policies)
+    - [Testing Password Security](#testing-password-security)
+  - [24) PII Data Masking](#24-pii-data-masking)
+    - [Features](#features-2)
+    - [Sensitive Field Configuration](#sensitive-field-configuration)
+    - [Automatic Masking](#automatic-masking)
+    - [Load Sensitive Field Data](#load-sensitive-field-data)
+    - [API Endpoints](#api-endpoints-1)
+    - [Integration with Services](#integration-with-services)
+  - [25) Industry-Standard Caching with Automatic Fallback](#25-industry-standard-caching-with-automatic-fallback)
+    - [Key Features](#key-features-1)
     - [Quick Start](#quick-start)
     - [How It Works](#how-it-works)
     - [Basic Usage](#basic-usage)
-    - [Health Checks](#health-checks)
+    - [Health Checks](#health-checks-1)
     - [Startup Behavior](#startup-behavior)
     - [Documentation](#documentation)
-  - [20) Background Jobs API (Template Feature)](#20-background-jobs-api-template-feature)
-    - [Features](#features)
-    - [API Endpoints](#api-endpoints)
-    - [Usage Example](#usage-example)
+  - [26) Background Jobs API (Template Feature)](#26-background-jobs-api-template-feature)
+    - [Features](#features-3)
+    - [API Endpoints](#api-endpoints-2)
+    - [Usage Example](#usage-example-2)
     - [Testing](#testing)
     - [Background Jobs Code Cleanup](#background-jobs-code-cleanup)
-  - [21) Documentation](#21-documentation)
+  - [27) Documentation](#27-documentation)
     - [📚 Available Documentation](#-available-documentation)
     - [🔗 Quick Links](#-quick-links)
-  - [22) API docs \& versioning](#22-api-docs--versioning)
-  - [23) VS Code mandatory extensions](#23-vs-code-mandatory-extensions)
+  - [28) API docs \& versioning](#28-api-docs--versioning)
+  - [29) VS Code mandatory extensions](#29-vs-code-mandatory-extensions)
   - [9) How to extend this template (step‑by‑step guide)](#9-how-to-extend-this-template-stepbystep-guide)
     - [1) Define the database model](#1-define-the-database-model)
     - [2) Create Pydantic schemas](#2-create-pydantic-schemas)
@@ -175,6 +210,19 @@ Alternatively, you can install from the package metadata for editable dev:
 ```bash
 pip install -e '.[dev]'
 ```
+
+### Key Dependencies
+
+The application includes several key dependencies for its features:
+
+- **FastAPI 0.118.x**: Modern async web framework
+- **SQLAlchemy 2.x**: Async ORM with UUID support
+- **Redis 5.x**: Caching and session storage
+- **PyJWT**: JWT token authentication
+- **passlib[bcrypt]**: Password hashing with PBKDF2-SHA256
+- **email-validator**: Email validation for user registration
+- **asyncpg**: PostgreSQL async driver
+- **alembic**: Database migrations with UUID support
 
 ## 4) Database migrations (Alembic)
 
@@ -275,8 +323,8 @@ Troubleshooting:
 uvicorn app.main:app --reload
 ```
 
-- Swagger UI: http://localhost:8000/docs
-- Health check: GET http://localhost:8000/healthz
+- Swagger UI: <http://localhost:8000/docs>
+- Health check: GET <http://localhost:8000/healthz>
 - Articles CRUD: `/api/v1/articles`
 
 ## 6) Quick project structure
@@ -373,7 +421,7 @@ Use these shortcuts to manage your environment, dependencies, and Docker. Run fr
 ### Local app
 
 - **make run**: Start the dev server with reload using your local venv.
-  - Example: `make run` then open http://localhost:8000
+  - Example: `make run` then open <http://localhost:8000>
 
 ### Python virtualenv
 
@@ -438,7 +486,7 @@ Use these shortcuts to manage your environment, dependencies, and Docker. Run fr
 Notes:
 
 - Ensure `.env` exists before using Docker targets that rely on env vars.
-- If you prefer running the app inside Docker, expose `8000` and hit `http://localhost:8000`.
+- If you prefer running the app inside Docker, expose `8000` and hit <http://localhost:8000>.
 
 ## 10) Run with Docker
 
@@ -450,7 +498,7 @@ docker compose up -d
 docker compose logs -f
 ```
 
-- App: http://localhost:8000 (Docs at `/docs`, health at `/healthz`)
+- App: <http://localhost:8000> (Docs at `/docs`, health at `/healthz`)
 - Stop: `docker compose down`
 
 Common issues:
@@ -781,7 +829,416 @@ ENVIRONMENT=development  # Enables SQL logging
 6. **Error Tracking**: Automatic exception logging with trace_id
 7. **Flexible**: Works in endpoints, services, repositories, and background tasks
 
-## 19) Industry-Standard Caching with Automatic Fallback
+## 19) Redis Caching
+
+This application includes full Redis caching support with both sync and async operations. Redis provides high-performance caching for session data, API responses, and application state.
+
+### Key Features
+
+- **Dual Client Support**: Both synchronous and asynchronous Redis clients
+- **Connection Pooling**: Efficient connection management
+- **Automatic Fallback**: Falls back to memory cache if Redis is unavailable
+- **Health Monitoring**: Built-in Redis health checks
+- **Secure Configuration**: Password-protected Redis connections
+- **Docker Integration**: Redis container with persistent data storage
+
+### Configuration
+
+Redis is configured through environment variables:
+
+```bash
+# Enable Redis
+USE_REDIS=1
+
+# Redis Connection (Docker)
+REDIS_HOST=fastapi_vibe_coding_redis_svc
+REDIS_PORT=6379
+REDIS_DB=0
+REDIS_PASSWORD=redis
+
+# Or use full Redis URL
+REDIS_URL=redis://:password@host:port/db
+```
+
+### Usage Examples
+
+```python
+from app.core.cache import cache
+
+# Async operations
+await cache.set("key", "value", expire=3600)
+value = await cache.get("key")
+exists = await cache.exists("key")
+await cache.delete("key")
+
+# Sync operations (for non-async contexts)
+cache.set_sync("key", "value", expire=3600)
+value = cache.get_sync("key")
+exists = cache.exists_sync("key")
+cache.delete_sync("key")
+```
+
+### Health Checks
+
+Check Redis connectivity:
+
+```bash
+curl <http://localhost:8000/api/v1/pings/cache/keys>
+```
+
+## 20) User Management System
+
+A comprehensive user management system with industry-standard features including registration, authentication, profile management, and admin operations.
+
+### Features
+
+- **User Registration**: Email and username-based registration
+- **Profile Management**: Update user information and preferences
+- **Admin Operations**: User management for superusers
+- **Account Verification**: Email verification system
+- **Account Status**: Activate/deactivate user accounts
+- **UUID Primary Keys**: Uses UUIDs for all user IDs
+- **Secure Password Handling**: PBKDF2-SHA256 password hashing
+- **PII Masking**: Automatic masking of sensitive user data
+
+### User Model Fields
+
+```python
+class User(Base):
+    id: UUID              # Primary key (UUID)
+    email: str            # Unique email address
+    username: str         # Unique username
+    first_name: str       # User's first name
+    last_name: str        # User's last name
+    age: Optional[int]    # User's age (optional)
+    is_active: bool       # Account active status
+    is_verified: bool     # Email verification status
+    is_superuser: bool    # Admin privileges
+    last_login: datetime  # Last login timestamp
+    created_at: datetime  # Account creation time
+    updated_at: datetime  # Last profile update
+```
+
+### API Endpoints
+
+- `POST /api/v1/users/register` - User registration
+- `POST /api/v1/users/login` - User login
+- `GET /api/v1/users/me` - Get current user profile
+- `PUT /api/v1/users/me` - Update current user profile
+- `POST /api/v1/users/me/change-password` - Change password
+- `GET /api/v1/users/` - List users (admin only)
+- `GET /api/v1/users/{user_id}` - Get user by ID (admin only)
+- `PUT /api/v1/users/{user_id}/verify` - Verify user (admin only)
+- `PUT /api/v1/users/{user_id}/activate` - Activate user (admin only)
+- `PUT /api/v1/users/{user_id}/deactivate` - Deactivate user (admin only)
+- `PUT /api/v1/users/{user_id}/make-superuser` - Grant admin rights (admin only)
+
+### Usage Example
+
+```python
+# Register a new user
+curl -X POST "<http://localhost:8000/api/v1/users/register>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "username": "johndoe",
+    "password": "securepassword",
+    "first_name": "John",
+    "last_name": "Doe",
+    "age": 30
+  }'
+
+# Login
+curl -X POST "<http://localhost:8000/api/v1/users/login>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "johndoe",
+    "password": "securepassword"
+  }'
+```
+
+## 21) JWT Authentication
+
+Secure JWT-based authentication system with access and refresh tokens, supporting both username and email login.
+
+### Features
+
+- **JWT Access Tokens**: Short-lived tokens for API access
+- **Refresh Tokens**: Long-lived tokens for token renewal
+- **Flexible Login**: Support for both username and email
+- **Token Validation**: Comprehensive token verification
+- **Security Headers**: Automatic security headers in responses
+- **Token Expiration**: Configurable token lifetimes
+
+### Authentication Flow
+
+1. **Login**: User provides username/email and password
+2. **Token Generation**: System generates JWT access and refresh tokens
+3. **API Access**: Client includes access token in Authorization header
+4. **Token Refresh**: Use refresh token to get new access token when expired
+5. **Logout**: Client discards tokens
+
+### Configuration
+
+JWT settings in environment variables:
+
+```bash
+# JWT Configuration (add to .env)
+JWT_SECRET_KEY=your-super-secret-jwt-key-here
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+```
+
+### Protected Endpoints
+
+Use the authentication dependency to protect endpoints:
+
+```python
+from app.core.auth import get_current_user, get_current_superuser
+
+@router.get("/protected")
+async def protected_endpoint(current_user: User = Depends(get_current_user)):
+    return {"message": f"Hello {current_user.username}"}
+
+@router.get("/admin-only")
+async def admin_endpoint(current_user: User = Depends(get_current_superuser)):
+    return {"message": "Admin access granted"}
+```
+
+### Usage Example
+
+```bash
+# Login to get tokens
+response=$(curl -X POST "<http://localhost:8000/api/v1/users/login>" \
+  -H "Content-Type: application/json" \
+  -d '{"username": "johndoe", "password": "securepassword"}')
+
+# Extract access token
+access_token=$(echo $response | jq -r '.data.access_token')
+
+# Use token to access protected endpoints
+curl -X GET "<http://localhost:8000/api/v1/users/me>" \
+  -H "Authorization: Bearer $access_token"
+```
+
+## 22) UUID Primary Keys
+
+All models use UUID primary keys instead of auto-incrementing integers for better security, distributed systems support, and privacy.
+
+### Benefits
+
+- **Security**: UUIDs are not predictable or enumerable
+- **Privacy**: Prevents information leakage about record counts
+- **Distributed Systems**: UUIDs are globally unique across databases
+- **Scalability**: No single point of failure for ID generation
+- **API Security**: Prevents ID-based attacks and data scraping
+
+### Implementation
+
+All models use UUID4 primary keys:
+
+```python
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        index=True
+    )
+    # ... other fields
+
+class Article(Base):
+    __tablename__ = "articles"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        index=True
+    )
+    # ... other fields
+```
+
+### Database Migrations
+
+The application includes migrations to convert from integer IDs to UUIDs:
+
+```bash
+# Apply UUID migrations
+make migrate
+
+# Or using alembic directly
+alembic upgrade head
+```
+
+### API Usage
+
+All API endpoints now accept and return UUIDs:
+
+```bash
+# Get user by UUID
+curl "<http://localhost:8000/api/v1/users/550e8400-e29b-41d4-a716-446655440000>"
+
+# Get article by UUID
+curl "<http://localhost:8000/api/v1/articles/6ba7b810-9dad-11d1-80b4-00c04fd430c8>"
+```
+
+## 23) Password Security
+
+Industry-standard password security with PBKDF2-SHA256 hashing, secure password policies, and protected password handling.
+
+### Security Features
+
+- **PBKDF2-SHA256 Hashing**: Industry-standard password hashing algorithm
+- **Salt Generation**: Automatic salt generation for each password
+- **Password Verification**: Secure password comparison without timing attacks
+- **Protected Access**: Passwords cannot be directly accessed from user objects
+- **Hash Storage**: Only password hashes are stored, never plain text passwords
+
+### Password Handling
+
+The User model implements secure password handling with setters and getters:
+
+```python
+class User(Base):
+    _password_hash = Column("password_hash", String(255), nullable=False)
+
+    def set_password(self, password: str) -> None:
+        """Set password (automatically hashed)"""
+        from app.utils.security import get_password_hash
+        self._password_hash = get_password_hash(password)
+
+    def verify_password(self, password: str) -> bool:
+        """Verify password against stored hash"""
+        from app.utils.security import verify_password
+        return verify_password(password, self._password_hash)
+
+    @property
+    def password_hash(self) -> str:
+        """Get password hash (internal use only)"""
+        return self._password_hash
+```
+
+### Security Utilities
+
+The security module provides password hashing functions:
+
+```python
+from app.utils.security import get_password_hash, verify_password
+
+# Hash a password
+hashed = get_password_hash("user_password")
+
+# Verify a password
+is_valid = verify_password("user_password", hashed)
+```
+
+### Password Policies
+
+Recommended password policies (implement as needed):
+
+- Minimum 8 characters length
+- Mix of uppercase, lowercase, numbers, and symbols
+- No common passwords or dictionary words
+- No reuse of previous passwords
+- Regular password rotation for admin accounts
+
+### Testing Password Security
+
+Test the password security implementation:
+
+```bash
+python scripts/test_password_security.py
+```
+
+## 24) PII Data Masking
+
+Automatic masking of Personally Identifiable Information (PII) in logs, API responses, and database operations for GDPR and privacy compliance.
+
+### Features
+
+- **Automatic Detection**: Identifies PII fields like email, phone, SSN, credit cards
+- **Configurable Patterns**: Custom regex patterns for sensitive data detection
+- **API Response Masking**: Automatically masks sensitive data in API responses
+- **Log Masking**: Prevents PII from appearing in application logs
+- **Database Field Protection**: Identifies sensitive database fields
+- **GDPR Compliance**: Helps meet data protection requirements
+
+### Sensitive Field Configuration
+
+Configure sensitive fields in `data/sensitive_fields.json` and `data/user_sensitive_fields.json`:
+
+```json
+[
+  {
+    "field_name": "email",
+    "field_type": "email",
+    "regex_pattern": "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b",
+    "description": "Email addresses",
+    "is_active": true
+  },
+  {
+    "field_name": "ssn",
+    "field_type": "ssn",
+    "regex_pattern": "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+    "description": "Social Security Numbers",
+    "is_active": true
+  }
+]
+```
+
+### Automatic Masking
+
+The system automatically masks detected PII:
+
+```python
+# Original data
+{"email": "user@example.com", "ssn": "123-45-6789"}
+
+# Masked in logs and responses
+{"email": "u***@***.com", "ssn": "***-**-****"}
+```
+
+### Load Sensitive Field Data
+
+Load sensitive field configurations into the database:
+
+```bash
+# Load from JSON files
+python scripts/load_sensitive_fields.py
+
+# Or manually configure
+python scripts/manual_sensitive_field_entry.py
+```
+
+### API Endpoints
+
+- `GET /api/v1/sensitive-fields/` - List sensitive field configurations
+- `POST /api/v1/sensitive-fields/` - Create new sensitive field rule
+- `PUT /api/v1/sensitive-fields/{id}` - Update sensitive field rule
+- `DELETE /api/v1/sensitive-fields/{id}` - Delete sensitive field rule
+
+### Integration with Services
+
+Services automatically apply PII masking:
+
+```python
+from app.services.sensitive_field import SensitiveFieldService
+
+# Mask sensitive data
+masked_data = await sensitive_field_service.mask_sensitive_data(user_data)
+
+# Check if field contains PII
+is_sensitive = await sensitive_field_service.is_field_sensitive("email")
+```
+
+## 25) Industry-Standard Caching with Automatic Fallback
 
 This application includes an industry-standard caching system with automatic fallback from Redis to memory cache for high availability. The system follows Netflix/Uber patterns for cache resilience.
 
@@ -848,13 +1305,13 @@ Test cache connectivity and get information:
 
 ```bash
 # Test cache ping (works with both Redis and fallback)
-curl "http://localhost:8000/api/v1/pings/cache"
+curl "<http://localhost:8000/api/v1/pings/cache>"
 
 # Get cache info (shows current cache type and fallback status)
-curl "http://localhost:8000/api/v1/pings/cache/info"
+curl "<http://localhost:8000/api/v1/pings/cache/info>"
 
 # List cache keys (works with both Redis and memory cache)
-curl "http://localhost:8000/api/v1/pings/cache/keys"
+curl "<http://localhost:8000/api/v1/pings/cache/keys>"
 ```
 
 ### Startup Behavior
@@ -869,7 +1326,7 @@ For comprehensive caching usage examples, fallback patterns, monitoring, and adv
 
 **[📚 Redis Caching Guide](docs/REDIS_CACHING.md)**
 
-## 20) Background Jobs API (Template Feature)
+## 26) Background Jobs API (Template Feature)
 
 The project includes a complete background jobs system with status tracking and caching.
 
@@ -894,13 +1351,13 @@ The project includes a complete background jobs system with status tracking and 
 ### Usage Example
 ```bash
 # Create a background job
-curl -X POST "http://localhost:8000/api/v1/jobs/process-article?article_id=123&processing_time=5"
+curl -X POST "<http://localhost:8000/api/v1/jobs/process-article?article_id=123&processing_time=5>"
 
 # Check job status
-curl "http://localhost:8000/api/v1/jobs/{job_id}/status"
+curl "<http://localhost:8000/api/v1/jobs/{job_id}/status>"
 
 # List all jobs
-curl "http://localhost:8000/api/v1/jobs"
+curl "<http://localhost:8000/api/v1/jobs>"
 ```
 
 ### Testing
@@ -927,7 +1384,7 @@ If you don't need the background jobs functionality, you can remove it completel
 
 After cleanup, you'll still have a fully functional FastAPI application with articles CRUD, database integration, logging, and all core features.
 
-## 21) Documentation
+## 27) Documentation
 
 ### 📚 Available Documentation
 
@@ -945,13 +1402,13 @@ After cleanup, you'll still have a fully functional FastAPI application with art
 - **Articles API**: `GET /api/v1/articles/` - Article CRUD operations
 - **Background Jobs**: `GET /api/v1/jobs/` - Background job management (if enabled)
 
-## 22) API docs & versioning
+## 28) API docs & versioning
 
 - The API is namespaced under `/api/v1`. Add new routers under `app/api/v1/` and include them in `app/api/urls.py`.
 - Use response models to keep OpenAPI accurate. Docs available at `/docs` and `/openapi.json`.
 - URL configuration follows Django-style organization with centralized routing in `app/api/urls.py`.
 
-## 23) VS Code mandatory extensions
+## 29) VS Code mandatory extensions
 
 This repo recommends the following VS Code extensions (see `.vscode/extensions.json`). Installing them ensures consistent formatting and linting:
 
