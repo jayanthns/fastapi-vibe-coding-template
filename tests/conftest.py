@@ -22,6 +22,24 @@ from src.apps.users.models import User
 from src.db.session import Base, get_db_with_trace_id
 from src.main import app
 
+# ============================================================================
+# CENTRALIZED TEST ORDER MANAGEMENT
+# ============================================================================
+
+
+def pytest_collection_modifyitems(config, items):
+    """
+    Centralized test order management.
+    This function runs after test collection and before test execution.
+    """
+    from tests.test_config import get_test_order
+
+    # Apply order markers to test items based on centralized configuration
+    for item in items:
+        file_path = str(item.fspath)
+        order = get_test_order(file_path)
+        item.add_marker(pytest.mark.order(order))
+
 
 @pytest.fixture(scope="session")
 def event_loop():

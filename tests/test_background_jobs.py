@@ -8,8 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-# Mark all tests in this module as last tests (run last)
-pytestmark = [pytest.mark.last, pytest.mark.order(4)]
+# Test order is managed centrally in conftest.py
 
 from src.apps.background_jobs.service import BackgroundJobService, JobResult, JobStatus
 

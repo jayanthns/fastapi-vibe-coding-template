@@ -8,7 +8,7 @@ and response helpers.
 import pytest
 
 # Mark all tests in this module as utility tests (run middle)
-pytestmark = [pytest.mark.utils, pytest.mark.order(2)]
+# Test order is managed centrally in conftest.py
 
 from src.utils.security import (
     _is_ip_address,

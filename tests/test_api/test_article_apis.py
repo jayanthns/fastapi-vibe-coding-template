@@ -11,8 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.articles.models import Article
 
-# Set test order - articles run as order 3, before background jobs (order 4)
-pytestmark = [pytest.mark.order(3)]
+# Test order is managed centrally in conftest.py
 
 # ============================================================================
 # GET ARTICLE TESTS
