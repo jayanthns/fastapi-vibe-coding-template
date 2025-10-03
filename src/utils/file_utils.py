@@ -304,8 +304,12 @@ class FileUtils:
         """Custom JSON serializer for common types."""
         if isinstance(obj, datetime):
             return obj.isoformat()
-        elif hasattr(obj, "__dict__"):
-            return obj.__dict__
+        elif hasattr(obj, "__dict__") and not isinstance(obj, (str, int, float, bool, list, dict, type(None))):
+            # Only convert objects with __dict__ to dictionary if they have actual attributes
+            if obj.__dict__:
+                return obj.__dict__
+            else:
+                raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
         else:
             raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 

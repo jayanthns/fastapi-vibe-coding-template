@@ -129,18 +129,32 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
     - [📁 Comprehensive File Operations](#-comprehensive-file-operations)
     - [Key Features](#key-features-5)
     - [Quick Usage](#quick-usage-1)
-    - [Convenience Functions](#convenience-functions-1)
+    - [Convenience Functions](#convenience-functions)
     - [File Management](#file-management)
     - [Error Handling](#error-handling-1)
     - [FastAPI Integration](#fastapi-integration-1)
     - [Available Functions](#available-functions)
     - [Security Features](#security-features)
     - [📖 Complete Documentation](#-complete-documentation-1)
-  - [29) Documentation](#29-documentation)
+  - [29) Date/Time Utilities](#29-datetime-utilities)
+    - [🕒 Comprehensive Date & Time Operations](#-comprehensive-date--time-operations)
+    - [Key Features](#key-features-6)
+    - [Quick Usage](#quick-usage-2)
+    - [Timezone Support](#timezone-support)
+    - [Business Day Operations](#business-day-operations)
+    - [Date Formatting & Parsing](#date-formatting--parsing)
+    - [Duration Calculations](#duration-calculations)
+    - [Date Range Operations](#date-range-operations)
+    - [FastAPI Integration](#fastapi-integration-2)
+    - [Available Functions](#available-functions-1)
+    - [Error Handling](#error-handling-2)
+    - [Security Features](#security-features-1)
+    - [📖 Complete Documentation](#-complete-documentation-2)
+  - [30) Documentation](#30-documentation)
     - [📚 Available Documentation](#-available-documentation)
     - [🔗 Quick Links](#-quick-links)
-  - [30) API docs \& versioning](#30-api-docs--versioning)
-  - [31) VS Code mandatory extensions](#31-vs-code-mandatory-extensions)
+  - [31) API docs \& versioning](#31-api-docs--versioning)
+  - [32) VS Code mandatory extensions](#32-vs-code-mandatory-extensions)
   - [9) How to extend this template (step‑by‑step guide)](#9-how-to-extend-this-template-stepbystep-guide)
     - [1) Define the database model](#1-define-the-database-model)
     - [2) Create Pydantic schemas](#2-create-pydantic-schemas)
@@ -1786,7 +1800,262 @@ For comprehensive documentation, examples, advanced usage, and API reference, se
 
 **[📁 File Utilities Documentation](docs/FILE_UTILS.md)**
 
-## 29) Documentation
+## 29) Date/Time Utilities
+
+### 🕒 Comprehensive Date & Time Operations
+
+The application includes a robust date/time utilities system for handling timezone conversions, business day calculations, date formatting, duration calculations, and more with built-in error handling, validation, and logging.
+
+#### Key Features
+
+- **Timezone Handling**: Convert between different timezones with support for common abbreviations
+- **Date Formatting**: Format dates in multiple formats (ISO, US, EU, readable, etc.)
+- **Date Parsing**: Parse date strings with auto-detection and custom formats
+- **Business Day Calculations**: Calculate business days excluding weekends and holidays
+- **Duration Calculations**: Calculate and format durations between dates
+- **Date Range Operations**: Work with week/month/quarter/year boundaries
+- **Date Validation**: Validate date ranges and formats
+- **Age Calculations**: Calculate age from birth dates
+- **Timestamp Operations**: Convert between Unix timestamps and datetime objects
+
+#### Quick Usage
+
+```python
+from src.utils.datetime_utils import DateTimeUtils, now, today, convert_timezone, format_datetime, get_business_days_between
+
+# Get current time in different timezones
+utc_time = now()
+est_time = now('US/Eastern')
+ist_time = now('Asia/Kolkata')
+
+# Convert between timezones
+utc_dt = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+est_dt = convert_timezone(utc_dt, 'UTC', 'US/Eastern')
+
+# Format datetime
+formatted = format_datetime(utc_dt, "%Y-%m-%d %H:%M:%S")
+
+# Calculate business days
+start_date = date(2024, 1, 1)  # Monday
+end_date = date(2024, 1, 7)    # Sunday
+business_days = get_business_days_between(start_date, end_date)  # 5 days
+```
+
+#### Timezone Support
+
+```python
+from src.utils.datetime_utils import DateTimeUtils
+
+utils = DateTimeUtils(trace_id="timezone-demo")
+
+# Common abbreviations
+utc_time = utils.now('utc')
+est_time = utils.now('est')
+ist_time = utils.now('ist')
+
+# Full timezone names
+berlin_time = utils.now('Europe/Berlin')
+tokyo_time = utils.now('Asia/Tokyo')
+
+# Convert between timezones
+utc_dt = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+est_dt = utils.convert_timezone(utc_dt, 'UTC', 'US/Eastern')
+ist_dt = utils.convert_timezone(utc_dt, 'UTC', 'Asia/Kolkata')
+```
+
+#### Business Day Operations
+
+```python
+from src.utils.datetime_utils import DateTimeUtils, get_business_days_between
+from datetime import date
+
+utils = DateTimeUtils(trace_id="business-days")
+
+# Calculate business days
+start_date = date(2024, 1, 1)  # Monday
+end_date = date(2024, 1, 31)   # Wednesday
+
+# Basic calculation
+business_days = get_business_days_between(start_date, end_date)
+print(f"Business days: {business_days}")
+
+# With holidays
+holidays = [date(2024, 1, 1), date(2024, 1, 15)]  # New Year's Day, MLK Day
+business_days_with_holidays = get_business_days_between(
+    start_date, end_date, holidays=holidays
+)
+
+# Find next business day
+next_business = utils.get_next_business_day(date(2024, 1, 5))  # Friday
+print(f"Next business day: {next_business}")  # Monday
+```
+
+#### Date Formatting & Parsing
+
+```python
+from src.utils.datetime_utils import format_datetime, parse_datetime, DateTimeUtils
+
+# Format datetime
+dt = datetime(2024, 1, 1, 12, 30, 45)
+
+# Different formats
+iso_format = format_datetime(dt, "%Y-%m-%dT%H:%M:%S")
+us_format = format_datetime(dt, "%m/%d/%Y %I:%M %p")
+readable_format = format_datetime(dt, "%B %d, %Y at %I:%M %p")
+
+print(f"ISO: {iso_format}")        # 2024-01-01T12:30:45
+print(f"US: {us_format}")          # 01/01/2024 12:30 PM
+print(f"Readable: {readable_format}")  # January 01, 2024 at 12:30 PM
+
+# Parse datetime
+parsed = parse_datetime("2024-01-01 12:30:45", "%Y-%m-%d %H:%M:%S")
+auto_parsed = parse_datetime("2024-01-01T12:30:45Z")
+```
+
+#### Duration Calculations
+
+```python
+from src.utils.datetime_utils import get_duration_between, DateTimeUtils
+from datetime import datetime
+
+utils = DateTimeUtils(trace_id="duration-demo")
+
+# Calculate duration
+start_dt = datetime(2024, 1, 1, 12, 0, 0)
+end_dt = datetime(2024, 1, 3, 14, 30, 45)
+
+# Get duration components
+duration = get_duration_between(start_dt, end_dt)
+print(f"Duration: {duration}")
+# {'total_seconds': 189045, 'days': 2, 'hours': 2, 'minutes': 30, 'seconds': 45}
+
+# Human-readable duration
+human_duration = utils.get_human_readable_duration(start_dt, end_dt)
+print(f"Human readable: {human_duration}")  # "2 days, 2 hours, 30 minutes, 45 seconds"
+```
+
+#### Date Range Operations
+
+```python
+from src.utils.datetime_utils import DateTimeUtils
+from datetime import date
+
+utils = DateTimeUtils(trace_id="date-ranges")
+
+dt = date(2024, 1, 15)  # Monday
+
+# Get week boundaries
+week_start = utils.get_week_start(dt)
+week_end = utils.get_week_end(dt)
+print(f"Week: {week_start} to {week_end}")
+
+# Get month boundaries
+month_start = utils.get_month_start(dt)
+month_end = utils.get_month_end(dt)
+print(f"Month: {month_start} to {month_end}")
+
+# Get quarter
+quarter = utils.get_quarter(dt)
+quarter_start = utils.get_quarter_start(dt)
+quarter_end = utils.get_quarter_end(dt)
+print(f"Quarter {quarter}: {quarter_start} to {quarter_end}")
+
+# Calculate age
+birth_date = date(1990, 1, 1)
+age = utils.get_age(birth_date)
+print(f"Age: {age} years")
+```
+
+#### FastAPI Integration
+
+```python
+from fastapi import FastAPI, HTTPException
+from src.utils.datetime_utils import DateTimeUtils, get_business_days_between
+from datetime import date
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class DateRangeRequest(BaseModel):
+    start_date: date
+    end_date: date
+    exclude_weekends: bool = True
+    holidays: list[date] = []
+
+@app.post("/calculate-business-days")
+async def calculate_business_days(request: DateRangeRequest):
+    try:
+        utils = DateTimeUtils(trace_id="api-request")
+
+        if not utils.validate_date_range(request.start_date, request.end_date):
+            raise HTTPException(status_code=400, detail="Invalid date range")
+
+        business_days = get_business_days_between(
+            request.start_date,
+            request.end_date,
+            exclude_weekends=request.exclude_weekends,
+            exclude_holidays=request.holidays
+        )
+
+        return {
+            "start_date": request.start_date,
+            "end_date": request.end_date,
+            "business_days": business_days,
+            "total_days": (request.end_date - request.start_date).days + 1
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+```
+
+#### Available Functions
+
+**DateTimeUtils Class Methods:**
+- **Timezone**: `convert_timezone()`, `get_timezone()`, `now()`, `today()`
+- **Formatting**: `format_datetime()`, `parse_datetime()`, `get_iso_format()`, `from_iso_format()`
+- **Arithmetic**: `add_days()`, `add_hours()`, `add_minutes()`, `add_months()`, `add_years()`
+- **Business Days**: `get_business_days_between()`, `get_next_business_day()`, `get_previous_business_day()`
+- **Duration**: `get_duration_between()`, `get_human_readable_duration()`
+- **Timestamps**: `get_timestamp()`, `from_timestamp()`
+- **Date Ranges**: `get_week_start()`, `get_month_start()`, `get_quarter()`, `get_year_start()`
+- **Validation**: `validate_date_range()`, `is_weekend()`, `is_holiday()`, `get_age()`
+
+**Convenience Functions:**
+- `now()`, `today()`
+- `convert_timezone()`
+- `format_datetime()`, `parse_datetime()`
+- `get_business_days_between()`
+- `get_duration_between()`
+- `get_timestamp()`, `from_timestamp()`
+
+#### Error Handling
+
+```python
+from src.utils.datetime_utils import DateTimeUtils, DateTimeUtilsError
+
+utils = DateTimeUtils(trace_id="error-handling")
+
+try:
+    # This will raise DateTimeUtilsError
+    invalid_tz = utils.get_timezone('invalid_timezone')
+except DateTimeUtilsError as e:
+    print(f"Timezone error: {e}")
+    # Handle error gracefully
+```
+
+#### Security Features
+
+- **Timezone Validation**: All timezone names are validated before use
+- **Date Range Validation**: Prevents invalid date ranges and unreasonable dates
+- **Input Sanitization**: All date strings are properly parsed and validated
+- **Error Boundaries**: Comprehensive error handling prevents application crashes
+
+#### 📖 Complete Documentation
+
+For comprehensive documentation, examples, timezone handling, business day calculations, and API reference, see:
+
+**[🕒 Date/Time Utilities Documentation](docs/DATETIME_UTILS.md)**
+
+## 30) Documentation
 
 ### 📚 Available Documentation
 
@@ -1794,6 +2063,7 @@ For comprehensive documentation, examples, advanced usage, and API reference, se
 - **[Redis Caching Guide](docs/REDIS_CACHING.md)** - Complete Redis caching system documentation
 - **[Notification System](docs/NOTIFICATIONS.md)** - OOP-based email & SMS notification system with templates
 - **[File Utilities](docs/FILE_UTILS.md)** - Comprehensive file operations for text, JSON, CSV with security
+- **[Date/Time Utilities](docs/DATETIME_UTILS.md)** - Date and time operations with timezone support
 - **[Background Jobs API](docs/BACKGROUND_JOBS_API.md)** - Complete background jobs system documentation
 - **[Background Jobs Cleanup](docs/BACKGROUND_JOBS_CLEANUP.md)** - How to remove background jobs feature
 - **[Template Cleanup](docs/TEMPLATE_CLEANUP.md)** - Complete cleanup guide to remove all demo code
@@ -1806,13 +2076,13 @@ For comprehensive documentation, examples, advanced usage, and API reference, se
 - **Articles API**: `GET /api/v1/articles/` - Article CRUD operations
 - **Background Jobs**: `GET /api/v1/jobs/` - Background job management (if enabled)
 
-## 30) API docs & versioning
+## 31) API docs & versioning
 
 - The API is namespaced under `/api/v1`. Add new routers under `app/api/v1/` and include them in `app/api/urls.py`.
 - Use response models to keep OpenAPI accurate. Docs available at `/docs` and `/openapi.json`.
 - URL configuration follows Django-style organization with centralized routing in `app/api/urls.py`.
 
-## 31) VS Code mandatory extensions
+## 32) VS Code mandatory extensions
 
 This repo recommends the following VS Code extensions (see `.vscode/extensions.json`). Installing them ensures consistent formatting and linting:
 
