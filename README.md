@@ -114,11 +114,47 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
     - [Usage Example](#usage-example)
     - [Testing](#testing)
     - [Background Jobs Code Cleanup](#background-jobs-code-cleanup)
-  - [27) Documentation](#27-documentation)
+  - [27) Notification System](#27-notification-system)
+    - [📧 OOP-Based Email & SMS Notifications](#-oop-based-email--sms-notifications)
+    - [Key Features](#key-features-4)
+    - [Quick Usage](#quick-usage)
+    - [Bulk Email Example](#bulk-email-example)
+    - [Advanced Usage with Classes](#advanced-usage-with-classes)
+    - [Configuration](#configuration-1)
+    - [Integration with FastAPI](#integration-with-fastapi)
+    - [Available Classes & Functions](#available-classes--functions)
+    - [Error Handling & Validation](#error-handling--validation)
+    - [📖 Complete Documentation](#-complete-documentation)
+  - [28) File Utilities](#28-file-utilities)
+    - [📁 Comprehensive File Operations](#-comprehensive-file-operations)
+    - [Key Features](#key-features-5)
+    - [Quick Usage](#quick-usage-1)
+    - [Convenience Functions](#convenience-functions)
+    - [File Management](#file-management)
+    - [Error Handling](#error-handling-1)
+    - [FastAPI Integration](#fastapi-integration-1)
+    - [Available Functions](#available-functions)
+    - [Security Features](#security-features)
+    - [📖 Complete Documentation](#-complete-documentation-1)
+  - [29) Date/Time Utilities](#29-datetime-utilities)
+    - [🕒 Comprehensive Date & Time Operations](#-comprehensive-date--time-operations)
+    - [Key Features](#key-features-6)
+    - [Quick Usage](#quick-usage-2)
+    - [Timezone Support](#timezone-support)
+    - [Business Day Operations](#business-day-operations)
+    - [Date Formatting & Parsing](#date-formatting--parsing)
+    - [Duration Calculations](#duration-calculations)
+    - [Date Range Operations](#date-range-operations)
+    - [FastAPI Integration](#fastapi-integration-2)
+    - [Available Functions](#available-functions-1)
+    - [Error Handling](#error-handling-2)
+    - [Security Features](#security-features-1)
+    - [📖 Complete Documentation](#-complete-documentation-2)
+  - [30) Documentation](#30-documentation)
     - [📚 Available Documentation](#-available-documentation)
     - [🔗 Quick Links](#-quick-links)
-  - [28) API docs \& versioning](#28-api-docs--versioning)
-  - [29) VS Code mandatory extensions](#29-vs-code-mandatory-extensions)
+  - [31) API docs \& versioning](#31-api-docs--versioning)
+  - [32) VS Code mandatory extensions](#32-vs-code-mandatory-extensions)
   - [9) How to extend this template (step‑by‑step guide)](#9-how-to-extend-this-template-stepbystep-guide)
     - [1) Define the database model](#1-define-the-database-model)
     - [2) Create Pydantic schemas](#2-create-pydantic-schemas)
@@ -1474,12 +1510,560 @@ If you don't need the background jobs functionality, you can remove it completel
 
 After cleanup, you'll still have a fully functional FastAPI application with articles CRUD, database integration, logging, and all core features.
 
-## 27) Documentation
+## 27) Notification System
+
+### 📧 OOP-Based Email & SMS Notifications
+
+The application includes a comprehensive notification system built with object-oriented programming principles, supporting email notifications with a foundation for SMS and other notification types.
+
+#### Key Features
+
+- **OOP Design**: Abstract base class with derived implementations
+- **Email Support**: Full SMTP integration with HTML/plain text
+- **SMS Ready**: Placeholder implementation for Twilio, AWS SNS, etc.
+- **Factory Pattern**: Easy notification instance creation
+- **Bulk Operations**: Send to multiple recipients efficiently
+- **Error Handling**: Comprehensive error tracking and validation
+- **Logging Integration**: Full trace ID support for debugging
+- **Template System**: Reusable email templates for common scenarios
+
+#### Quick Usage
+
+```python
+from src.utils.notifications import send_email
+
+# Send a simple email
+result = await send_email(
+    to_email="user@example.com",
+    to_name="John Doe",
+    subject="Welcome to Our Service!",
+    content="Hello John, welcome to our amazing service!",
+    html_content="<h1>Welcome!</h1><p>Hello John!</p>",
+    trace_id="welcome-001"
+)
+
+print(f"Email sent: {result.success}")
+```
+
+#### Bulk Email Example
+
+```python
+from src.utils.notifications import send_bulk_email
+
+recipients = [
+    {"email": "user1@example.com", "name": "Alice Smith"},
+    {"email": "user2@example.com", "name": "Bob Johnson"},
+]
+
+results = await send_bulk_email(
+    recipients=recipients,
+    subject="Monthly Newsletter",
+    content="Here's your monthly newsletter!",
+    trace_id="newsletter-001"
+)
+```
+
+#### Advanced Usage with Classes
+
+```python
+from src.utils.notifications import EmailNotification, NotificationRecipient
+
+# Create email notification instance
+email_notifier = EmailNotification(
+    smtp_server="smtp.gmail.com",
+    from_email="noreply@company.com",
+    from_name="My Company",
+    trace_id="system-alert-001"
+)
+
+# Create recipients
+recipients = [
+    NotificationRecipient(id="user1", email="admin@example.com", name="Admin"),
+    NotificationRecipient(id="user2", email="manager@example.com", name="Manager"),
+]
+
+# Send notification
+results = await email_notifier.send(
+    recipients=recipients,
+    subject="System Alert",
+    content="Important system alert message.",
+    html_content="<h3>🚨 System Alert</h3><p>Important message.</p>"
+)
+```
+
+#### Configuration
+
+Configure email settings via environment variables:
+
+```bash
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+FROM_EMAIL=noreply@yourcompany.com
+FROM_NAME=Your Company Name
+```
+
+#### Integration with FastAPI
+
+```python
+from fastapi import APIRouter, BackgroundTasks
+from src.utils.notifications import send_email
+
+router = APIRouter()
+
+@router.post("/send-welcome")
+async def send_welcome_email_endpoint(
+    user_email: str,
+    user_name: str,
+    background_tasks: BackgroundTasks
+):
+    # Send email in background
+    background_tasks.add_task(
+        send_email,
+        user_email,
+        user_name,
+        "Welcome to our platform!",
+        f"Hello {user_name}, welcome!",
+        trace_id=f"welcome-{user_email}"
+    )
+
+    return {"message": "Welcome email queued"}
+```
+
+#### Available Classes & Functions
+
+- **`EmailNotification`** - SMTP email implementation
+- **`SMSNotification`** - SMS placeholder (Twilio, AWS SNS ready)
+- **`NotificationRecipient`** - Recipient data structure
+- **`NotificationResult`** - Result tracking with success/failure
+- **`send_email()`** - Convenience function for single emails
+- **`send_bulk_email()`** - Convenience function for bulk emails
+- **`create_notification()`** - Factory function for notification instances
+
+#### Error Handling & Validation
+
+```python
+result = await send_email(...)
+
+if result.success:
+    print(f"Email sent successfully: {result.notification_id}")
+else:
+    print(f"Email failed: {result.message}")
+    print(f"Error details: {result.error_details}")
+```
+
+#### 📖 Complete Documentation
+
+For comprehensive documentation, examples, templates, and integration guides, see:
+
+**[📧 Notification System Documentation](docs/NOTIFICATIONS.md)**
+
+## 28) File Utilities
+
+### 📁 Comprehensive File Operations
+
+The application includes a robust file utilities system for handling various file formats including text files, JSON, CSV, and general file management operations with built-in error handling, security, and logging.
+
+#### Key Features
+
+- **Multiple File Formats**: Text, JSON, and CSV file support
+- **Security**: Path traversal protection and validation
+- **Error Handling**: Comprehensive `FileUtilsError` exception handling
+- **Logging Integration**: Full trace ID support for debugging
+- **Convenience Functions**: Simple one-line functions for common operations
+- **File Management**: Copy, delete, list, and get file information
+- **Encoding Support**: Configurable encoding for all operations
+
+#### Quick Usage
+
+```python
+from src.utils.file_utils import FileUtils, write_text, read_text, write_json, read_json
+
+# Using FileUtils class
+file_utils = FileUtils(trace_id="example-001")
+
+# Text file operations
+file_utils.write_text_file("data/example.txt", "Hello, World!")
+content = file_utils.read_text_file("data/example.txt")
+
+# JSON operations
+data = {"users": [{"name": "Alice", "email": "alice@example.com"}]}
+file_utils.write_json_file("data/users.json", data)
+users = file_utils.read_json_file("data/users.json")
+
+# CSV operations
+csv_data = [{"name": "Alice", "age": "30"}, {"name": "Bob", "age": "25"}]
+file_utils.write_csv_file("data/people.csv", csv_data)
+people = file_utils.read_csv_file("data/people.csv")
+```
+
+#### Convenience Functions
+
+```python
+from src.utils.file_utils import write_text, read_text, write_json, read_json, write_csv, read_csv
+
+# Quick text operations
+write_text("config.txt", "debug=true", trace_id="config-001")
+config = read_text("config.txt", trace_id="config-001")
+
+# Quick JSON operations
+write_json("settings.json", {"theme": "dark"}, trace_id="settings-001")
+settings = read_json("settings.json", trace_id="settings-001")
+
+# Quick CSV operations
+data = [{"product": "Laptop", "price": "999"}]
+write_csv("products.csv", data, trace_id="products-001")
+products = read_csv("products.csv", trace_id="products-001")
+```
+
+#### File Management
+
+```python
+from src.utils.file_utils import FileUtils, file_exists, get_file_info
+
+file_utils = FileUtils(trace_id="file-ops")
+
+# File operations
+if file_utils.file_exists("data/example.txt"):
+    info = file_utils.get_file_info("data/example.txt")
+    print(f"File size: {info['size_human']}")
+
+# Copy and manage files
+file_utils.copy_file("source.txt", "backup/source_backup.txt")
+files = file_utils.list_files("data/", pattern="*.txt")
+file_utils.delete_file("temp/old_file.txt")
+```
+
+#### Error Handling
+
+```python
+from src.utils.file_utils import FileUtils, FileUtilsError
+
+file_utils = FileUtils(trace_id="error-handling")
+
+try:
+    data = file_utils.read_json_file("config.json")
+except FileUtilsError as e:
+    print(f"File error: {e}")
+    # Handle error or use defaults
+    data = {"default": True}
+```
+
+#### FastAPI Integration
+
+```python
+from fastapi import APIRouter, UploadFile, File, HTTPException
+from src.utils.file_utils import FileUtils, FileUtilsError
+
+@router.post("/upload-csv")
+async def upload_csv(file: UploadFile = File(...)):
+    file_utils = FileUtils(trace_id=get_trace_id())
+
+    try:
+        # Save and process uploaded file
+        content = await file.read()
+        file_utils.write_text_file(f"uploads/{file.filename}", content.decode())
+
+        # Process CSV data
+        csv_data = file_utils.read_csv_file(f"uploads/{file.filename}")
+
+        return {"message": f"Processed {len(csv_data)} records"}
+    except FileUtilsError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+```
+
+#### Available Functions
+
+**FileUtils Class Methods:**
+- `read_text_file()`, `write_text_file()`, `read_lines()`
+- `read_json_file()`, `write_json_file()`
+- `read_csv_file()`, `write_csv_file()`, `read_csv_as_list()`
+- `file_exists()`, `directory_exists()`, `get_file_info()`
+- `copy_file()`, `delete_file()`, `list_files()`
+
+**Convenience Functions:**
+- `read_text()`, `write_text()`
+- `read_json()`, `write_json()`
+- `read_csv()`, `write_csv()`
+- `file_exists()`, `get_file_info()`
+
+#### Security Features
+
+- **Path Traversal Protection**: Automatically blocks `../` attempts
+- **Validation**: All file paths are validated before operations
+- **Safe Operations**: Directory creation and file permissions are controlled
+
+#### 📖 Complete Documentation
+
+For comprehensive documentation, examples, advanced usage, and API reference, see:
+
+**[📁 File Utilities Documentation](docs/FILE_UTILS.md)**
+
+## 29) Date/Time Utilities
+
+### 🕒 Comprehensive Date & Time Operations
+
+The application includes a robust date/time utilities system for handling timezone conversions, business day calculations, date formatting, duration calculations, and more with built-in error handling, validation, and logging.
+
+#### Key Features
+
+- **Timezone Handling**: Convert between different timezones with support for common abbreviations
+- **Date Formatting**: Format dates in multiple formats (ISO, US, EU, readable, etc.)
+- **Date Parsing**: Parse date strings with auto-detection and custom formats
+- **Business Day Calculations**: Calculate business days excluding weekends and holidays
+- **Duration Calculations**: Calculate and format durations between dates
+- **Date Range Operations**: Work with week/month/quarter/year boundaries
+- **Date Validation**: Validate date ranges and formats
+- **Age Calculations**: Calculate age from birth dates
+- **Timestamp Operations**: Convert between Unix timestamps and datetime objects
+
+#### Quick Usage
+
+```python
+from src.utils.datetime_utils import DateTimeUtils, now, today, convert_timezone, format_datetime, get_business_days_between
+
+# Get current time in different timezones
+utc_time = now()
+est_time = now('US/Eastern')
+ist_time = now('Asia/Kolkata')
+
+# Convert between timezones
+utc_dt = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+est_dt = convert_timezone(utc_dt, 'UTC', 'US/Eastern')
+
+# Format datetime
+formatted = format_datetime(utc_dt, "%Y-%m-%d %H:%M:%S")
+
+# Calculate business days
+start_date = date(2024, 1, 1)  # Monday
+end_date = date(2024, 1, 7)    # Sunday
+business_days = get_business_days_between(start_date, end_date)  # 5 days
+```
+
+#### Timezone Support
+
+```python
+from src.utils.datetime_utils import DateTimeUtils
+
+utils = DateTimeUtils(trace_id="timezone-demo")
+
+# Common abbreviations
+utc_time = utils.now('utc')
+est_time = utils.now('est')
+ist_time = utils.now('ist')
+
+# Full timezone names
+berlin_time = utils.now('Europe/Berlin')
+tokyo_time = utils.now('Asia/Tokyo')
+
+# Convert between timezones
+utc_dt = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+est_dt = utils.convert_timezone(utc_dt, 'UTC', 'US/Eastern')
+ist_dt = utils.convert_timezone(utc_dt, 'UTC', 'Asia/Kolkata')
+```
+
+#### Business Day Operations
+
+```python
+from src.utils.datetime_utils import DateTimeUtils, get_business_days_between
+from datetime import date
+
+utils = DateTimeUtils(trace_id="business-days")
+
+# Calculate business days
+start_date = date(2024, 1, 1)  # Monday
+end_date = date(2024, 1, 31)   # Wednesday
+
+# Basic calculation
+business_days = get_business_days_between(start_date, end_date)
+print(f"Business days: {business_days}")
+
+# With holidays
+holidays = [date(2024, 1, 1), date(2024, 1, 15)]  # New Year's Day, MLK Day
+business_days_with_holidays = get_business_days_between(
+    start_date, end_date, holidays=holidays
+)
+
+# Find next business day
+next_business = utils.get_next_business_day(date(2024, 1, 5))  # Friday
+print(f"Next business day: {next_business}")  # Monday
+```
+
+#### Date Formatting & Parsing
+
+```python
+from src.utils.datetime_utils import format_datetime, parse_datetime, DateTimeUtils
+
+# Format datetime
+dt = datetime(2024, 1, 1, 12, 30, 45)
+
+# Different formats
+iso_format = format_datetime(dt, "%Y-%m-%dT%H:%M:%S")
+us_format = format_datetime(dt, "%m/%d/%Y %I:%M %p")
+readable_format = format_datetime(dt, "%B %d, %Y at %I:%M %p")
+
+print(f"ISO: {iso_format}")        # 2024-01-01T12:30:45
+print(f"US: {us_format}")          # 01/01/2024 12:30 PM
+print(f"Readable: {readable_format}")  # January 01, 2024 at 12:30 PM
+
+# Parse datetime
+parsed = parse_datetime("2024-01-01 12:30:45", "%Y-%m-%d %H:%M:%S")
+auto_parsed = parse_datetime("2024-01-01T12:30:45Z")
+```
+
+#### Duration Calculations
+
+```python
+from src.utils.datetime_utils import get_duration_between, DateTimeUtils
+from datetime import datetime
+
+utils = DateTimeUtils(trace_id="duration-demo")
+
+# Calculate duration
+start_dt = datetime(2024, 1, 1, 12, 0, 0)
+end_dt = datetime(2024, 1, 3, 14, 30, 45)
+
+# Get duration components
+duration = get_duration_between(start_dt, end_dt)
+print(f"Duration: {duration}")
+# {'total_seconds': 189045, 'days': 2, 'hours': 2, 'minutes': 30, 'seconds': 45}
+
+# Human-readable duration
+human_duration = utils.get_human_readable_duration(start_dt, end_dt)
+print(f"Human readable: {human_duration}")  # "2 days, 2 hours, 30 minutes, 45 seconds"
+```
+
+#### Date Range Operations
+
+```python
+from src.utils.datetime_utils import DateTimeUtils
+from datetime import date
+
+utils = DateTimeUtils(trace_id="date-ranges")
+
+dt = date(2024, 1, 15)  # Monday
+
+# Get week boundaries
+week_start = utils.get_week_start(dt)
+week_end = utils.get_week_end(dt)
+print(f"Week: {week_start} to {week_end}")
+
+# Get month boundaries
+month_start = utils.get_month_start(dt)
+month_end = utils.get_month_end(dt)
+print(f"Month: {month_start} to {month_end}")
+
+# Get quarter
+quarter = utils.get_quarter(dt)
+quarter_start = utils.get_quarter_start(dt)
+quarter_end = utils.get_quarter_end(dt)
+print(f"Quarter {quarter}: {quarter_start} to {quarter_end}")
+
+# Calculate age
+birth_date = date(1990, 1, 1)
+age = utils.get_age(birth_date)
+print(f"Age: {age} years")
+```
+
+#### FastAPI Integration
+
+```python
+from fastapi import FastAPI, HTTPException
+from src.utils.datetime_utils import DateTimeUtils, get_business_days_between
+from datetime import date
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class DateRangeRequest(BaseModel):
+    start_date: date
+    end_date: date
+    exclude_weekends: bool = True
+    holidays: list[date] = []
+
+@app.post("/calculate-business-days")
+async def calculate_business_days(request: DateRangeRequest):
+    try:
+        utils = DateTimeUtils(trace_id="api-request")
+
+        if not utils.validate_date_range(request.start_date, request.end_date):
+            raise HTTPException(status_code=400, detail="Invalid date range")
+
+        business_days = get_business_days_between(
+            request.start_date,
+            request.end_date,
+            exclude_weekends=request.exclude_weekends,
+            exclude_holidays=request.holidays
+        )
+
+        return {
+            "start_date": request.start_date,
+            "end_date": request.end_date,
+            "business_days": business_days,
+            "total_days": (request.end_date - request.start_date).days + 1
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+```
+
+#### Available Functions
+
+**DateTimeUtils Class Methods:**
+- **Timezone**: `convert_timezone()`, `get_timezone()`, `now()`, `today()`
+- **Formatting**: `format_datetime()`, `parse_datetime()`, `get_iso_format()`, `from_iso_format()`
+- **Arithmetic**: `add_days()`, `add_hours()`, `add_minutes()`, `add_months()`, `add_years()`
+- **Business Days**: `get_business_days_between()`, `get_next_business_day()`, `get_previous_business_day()`
+- **Duration**: `get_duration_between()`, `get_human_readable_duration()`
+- **Timestamps**: `get_timestamp()`, `from_timestamp()`
+- **Date Ranges**: `get_week_start()`, `get_month_start()`, `get_quarter()`, `get_year_start()`
+- **Validation**: `validate_date_range()`, `is_weekend()`, `is_holiday()`, `get_age()`
+
+**Convenience Functions:**
+- `now()`, `today()`
+- `convert_timezone()`
+- `format_datetime()`, `parse_datetime()`
+- `get_business_days_between()`
+- `get_duration_between()`
+- `get_timestamp()`, `from_timestamp()`
+
+#### Error Handling
+
+```python
+from src.utils.datetime_utils import DateTimeUtils, DateTimeUtilsError
+
+utils = DateTimeUtils(trace_id="error-handling")
+
+try:
+    # This will raise DateTimeUtilsError
+    invalid_tz = utils.get_timezone('invalid_timezone')
+except DateTimeUtilsError as e:
+    print(f"Timezone error: {e}")
+    # Handle error gracefully
+```
+
+#### Security Features
+
+- **Timezone Validation**: All timezone names are validated before use
+- **Date Range Validation**: Prevents invalid date ranges and unreasonable dates
+- **Input Sanitization**: All date strings are properly parsed and validated
+- **Error Boundaries**: Comprehensive error handling prevents application crashes
+
+#### 📖 Complete Documentation
+
+For comprehensive documentation, examples, timezone handling, business day calculations, and API reference, see:
+
+**[🕒 Date/Time Utilities Documentation](docs/DATETIME_UTILS.md)**
+
+## 30) Documentation
 
 ### 📚 Available Documentation
 
 - **[Architecture Overview](docs/ARCHITECTURE.md)** - System architecture, components, and design patterns
 - **[Redis Caching Guide](docs/REDIS_CACHING.md)** - Complete Redis caching system documentation
+- **[Notification System](docs/NOTIFICATIONS.md)** - OOP-based email & SMS notification system with templates
+- **[File Utilities](docs/FILE_UTILS.md)** - Comprehensive file operations for text, JSON, CSV with security
+- **[Date/Time Utilities](docs/DATETIME_UTILS.md)** - Date and time operations with timezone support
 - **[Background Jobs API](docs/BACKGROUND_JOBS_API.md)** - Complete background jobs system documentation
 - **[Background Jobs Cleanup](docs/BACKGROUND_JOBS_CLEANUP.md)** - How to remove background jobs feature
 - **[Template Cleanup](docs/TEMPLATE_CLEANUP.md)** - Complete cleanup guide to remove all demo code
@@ -1492,13 +2076,13 @@ After cleanup, you'll still have a fully functional FastAPI application with art
 - **Articles API**: `GET /api/v1/articles/` - Article CRUD operations
 - **Background Jobs**: `GET /api/v1/jobs/` - Background job management (if enabled)
 
-## 28) API docs & versioning
+## 31) API docs & versioning
 
 - The API is namespaced under `/api/v1`. Add new routers under `app/api/v1/` and include them in `app/api/urls.py`.
 - Use response models to keep OpenAPI accurate. Docs available at `/docs` and `/openapi.json`.
 - URL configuration follows Django-style organization with centralized routing in `app/api/urls.py`.
 
-## 29) VS Code mandatory extensions
+## 32) VS Code mandatory extensions
 
 This repo recommends the following VS Code extensions (see `.vscode/extensions.json`). Installing them ensures consistent formatting and linting:
 

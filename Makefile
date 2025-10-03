@@ -144,11 +144,37 @@ test-verbose:
 
 test-coverage:
 	@echo "Running tests with coverage..."
-	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest --cov=app --cov-report=term-missing --cov-report=html
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest --cov=src --cov-report=term-missing --cov-report=html
 
 test-fast:
 	@echo "Running fast tests (excluding slow tests)..."
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "not slow"
+
+# New pytest commands as requested
+pytest_all:
+	@echo "Running all tests with coverage and HTML report..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest --cov=src --cov-report=html
+
+pytest_fast:
+	@echo "Running fast tests only (excluding slow tests)..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "not slow" --cov=src --cov-report=html
+
+pytest_slow:
+	@echo "Running slow tests only..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "slow" --cov=src --cov-report=html
+
+# Test Order Commands
+test_pings:
+	@echo "Running ping tests first (database and cache)..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "pings" --cov=src --cov-report=term-missing --cov-report=html
+
+test_utils:
+	@echo "Running utility tests (middle)..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "utils" --cov=src --cov-report=term-missing --cov-report=html
+
+test_last:
+	@echo "Running background job tests last..."
+	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "last" --cov=src --cov-report=term-missing --cov-report=html
 
 test-unit:
 	@echo "Running unit tests only..."
@@ -202,6 +228,12 @@ help:
 	@echo "  test-verbose                  - Run tests with verbose output"
 	@echo "  test-coverage                 - Run tests with coverage report"
 	@echo "  test-fast                     - Run fast tests (exclude slow tests)"
+	@echo "  pytest_all                    - Run all tests with coverage + HTML report"
+	@echo "  pytest_fast                   - Run fast tests with coverage + HTML report"
+	@echo "  pytest_slow                   - Run slow tests with coverage + HTML report"
+	@echo "  test_pings                    - Run ping tests first (database and cache)"
+	@echo "  test_utils                    - Run utility tests (middle)"
+	@echo "  test_last                     - Run background job tests last"
 	@echo "  test-unit                     - Run unit tests only"
 	@echo "  test-integration              - Run integration tests only"
 	@echo "  test-api                      - Run API tests only"

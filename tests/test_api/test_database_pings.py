@@ -4,28 +4,40 @@ Unit tests for database ping and health check endpoints.
 Tests all database ping functionality including connectivity, read/write access,
 DDL operations, and database information retrieval.
 
-Note: Due to TestClient limitations with complex async database operations,
-these tests focus on API structure and response format validation.
+Uses httpx.AsyncClient for proper async testing of FastAPI endpoints.
 """
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from src.main import app
+
+# Mark all tests in this module as ping tests (run first)
+pytestmark = [pytest.mark.pings, pytest.mark.order(1)]
 
 
 class TestDatabasePingEndpoints:
     """Test database ping endpoints structure and basic functionality."""
 
+    @pytest.fixture
+    async def async_client(self):
+        """Create async HTTP client for testing."""
+        from httpx import ASGITransport
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            yield ac
+
     def test_all_endpoints_accessible(self, client: TestClient):
-        """Test that all database ping endpoints are accessible."""
+        """Test that all database ping endpoints are accessible using TestClient."""
         endpoints = [
-            "/api/v1/db/ping",
-            "/api/v1/db/read",
-            "/api/v1/db/write",
-            "/api/v1/db/ddl",
-            "/api/v1/db/info",
-            "/api/v1/db/tables",
+            "/api/v1/pings/db/ping",
+            "/api/v1/pings/db/read",
+            "/api/v1/pings/db/write",
+            "/api/v1/pings/db/ddl",
+            "/api/v1/pings/db/info",
+            "/api/v1/pings/db/tables",
         ]
 
         for endpoint in endpoints:
@@ -49,15 +61,37 @@ class TestDatabasePingEndpoints:
                 else:
                     raise
 
+    @pytest.mark.asyncio
+    async def test_all_endpoints_accessible_async(self, async_client: AsyncClient):
+        """Test that all database ping endpoints are accessible using AsyncClient."""
+        endpoints = [
+            "/api/v1/pings/db/ping",
+            "/api/v1/pings/db/read",
+            "/api/v1/pings/db/write",
+            "/api/v1/pings/db/ddl",
+            "/api/v1/pings/db/info",
+            "/api/v1/pings/db/tables",
+        ]
+
+        for endpoint in endpoints:
+            response = await async_client.get(endpoint)
+            # Should not return 404 (endpoint not found)
+            assert response.status_code != 404, f"Endpoint {endpoint} not found"
+            # Should return either 200 (success) or 503 (service unavailable)
+            assert response.status_code in [
+                200,
+                503,
+            ], f"Unexpected status code {response.status_code} for {endpoint}"
+
     def test_response_format_consistency(self, client: TestClient):
         """Test that all endpoints return consistent response format."""
         endpoints = [
-            "/api/v1/db/ping",
-            "/api/v1/db/read",
-            "/api/v1/db/write",
-            "/api/v1/db/ddl",
-            "/api/v1/db/info",
-            "/api/v1/db/tables",
+            "/api/v1/pings/db/ping",
+            "/api/v1/pings/db/read",
+            "/api/v1/pings/db/write",
+            "/api/v1/pings/db/ddl",
+            "/api/v1/pings/db/info",
+            "/api/v1/pings/db/tables",
         ]
 
         for endpoint in endpoints:
@@ -97,7 +131,7 @@ class TestDatabasePingEndpoints:
 
     def test_ping_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of ping endpoint."""
-        response = client.get("/api/v1/db/ping")
+        response = client.get("/api/v1/pings/db/ping")
 
         # Should return either success or service unavailable
         assert response.status_code in [200, 503]
@@ -119,7 +153,7 @@ class TestDatabasePingEndpoints:
 
     def test_read_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of read endpoint."""
-        response = client.get("/api/v1/db/read")
+        response = client.get("/api/v1/pings/db/read")
 
         assert response.status_code in [200, 503]
 
@@ -137,7 +171,7 @@ class TestDatabasePingEndpoints:
 
     def test_write_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of write endpoint."""
-        response = client.get("/api/v1/db/write")
+        response = client.get("/api/v1/pings/db/write")
 
         assert response.status_code in [200, 503]
 
@@ -155,7 +189,7 @@ class TestDatabasePingEndpoints:
 
     def test_ddl_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of DDL endpoint."""
-        response = client.get("/api/v1/db/ddl")
+        response = client.get("/api/v1/pings/db/ddl")
 
         assert response.status_code in [200, 503]
 
@@ -173,7 +207,7 @@ class TestDatabasePingEndpoints:
 
     def test_info_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of info endpoint."""
-        response = client.get("/api/v1/db/info")
+        response = client.get("/api/v1/pings/db/info")
 
         assert response.status_code in [200, 503]
 
@@ -191,7 +225,7 @@ class TestDatabasePingEndpoints:
 
     def test_tables_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of tables endpoint."""
-        response = client.get("/api/v1/db/tables")
+        response = client.get("/api/v1/pings/db/tables")
 
         assert response.status_code in [200, 503]
 
@@ -210,12 +244,12 @@ class TestDatabasePingEndpoints:
     def test_trace_id_presence(self, client: TestClient):
         """Test that trace_id is present in all responses."""
         endpoints = [
-            "/api/v1/db/ping",
-            "/api/v1/db/read",
-            "/api/v1/db/write",
-            "/api/v1/db/ddl",
-            "/api/v1/db/info",
-            "/api/v1/db/tables",
+            "/api/v1/pings/db/ping",
+            "/api/v1/pings/db/read",
+            "/api/v1/pings/db/write",
+            "/api/v1/pings/db/ddl",
+            "/api/v1/pings/db/info",
+            "/api/v1/pings/db/tables",
         ]
 
         for endpoint in endpoints:
@@ -235,12 +269,12 @@ class TestDatabasePingEndpoints:
     def test_timestamp_presence(self, client: TestClient):
         """Test that timestamp is present in all responses."""
         endpoints = [
-            "/api/v1/db/ping",
-            "/api/v1/db/read",
-            "/api/v1/db/write",
-            "/api/v1/db/ddl",
-            "/api/v1/db/info",
-            "/api/v1/db/tables",
+            "/api/v1/pings/db/ping",
+            "/api/v1/pings/db/read",
+            "/api/v1/pings/db/write",
+            "/api/v1/pings/db/ddl",
+            "/api/v1/pings/db/info",
+            "/api/v1/pings/db/tables",
         ]
 
         for endpoint in endpoints:
@@ -260,12 +294,12 @@ class TestDatabasePingEndpoints:
     def test_response_time_metrics(self, client: TestClient):
         """Test that response time metrics are present."""
         endpoints = [
-            "/api/v1/db/ping",
-            "/api/v1/db/read",
-            "/api/v1/db/write",
-            "/api/v1/db/ddl",
-            "/api/v1/db/info",
-            "/api/v1/db/tables",
+            "/api/v1/pings/db/ping",
+            "/api/v1/pings/db/read",
+            "/api/v1/pings/db/write",
+            "/api/v1/pings/db/ddl",
+            "/api/v1/pings/db/info",
+            "/api/v1/pings/db/tables",
         ]
 
         for endpoint in endpoints:
@@ -287,12 +321,12 @@ class TestDatabasePingEndpoints:
     def test_health_status_values(self, client: TestClient):
         """Test that health status values are valid."""
         endpoints = [
-            "/api/v1/db/ping",
-            "/api/v1/db/read",
-            "/api/v1/db/write",
-            "/api/v1/db/ddl",
-            "/api/v1/db/info",
-            "/api/v1/db/tables",
+            "/api/v1/pings/db/ping",
+            "/api/v1/pings/db/read",
+            "/api/v1/pings/db/write",
+            "/api/v1/pings/db/ddl",
+            "/api/v1/pings/db/info",
+            "/api/v1/pings/db/tables",
         ]
 
         for endpoint in endpoints:
@@ -310,9 +344,9 @@ class TestDatabasePingEndpoints:
     def test_operation_field_consistency(self, client: TestClient):
         """Test that operation field is consistent across endpoints."""
         operation_endpoints = {
-            "/api/v1/db/read": "read_test",
-            "/api/v1/db/write": "write_test",
-            "/api/v1/db/ddl": "ddl_test",
+            "/api/v1/pings/db/read": "read_test",
+            "/api/v1/pings/db/write": "write_test",
+            "/api/v1/pings/db/ddl": "ddl_test",
         }
 
         for endpoint, expected_operation in operation_endpoints.items():
@@ -330,12 +364,12 @@ class TestDatabasePingEndpoints:
     def test_error_response_structure(self, client: TestClient):
         """Test that error responses have proper structure."""
         endpoints = [
-            "/api/v1/db/ping",
-            "/api/v1/db/read",
-            "/api/v1/db/write",
-            "/api/v1/db/ddl",
-            "/api/v1/db/info",
-            "/api/v1/db/tables",
+            "/api/v1/pings/db/ping",
+            "/api/v1/pings/db/read",
+            "/api/v1/pings/db/write",
+            "/api/v1/pings/db/ddl",
+            "/api/v1/pings/db/info",
+            "/api/v1/pings/db/tables",
         ]
 
         for endpoint in endpoints:

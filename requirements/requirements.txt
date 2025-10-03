@@ -54,7 +54,7 @@ hiredis==3.2.1
     # via redis
 httptools==0.6.4
     # via uvicorn
-identify==2.6.14
+identify==2.6.15
     # via pre-commit
 idna==3.10
     # via

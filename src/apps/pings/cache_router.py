@@ -38,7 +38,7 @@ def _is_sensitive_key(key: str) -> bool:
 
 
 @router.get(
-    "/cache",
+    "/",
     response_model=APIResponse[Dict[str, Any]],
     status_code=status.HTTP_200_OK,
 )
@@ -161,7 +161,7 @@ async def ping_cache(request: Request):
 
 
 @router.get(
-    "/cache/info",
+    "/info",
     response_model=APIResponse[Dict[str, Any]],
     status_code=status.HTTP_200_OK,
 )
@@ -267,7 +267,7 @@ async def get_cache_info(request: Request):
 
 
 @router.get(
-    "/cache/keys",
+    "/keys",
     response_model=APIResponse[Dict[str, Any]],
     status_code=status.HTTP_200_OK,
 )

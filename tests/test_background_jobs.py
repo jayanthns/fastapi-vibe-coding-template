@@ -8,11 +8,10 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from src.apps.background_jobs.service import (
-    BackgroundJobService,
-    JobResult,
-    JobStatus,
-)
+# Mark all tests in this module as last tests (run last)
+pytestmark = [pytest.mark.last, pytest.mark.order(3)]
+
+from src.apps.background_jobs.service import BackgroundJobService, JobResult, JobStatus
 
 
 class TestJobResult:
@@ -55,9 +54,7 @@ class TestBackgroundJobService:
     @pytest.fixture
     def mock_logger(self):
         """Mock logger for testing."""
-        with patch(
-            "src.apps.background_jobs.service.get_logger_for_trace_id"
-        ) as mock:
+        with patch("src.apps.background_jobs.service.get_logger_for_trace_id") as mock:
             mock_logger = AsyncMock()
             mock.return_value = mock_logger
             yield mock_logger
@@ -130,6 +127,7 @@ class TestBackgroundJobService:
         assert result is None
 
     @pytest.mark.asyncio
+    @pytest.mark.slow
     async def test_process_article_job(self, job_service, mock_logger):
         """Test article processing job execution."""
         job_id = await job_service.create_job(
@@ -151,6 +149,7 @@ class TestBackgroundJobService:
         assert job_result.result["status"] == "processed"
 
     @pytest.mark.asyncio
+    @pytest.mark.slow
     async def test_send_email_job(self, job_service, mock_logger):
         """Test email sending job execution."""
         job_id = await job_service.create_job(
@@ -172,6 +171,7 @@ class TestBackgroundJobService:
         assert job_result.result["status"] == "sent"
 
     @pytest.mark.asyncio
+    @pytest.mark.slow
     async def test_generate_report_job(self, job_service, mock_logger):
         """Test report generation job execution."""
         job_id = await job_service.create_job(
@@ -193,6 +193,7 @@ class TestBackgroundJobService:
         assert job_result.result["status"] == "generated"
 
     @pytest.mark.asyncio
+    @pytest.mark.slow
     async def test_unknown_job_type(self, job_service, mock_logger):
         """Test handling of unknown job type."""
         job_id = await job_service.create_job(
@@ -236,6 +237,7 @@ class TestBackgroundJobIntegration:
     """Integration tests for background jobs."""
 
     @pytest.mark.asyncio
+    @pytest.mark.slow
     async def test_multiple_jobs_concurrent(self):
         """Test multiple jobs running concurrently."""
         job_service = BackgroundJobService()
