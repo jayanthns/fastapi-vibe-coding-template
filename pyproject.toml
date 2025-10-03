@@ -74,15 +74,6 @@ norecursedirs = [
 ]
 
 # Test execution configuration
-addopts = [
-    "-v",                    # Verbose output
-    "--tb=short",           # Shorter traceback format
-    "--strict-markers",     # Strict marker configuration
-    "--strict-config",      # Strict configuration
-    "--disable-warnings",   # Disable warnings during tests
-    "--color=yes",          # Colored output
-    "--durations=10",       # Show 10 slowest tests
-]
 
 # Markers for categorizing tests
 markers = [
@@ -99,12 +90,71 @@ asyncio_mode = "auto"
 # Minimum version requirements
 minversion = "8.0"
 
-# Coverage configuration (if using pytest-cov)
-# addopts = [
-#     "--cov=app",
-#     "--cov-report=term-missing",
-#     "--cov-report=html",
-#     "--cov-report=xml",
-#     "--cov-fail-under=80"
-# ]
+# Coverage configuration
+addopts = [
+    "-v",                    # Verbose output
+    "--tb=short",           # Shorter traceback format
+    "--strict-markers",     # Strict marker configuration
+    "--strict-config",      # Strict configuration
+    "--disable-warnings",   # Disable warnings during tests
+    "--color=yes",          # Colored output
+    "--durations=10",       # Show 10 slowest tests
+    "--cov=src",            # Coverage source
+    "--cov-report=term-missing",  # Show missing lines in terminal
+    "--cov-report=html",    # Generate HTML report
+    "--cov-report=xml",     # Generate XML report
+    "--cov-fail-under=80"   # Fail if coverage below 80%
+]
+
+[tool.coverage.run]
+branch = true
+omit = [
+    "**/tests/*",
+    "**/test_*.py",
+    "**/conftest.py",
+    "**/migrations/*.py",
+    "**/alembic/*.py",
+    "**/venv/*",
+    "**/.venv/*",
+    "**/env/*",
+    "**/.env/*",
+    "**/tmp/*",
+    "**/logs/*",
+    "**/htmlcov/*",
+    "**/__pycache__/*",
+    "**/.pytest_cache/*",
+    "**/.mypy_cache/*",
+    "**/build/*",
+    "**/dist/*",
+    "**/*.egg-info/*",
+    "manage.py",
+    "fabfile.py",
+    "settings.py",
+    "**/urls.py",
+    "**/wsgi.py",
+    "**/asgi.py",
+    "**/admin.py",
+    "**/endpoints.py"
+]
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod"
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
 

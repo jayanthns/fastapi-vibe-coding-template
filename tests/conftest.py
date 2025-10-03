@@ -14,11 +14,28 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from src.core.config import settings
 from src.main import app
 
-# Test database configuration
-TEST_DATABASE_URL = settings.database_url.replace(
-    "fastapi_vibe_coding", "postgres_test"
-)
-test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+
+# Test database configuration - only used within pytest context
+def get_test_database_url():
+    """Get test database URL, only called during test execution."""
+    from urllib.parse import urlparse, urlunparse
+
+    # Parse the original database URL
+    parsed = urlparse(settings.database_url)
+
+    # Extract the database name from the path (remove leading slash)
+    original_db_name = parsed.path.lstrip("/")
+
+    # Create test database name by appending '_test'
+    test_db_name = f"{original_db_name}_test"
+
+    # Reconstruct the URL with the test database name
+    test_parsed = parsed._replace(path=f"/{test_db_name}")
+    return urlunparse(test_parsed)
+
+
+# Create test engine only when needed
+test_engine = None
 
 
 @pytest.fixture(scope="session")
@@ -32,6 +49,10 @@ def event_loop():
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database():
     """Set up test database for all tests that need database access."""
+    global test_engine
+
+    # Create test engine only when this fixture runs
+    test_engine = create_async_engine(get_test_database_url(), echo=False)
 
     async def create_tables():
         async with test_engine.begin() as conn:
@@ -137,4 +158,8 @@ def sample_job_parameters():
 @pytest.fixture
 def test_engine_fixture():
     """Provide test database engine for utility tests."""
+    global test_engine
+    if test_engine is None:
+        # Create engine if not already created
+        test_engine = create_async_engine(get_test_database_url(), echo=False)
     return test_engine
