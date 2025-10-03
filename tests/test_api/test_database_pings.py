@@ -4,12 +4,12 @@ Unit tests for database ping and health check endpoints.
 Tests all database ping functionality including connectivity, read/write access,
 DDL operations, and database information retrieval.
 
-Note: Due to TestClient limitations with complex async database operations,
-these tests focus on API structure and response format validation.
+Uses httpx.AsyncClient for proper async testing of FastAPI endpoints.
 """
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from src.main import app
 
@@ -17,8 +17,17 @@ from src.main import app
 class TestDatabasePingEndpoints:
     """Test database ping endpoints structure and basic functionality."""
 
+    @pytest.fixture
+    async def async_client(self):
+        """Create async HTTP client for testing."""
+        from httpx import ASGITransport
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            yield ac
+
     def test_all_endpoints_accessible(self, client: TestClient):
-        """Test that all database ping endpoints are accessible."""
+        """Test that all database ping endpoints are accessible using TestClient."""
         endpoints = [
             "/api/v1/pings/db/ping",
             "/api/v1/pings/db/read",
@@ -48,6 +57,28 @@ class TestDatabasePingEndpoints:
                     )
                 else:
                     raise
+
+    @pytest.mark.asyncio
+    async def test_all_endpoints_accessible_async(self, async_client: AsyncClient):
+        """Test that all database ping endpoints are accessible using AsyncClient."""
+        endpoints = [
+            "/api/v1/pings/db/ping",
+            "/api/v1/pings/db/read",
+            "/api/v1/pings/db/write",
+            "/api/v1/pings/db/ddl",
+            "/api/v1/pings/db/info",
+            "/api/v1/pings/db/tables",
+        ]
+
+        for endpoint in endpoints:
+            response = await async_client.get(endpoint)
+            # Should not return 404 (endpoint not found)
+            assert response.status_code != 404, f"Endpoint {endpoint} not found"
+            # Should return either 200 (success) or 503 (service unavailable)
+            assert response.status_code in [
+                200,
+                503,
+            ], f"Unexpected status code {response.status_code} for {endpoint}"
 
     def test_response_format_consistency(self, client: TestClient):
         """Test that all endpoints return consistent response format."""
