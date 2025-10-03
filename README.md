@@ -680,12 +680,14 @@ tests/
 ├── conftest.py              # Test database configuration
 ├── test_api/                # API endpoint tests
 │   ├── test_database_pings.py
-│   └── test_articles.py
+│   └── test_article_apis.py  # Class-based article API tests
 ├── test_utils/              # Utility function tests
 │   └── test_security.py
 └── test_services/           # Service layer tests
     └── test_article.py
 ```
+
+> **📚 Class-Based Testing**: The API tests use a class-based structure for better organization and maintainability. See [Class-Based Testing Guide](docs/CLASS_BASED_TESTING.md) for details.
 
 ### Running All Tests
 

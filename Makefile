@@ -189,6 +189,19 @@ test-db-drop:
 	@echo "Dropping test database..."
 	@$(VENV_ACTIVATE) && python -c "import asyncio; from scripts.setup_test_db import get_database_urls; from sqlalchemy.ext.asyncio import create_async_engine; from sqlalchemy import text; async def drop_db(): admin_url, _, test_db_name = get_database_urls(); engine = create_async_engine(admin_url); async with engine.connect() as conn: await conn.execute(text('COMMIT')); await conn.execute(text(f'DROP DATABASE IF EXISTS {test_db_name}')); await engine.dispose(); asyncio.run(drop_db())"
 
+# Article API Test Runner Commands
+test-article-list:
+	@echo "Listing available article API tests..."
+	@$(VENV_ACTIVATE) && python scripts/run_article_tests.py list
+
+test-article-run:
+	@echo "Running all article API tests..."
+	@$(VENV_ACTIVATE) && python scripts/run_article_tests.py run
+
+test-article-method:
+	@echo "Running specific article API test method..."
+	@$(VENV_ACTIVATE) && python scripts/run_article_tests.py run $(METHOD) || true
+
 
 test-integration:
 	@echo "Running integration tests only..."
@@ -241,6 +254,9 @@ help:
 	@echo "  test-watch                    - Run tests in watch mode"
 	@echo "  test-db-setup                 - Setup test database"
 	@echo "  test-db-drop                  - Drop test database"
+	@echo "  test-article-list             - List available article API tests"
+	@echo "  test-article-run              - Run all article API tests"
+	@echo "  test-article-method METHOD=   - Run specific article API test method"
 	@echo ""
 	@echo "Development:"
 	@echo "  dev-setup                     - Setup development environment"
