@@ -3,22 +3,18 @@ Pytest configuration and fixtures for the FastAPI application.
 """
 
 import asyncio
-import os
-from typing import AsyncGenerator, Generator
-from unittest.mock import AsyncMock, patch
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 # Import all models to ensure they are registered with SQLAlchemy
-from src.apps.articles.models import Article
-from src.apps.sensitive_fields.models import SensitiveField
-from src.apps.users.models import User
+from src.apps.articles.models import Article  # noqa: F401
+from src.apps.sensitive_fields.models import SensitiveField  # noqa: F401
+from src.apps.users.models import User  # noqa: F401
 from src.db.session import Base, get_db_with_trace_id
 from src.main import app
 
@@ -39,6 +35,41 @@ def pytest_collection_modifyitems(config, items):
         file_path = str(item.fspath)
         order = get_test_order(file_path)
         item.add_marker(pytest.mark.order(order))
+
+
+def pytest_runtest_logstart(nodeid, location):
+    """
+    Print module labels when each test module starts.
+    This provides clear visual separation between different test modules.
+    """
+    # Extract file path from nodeid (format: path/to/file.py::class::test)
+    file_path = nodeid.split("::")[0]
+    test_file = Path(file_path)
+
+    # Define module labels based on file patterns
+    module_labels = {
+        "test_database_pings.py": "🏥 Testing Database Ping APIs",
+        "test_cache_pings.py": "🏥 Testing Cache Ping APIs",
+        "test_datetime_utils.py": "🔧 Testing DateTime Utilities",
+        "test_file_utils.py": "🔧 Testing File Utilities",
+        "test_notifications.py": "🔧 Testing Notification System",
+        "test_security.py": "🔧 Testing Security Utilities",
+        "test_article_apis.py": "📡 Testing Article APIs",
+        "test_background_jobs.py": "⚙️ Testing Background Jobs",
+    }
+
+    # Get the label for this test file
+    label = module_labels.get(test_file.name, f"🧪 Testing {test_file.stem}")
+
+    # Print the label with some styling (only once per module)
+    if not hasattr(pytest_runtest_logstart, "_printed_modules"):
+        pytest_runtest_logstart._printed_modules = set()
+
+    if test_file.name not in pytest_runtest_logstart._printed_modules:
+        print(f"\n{'='*60}")
+        print(f"  {label}")
+        print(f"{'='*60}")
+        pytest_runtest_logstart._printed_modules.add(test_file.name)
 
 
 @pytest.fixture(scope="session")

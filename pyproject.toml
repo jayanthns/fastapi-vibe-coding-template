@@ -96,6 +96,8 @@ asyncio_mode = "auto"
 # Minimum version requirements
 minversion = "8.0"
 
+# Custom plugins (registered in conftest.py)
+
 # Coverage configuration
 addopts = [
     "-v",                    # Verbose output

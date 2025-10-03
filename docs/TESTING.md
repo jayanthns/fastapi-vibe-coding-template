@@ -79,7 +79,32 @@ def test_background_job():
 
 ## Test Ordering
 
-The project uses `pytest-order` to ensure tests run in a logical sequence for optimal feedback and debugging:
+The project uses a **centralized test order management system** to ensure tests run in a logical sequence for optimal feedback and debugging.
+
+### 🎯 Centralized Order Management
+
+All test execution order is managed from a single configuration file: `tests/test_config.py`
+
+```python
+# tests/test_config.py - Single source of truth for test order
+TEST_ORDER_CONFIG = {
+    # Order 1: Health checks (fastest, most critical)
+    "test_api/test_database_pings.py": 1,
+    "test_api/test_cache_pings.py": 1,
+
+    # Order 2: Core utilities (foundational functionality)
+    "test_utils/test_datetime_utils.py": 2,
+    "test_utils/test_file_utils.py": 2,
+    "test_utils/test_notifications.py": 2,
+    "test_utils/test_security.py": 2,
+
+    # Order 3: API integration tests (business logic)
+    "test_api/test_article_apis.py": 3,
+
+    # Order 4: Background job tests (slowest, resource intensive)
+    "test_background_jobs.py": 4,
+}
+```
 
 ### Execution Order
 
@@ -87,30 +112,57 @@ Tests are executed in the following priority order:
 
 1. **🏥 Ping Tests (Order 1)** - Health checks and connectivity tests
 2. **🔧 Utility Tests (Order 2)** - Core utility functions and helpers
-3. **⚙️ Background Job Tests (Order 3)** - Long-running and complex operations
+3. **📡 API Tests (Order 3)** - Article and other API integration tests
+4. **⚙️ Background Job Tests (Order 4)** - Long-running and complex operations
 
-### Order Configuration
+### How It Works
 
-Each test module is marked with both a category marker and an order value:
+1. **Configuration**: All test orders defined in `tests/test_config.py`
+2. **Automatic Application**: `conftest.py` automatically applies orders using `pytest_collection_modifyitems`
+3. **No Manual Markers**: Individual test files don't need order markers
+4. **Dynamic Assignment**: Orders applied based on file path patterns
+
+### Benefits of Centralized Ordering
+
+- **🎛️ Single Source of Truth**: All test order managed in one file
+- **⚡ Easy to Modify**: Change order by updating one configuration dictionary
+- **🔧 No Impact on Other Modules**: Adding new tests doesn't require updating existing files
+- **📋 Automatic Application**: Orders applied automatically via pytest hooks
+- **✅ Validation**: Built-in validation to catch configuration errors
+- **📚 Documentation**: Clear comments explaining each order level
+- **🏷️ Visual Module Labels**: Clear labels printed for each test module during execution
+
+### Modifying Test Order
+
+To change test execution order, **only edit `tests/test_config.py`**:
 
 ```python
-# Ping tests (run first)
-pytestmark = [pytest.mark.pings, pytest.mark.order(1)]
+# Move articles to order 2 (before utilities)
+"test_api/test_article_apis.py": 2,
 
-# Utility tests (run middle)
-pytestmark = [pytest.mark.utils, pytest.mark.order(2)]
+# Move background jobs to order 3
+"test_background_jobs.py": 3,
 
-# Background job tests (run last)
-pytestmark = [pytest.mark.last, pytest.mark.order(3)]
+# Add new test files
+"test_api/test_user_apis.py": 3,
+"test_integration/": 5,
 ```
 
-### Benefits of Test Ordering
+### Validating Configuration
 
-- **⚡ Fast Feedback**: Critical health checks run first for immediate validation
-- **🔍 Logical Flow**: Tests run in order of importance and complexity
-- **⏱️ Time Management**: Slow background job tests run last when you have time
-- **🎛️ Flexible Execution**: Each group can be run independently
-- **📊 Better Coverage**: Each group shows its own coverage metrics
+```bash
+# Validate test configuration
+python tests/test_config.py
+
+# Output:
+# ✅ Test configuration is valid
+# 📊 Order distribution: {1: 2, 2: 4, 3: 1, 4: 1}
+# 📋 Test order configuration:
+#   Order 1: test_api/test_database_pings.py
+#   Order 1: test_api/test_cache_pings.py
+#   Order 2: test_utils/test_datetime_utils.py
+#   ...
+```
 
 ### Order-Specific Commands
 
@@ -123,6 +175,42 @@ make test_last     # Background jobs last
 # Or run all tests with the new ordering
 make pytest_all    # All tests with coverage
 ```
+
+### Visual Module Labels
+
+During test execution, each test module displays a clear label indicating what's being tested:
+
+```text
+============================================================
+  🏥 Testing Database Ping APIs
+============================================================
+
+============================================================
+  🔧 Testing DateTime Utilities
+============================================================
+
+============================================================
+  📡 Testing Article APIs
+============================================================
+
+============================================================
+  ⚙️ Testing Background Jobs
+============================================================
+```
+
+**Module Label Icons:**
+
+- 🏥 **Ping Tests**: Health checks and connectivity tests
+- 🔧 **Utility Tests**: Core utility functions and helpers
+- 📡 **API Tests**: Article and other API integration tests
+- ⚙️ **Background Jobs**: Long-running and complex operations
+
+**Benefits:**
+
+- **Clear Visual Separation**: Easy to see which module is currently running
+- **Progress Tracking**: Know exactly what's being tested at any moment
+- **Debugging Aid**: Quickly identify which module has issues
+- **Professional Output**: Clean, organized test execution display
 
 ## Running Tests
 
@@ -367,11 +455,13 @@ The `pytest.ini` file provides an alternative configuration format, though `pypr
 
 ### 6. Test Ordering
 
-- Use `pytest.mark.order()` to control test execution sequence
-- Run critical health checks first (ping tests)
-- Place utility tests in the middle for core functionality validation
-- Run complex background job tests last
-- Use order-specific commands for targeted testing
+- **Centralized Management**: All test order managed in `tests/test_config.py`
+- **Single Source of Truth**: Never add order markers to individual test files
+- **Logical Sequence**: Run critical health checks first (ping tests)
+- **Progressive Complexity**: Place utility tests in the middle, background jobs last
+- **Easy Modification**: Change order by updating the configuration dictionary
+- **Validation**: Use `python tests/test_config.py` to validate configuration
+- **Order-Specific Commands**: Use `make test_pings`, `make test_utils`, `make test_last`
 
 ## Continuous Integration
 
@@ -387,10 +477,13 @@ pytest --cov=src --cov-report=xml --cov-fail-under=80
 # Run only fast tests in CI (excludes slow background jobs)
 pytest -m "not slow"
 
-# Run tests in logical order for better feedback
-make test_pings    # Health checks first
-make test_utils    # Core utilities second
-make test_last     # Background jobs last (if time permits)
+# Run tests in logical order for better feedback (centralized ordering)
+make test_pings    # Health checks first (Order 1)
+make test_utils    # Core utilities second (Order 2)
+make test_last     # Background jobs last (Order 4, if time permits)
+
+# Or run all tests with automatic ordering
+make pytest_all    # All tests with centralized order management
 ```
 
 ## Troubleshooting
