@@ -1,41 +1,26 @@
 """
-Comprehensive test fixtures and configuration for all test types.
-This single conftest.py handles both API tests and utility tests.
+Pytest configuration and fixtures for the FastAPI application.
 """
 
 import asyncio
 import os
+from typing import AsyncGenerator, Generator
 from unittest.mock import AsyncMock, patch
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy import create_engine, text
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
-from src.core.config import settings
+# Import all models to ensure they are registered with SQLAlchemy
+from src.apps.articles.models import Article
+from src.apps.sensitive_fields.models import SensitiveField
+from src.apps.users.models import User
+from src.db.session import Base, get_db_with_trace_id
 from src.main import app
-
-
-# Test database configuration - only used within pytest context
-def get_test_database_url():
-    """Get test database URL, only called during test execution."""
-    from urllib.parse import urlparse, urlunparse
-
-    # Parse the original database URL
-    parsed = urlparse(settings.database_url)
-
-    # Extract the database name from the path (remove leading slash)
-    original_db_name = parsed.path.lstrip("/")
-
-    # Create test database name by appending '_test'
-    test_db_name = f"{original_db_name}_test"
-
-    # Reconstruct the URL with the test database name
-    test_parsed = parsed._replace(path=f"/{test_db_name}")
-    return urlunparse(test_parsed)
-
-
-# Create test engine only when needed
-test_engine = None
 
 
 @pytest.fixture(scope="session")
@@ -46,120 +31,167 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope="session", autouse=True)
-def setup_test_database():
-    """Set up test database for all tests that need database access."""
-    global test_engine
+@pytest.fixture(name="async_session")
+async def async_session_fixture():
+    """Create an async in-memory SQLite database for testing using SQLAlchemy Base."""
+    engine = create_async_engine(
+        "sqlite+aiosqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    # Create all tables using our SQLAlchemy Base
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-    # Create test engine only when this fixture runs
-    test_engine = create_async_engine(get_test_database_url(), echo=False)
+    async_session_maker = async_sessionmaker(
+        bind=engine, class_=AsyncSession, expire_on_commit=False
+    )
 
-    async def create_tables():
-        async with test_engine.begin() as conn:
-            # Import all models to ensure they're registered
-            # Create all tables
-            from sqlalchemy import text
-
-            from src.apps.articles.models import Article
-            from src.apps.sensitive_fields.models import SensitiveField
-            from src.apps.users.models import User
-
-            await conn.run_sync(
-                lambda sync_conn: sync_conn.execute(
-                    text("CREATE SCHEMA IF NOT EXISTS public")
-                )
-            )
-            await conn.run_sync(
-                lambda sync_conn: sync_conn.execute(
-                    text("DROP SCHEMA IF EXISTS public CASCADE")
-                )
-            )
-            await conn.run_sync(
-                lambda sync_conn: sync_conn.execute(text("CREATE SCHEMA public"))
-            )
-
-            # Create tables
-            from src.db.session import Base
-
-            await conn.run_sync(Base.metadata.create_all)
-
-    # Run the async setup
-    asyncio.run(create_tables())
-
-    yield
-
-    # Cleanup - simplified to avoid async loop issues
-    try:
-        asyncio.run(test_engine.dispose())
-    except Exception:
-        pass  # Ignore cleanup errors
+    async with async_session_maker() as session:
+        yield session
 
 
+@pytest.fixture(name="client")
+def client_fixture(async_session: AsyncSession):
+    """Create a test client with database dependency override."""
+
+    async def get_session_override():
+        return async_session
+
+    app.dependency_overrides[get_db_with_trace_id] = get_session_override
+    client = TestClient(app)
+    yield client
+    app.dependency_overrides.clear()
+
+
+# Test data fixtures
 @pytest.fixture
-def client():
-    """Create test client for API endpoints."""
-    return TestClient(app)
-
-
-@pytest.fixture
-def mock_request():
-    """Mock FastAPI Request object."""
-    request = AsyncMock()
-    request.state.trace_id = "test-trace-id-123"
-    request.state.start_time = 1234567890.0
-    return request
-
-
-@pytest.fixture
-def mock_logger():
-    """Mock logger for testing."""
-    with patch("src.core.logging.get_logger") as mock:
-        mock_logger = AsyncMock()
-        mock.return_value = mock_logger
-        yield mock_logger
-
-
-@pytest.fixture
-def mock_trace_id():
-    """Mock trace ID for testing."""
-    return "test-trace-id-456"
-
-
-@pytest.fixture(autouse=True)
-def setup_test_environment():
-    """Setup test environment before each test."""
-    # This fixture runs automatically before each test
-    # You can add any global test setup here
-    pass
-
-
-@pytest.fixture
-def sample_article_data():
+def sample_articles_data():
     """Sample article data for testing."""
+    return [
+        {
+            "title": "Test Article 1",
+            "content": "This is the first test article content for testing purposes.",
+        },
+        {
+            "title": "Test Article 2",
+            "content": "This is the second test article content for testing purposes.",
+        },
+        {
+            "title": "Advanced Testing Article",
+            "content": "This article contains more complex content for comprehensive testing.",
+        },
+    ]
+
+
+@pytest.fixture
+def sample_article_update_data():
+    """Sample article update data for testing."""
     return {
-        "title": "Test Article",
-        "content": "This is a test article content for testing purposes.",
+        "title": "Updated Test Article",
+        "content": "This is updated test article content with new information.",
     }
 
 
 @pytest.fixture
-def sample_job_parameters():
-    """Sample job parameters for testing."""
-    return {
-        "article_id": 123,
-        "processing_time": 1,
-        "recipient": "test@example.com",
-        "subject": "Test Email",
-        "report_type": "test_report",
-        "date_range": "2024-01",
-    }
+def sample_article_search_queries():
+    """Sample search queries for testing article search functionality."""
+    return [
+        "test",
+        "article",
+        "content",
+        "advanced",
+        "testing",
+    ]
 
 
 @pytest.fixture
-def test_engine_fixture():
-    """Provide test database engine for utility tests."""
-    global test_engine
-    if test_engine is None:
-        # Create engine if not already created
-        test_engine = create_async_engine(get_test_database_url(), echo=False)
-    return test_engine
+def sample_article_authors():
+    """Sample authors for testing article author functionality."""
+    return [
+        "John Doe",
+        "Jane Smith",
+        "Test Author",
+        "Advanced Tester",
+    ]
+
+
+@pytest.fixture
+def sample_article_tags():
+    """Sample tags for testing article tag functionality."""
+    return [
+        ["test", "api", "integration"],
+        ["advanced", "testing", "comprehensive"],
+        ["sample", "data", "fixture"],
+        ["pytest", "fastapi", "sqlalchemy"],
+    ]
+
+
+@pytest.fixture
+def sample_article_edge_cases():
+    """Sample edge case data for testing article edge cases."""
+    return [
+        {
+            "title": "A" * 255,  # Maximum length title
+            "content": "Short content",
+        },
+        {
+            "title": "Short title",
+            "content": "A" * 10000,  # Very long content
+        },
+        {
+            "title": "Unicode Test: 测试文章标题 🚀",
+            "content": "Unicode content: 这是一个测试文章的内容。Special chars: @#$%^&*()",
+        },
+        {
+            "title": "Special Characters: !@#$%^&*()_+-=[]{}|;':\",./<>?",
+            "content": "Content with special characters and symbols.",
+        },
+    ]
+
+
+# Mock fixtures for testing
+@pytest.fixture
+def mock_article():
+    """Mock article object for testing."""
+    article_id = str(uuid4())
+    return type(
+        "MockArticle",
+        (),
+        {
+            "id": article_id,
+            "title": "Test Article",
+            "content": "This is a test article content for testing purposes.",
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z",
+        },
+    )()
+
+
+@pytest.fixture
+def mock_articles_list():
+    """Mock articles list for testing."""
+    return [
+        type(
+            "MockArticle",
+            (),
+            {
+                "id": str(uuid4()),
+                "title": "Article 1",
+                "content": "Content 1",
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-01-01T00:00:00Z",
+            },
+        )(),
+        type(
+            "MockArticle",
+            (),
+            {
+                "id": str(uuid4()),
+                "title": "Article 2",
+                "content": "Content 2",
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-01-01T00:00:00Z",
+            },
+        )(),
+    ]

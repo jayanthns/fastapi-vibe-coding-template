@@ -10,6 +10,7 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.11.0
     # via
+    #   httpx
     #   starlette
     #   watchfiles
 async-timeout==5.0.1
@@ -21,7 +22,10 @@ bcrypt==5.0.0
 black==24.3.0
     # via -r requirements_raw/requirements.in
 certifi==2025.8.3
-    # via requests
+    # via
+    #   httpcore
+    #   httpx
+    #   requests
 cfgv==3.4.0
     # via pre-commit
 charset-normalizer==3.4.3
@@ -49,17 +53,24 @@ greenlet==3.2.4
 gunicorn==23.0.0
     # via -r requirements_raw/requirements.in
 h11==0.16.0
-    # via uvicorn
+    # via
+    #   httpcore
+    #   uvicorn
 hiredis==3.2.1
     # via redis
+httpcore==1.0.9
+    # via httpx
 httptools==0.6.4
     # via uvicorn
+httpx==0.28.1
+    # via -r requirements_raw/requirements.in
 identify==2.6.15
     # via pre-commit
 idna==3.10
     # via
     #   anyio
     #   email-validator
+    #   httpx
     #   requests
 iniconfig==2.1.0
     # via pytest
@@ -103,6 +114,7 @@ pydantic==2.11.9
     #   -r requirements_raw/requirements.in
     #   fastapi
     #   pydantic-settings
+    #   sqlmodel
 pydantic-core==2.33.2
     # via pydantic
 pydantic-settings==2.11.0
@@ -154,6 +166,9 @@ sqlalchemy==2.0.43
     # via
     #   -r requirements_raw/requirements.in
     #   alembic
+    #   sqlmodel
+sqlmodel==0.0.25
+    # via -r requirements_raw/requirements.in
 starlette==0.48.0
     # via fastapi
 types-requests==2.32.4.20250809
