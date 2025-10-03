@@ -12,6 +12,9 @@ from unittest.mock import patch
 
 import pytest
 
+# Mark all tests in this module as utility tests (run middle)
+pytestmark = [pytest.mark.utils, pytest.mark.order(2)]
+
 from src.utils.file_utils import (
     FileUtils,
     FileUtilsError,

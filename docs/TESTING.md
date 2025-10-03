@@ -12,6 +12,7 @@ The project uses **pytest** as the testing framework with comprehensive configur
 - ✅ **Coverage reporting** with `pytest-cov`
 - ✅ **Test timeouts** with `pytest-timeout`
 - ✅ **Test markers** for categorizing tests
+- ✅ **Test ordering** with `pytest-order` for logical execution flow
 - ✅ **Virtual environment exclusion** (venv, .venv, etc.)
 - ✅ **Colored output** and verbose reporting
 - ✅ **Performance monitoring** (shows 10 slowest tests)
@@ -76,6 +77,53 @@ def test_background_job():
     pass
 ```
 
+## Test Ordering
+
+The project uses `pytest-order` to ensure tests run in a logical sequence for optimal feedback and debugging:
+
+### Execution Order
+
+Tests are executed in the following priority order:
+
+1. **🏥 Ping Tests (Order 1)** - Health checks and connectivity tests
+2. **🔧 Utility Tests (Order 2)** - Core utility functions and helpers
+3. **⚙️ Background Job Tests (Order 3)** - Long-running and complex operations
+
+### Order Configuration
+
+Each test module is marked with both a category marker and an order value:
+
+```python
+# Ping tests (run first)
+pytestmark = [pytest.mark.pings, pytest.mark.order(1)]
+
+# Utility tests (run middle)
+pytestmark = [pytest.mark.utils, pytest.mark.order(2)]
+
+# Background job tests (run last)
+pytestmark = [pytest.mark.last, pytest.mark.order(3)]
+```
+
+### Benefits of Test Ordering
+
+- **⚡ Fast Feedback**: Critical health checks run first for immediate validation
+- **🔍 Logical Flow**: Tests run in order of importance and complexity
+- **⏱️ Time Management**: Slow background job tests run last when you have time
+- **🎛️ Flexible Execution**: Each group can be run independently
+- **📊 Better Coverage**: Each group shows its own coverage metrics
+
+### Order-Specific Commands
+
+```bash
+# Run tests in the specified order
+make test_pings    # Quick health checks first
+make test_utils    # Core utilities second
+make test_last     # Background jobs last
+
+# Or run all tests with the new ordering
+make pytest_all    # All tests with coverage
+```
+
 ## Running Tests
 
 ### Using Makefile Commands (Recommended)
@@ -98,6 +146,16 @@ make test-unit
 make test-integration
 make test-api
 make test-background
+
+# Run tests in logical order
+make test_pings    # Ping tests first (health checks)
+make test_utils    # Utility tests second (core functions)
+make test_last     # Background job tests last (complex operations)
+
+# Run tests with coverage and HTML reports
+make pytest_all    # All tests with coverage + HTML report
+make pytest_fast   # Fast tests only (excludes slow tests)
+make pytest_slow   # Slow tests only
 
 # Run tests in watch mode (requires pytest-watch)
 make test-watch
@@ -225,16 +283,46 @@ open htmlcov/index.html
 
 ```toml
 [tool.pytest.ini_options]
-testpaths = ["app/tests", "tests"]
-norecursedirs = ["venv", ".venv", "env", ".env", ".git", "dist", "build"]
-addopts = ["-v", "--tb=short", "--strict-markers", "--color=yes"]
+testpaths = ["tests"]
+norecursedirs = ["venv", ".venv", "env", ".env", ".git", "dist", "build", "__pycache__", ".pytest_cache", ".mypy_cache", ".coverage", "tmp", "logs"]
+addopts = ["-v", "--tb=short", "--strict-markers", "--strict-config", "--disable-warnings", "--color=yes", "--durations=10", "--cov=src", "--cov-report=term-missing", "--cov-report=html", "--cov-report=xml", "--cov-fail-under=80"]
 markers = [
-    "slow: marks tests as slow",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
-    "unit: marks tests as unit tests"
+    "unit: marks tests as unit tests",
+    "api: marks tests as API tests",
+    "background: marks tests as background job tests",
+    "pings: marks tests as ping/health check tests (run first)",
+    "utils: marks tests as utility tests (run middle)",
+    "last: marks tests to run last (background jobs)"
 ]
 asyncio_mode = "auto"
-timeout = 300
+minversion = "8.0"
+
+[tool.coverage.run]
+branch = true
+omit = ["**/tests/*", "**/migrations/*.py", "**/urls.py", "**/settings/*", "**/wsgi.py", "**/asgi.py", "manage.py", "fabfile.py", "settings.py", "**/endpoints.py", "**/admin.py", "**/venv/**", "**/.venv/**", "**/env/**", "**/.env/**", "**/__pycache__/**", "**/.pytest_cache/**", "**/.mypy_cache/**", "**/.coverage/**", "**/tmp/**", "**/logs/**"]
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod"
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
 ```
 
 ### pytest.ini (Alternative Configuration)
@@ -277,6 +365,14 @@ The `pytest.ini` file provides an alternative configuration format, though `pypr
 - Monitor test execution times
 - Consider parallel execution for large test suites
 
+### 6. Test Ordering
+
+- Use `pytest.mark.order()` to control test execution sequence
+- Run critical health checks first (ping tests)
+- Place utility tests in the middle for core functionality validation
+- Run complex background job tests last
+- Use order-specific commands for targeted testing
+
 ## Continuous Integration
 
 For CI/CD pipelines, use:
@@ -285,11 +381,16 @@ For CI/CD pipelines, use:
 # Install dependencies
 pip install -e ".[dev]"
 
-# Run tests with coverage
-pytest --cov=app --cov-report=xml --cov-fail-under=80
+# Run tests with coverage (ordered execution)
+pytest --cov=src --cov-report=xml --cov-fail-under=80
 
-# Run only fast tests in CI
+# Run only fast tests in CI (excludes slow background jobs)
 pytest -m "not slow"
+
+# Run tests in logical order for better feedback
+make test_pings    # Health checks first
+make test_utils    # Core utilities second
+make test_last     # Background jobs last (if time permits)
 ```
 
 ## Troubleshooting

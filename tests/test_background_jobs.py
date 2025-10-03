@@ -8,6 +8,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+# Mark all tests in this module as last tests (run last)
+pytestmark = [pytest.mark.last, pytest.mark.order(3)]
+
 from src.apps.background_jobs.service import BackgroundJobService, JobResult, JobStatus
 
 

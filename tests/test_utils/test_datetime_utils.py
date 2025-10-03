@@ -10,6 +10,9 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
+# Mark all tests in this module as utility tests (run middle)
+pytestmark = [pytest.mark.utils, pytest.mark.order(2)]
+
 from src.utils.datetime_utils import (
     DateTimeUtils,
     DateTimeUtilsError,

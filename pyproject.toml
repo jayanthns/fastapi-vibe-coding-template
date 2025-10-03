@@ -75,6 +75,9 @@ norecursedirs = [
 
 # Test execution configuration
 
+# Test execution order (pytest-order plugin)
+# Tests will be ordered by specific order values
+
 # Markers for categorizing tests
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -82,6 +85,9 @@ markers = [
     "unit: marks tests as unit tests",
     "api: marks tests as API tests",
     "background: marks tests as background job tests",
+    "pings: marks tests as ping/health check tests (run first)",
+    "utils: marks tests as utility tests (run middle)",
+    "last: marks tests to run last (background jobs)",
 ]
 
 # Async test configuration

@@ -7,9 +7,13 @@ Tests the cache connectivity and health check endpoints including:
 - Cache keys listing
 """
 
+import pytest
 from fastapi.testclient import TestClient
 
 from src.main import app
+
+# Mark all tests in this module as ping tests (run first)
+pytestmark = [pytest.mark.pings, pytest.mark.order(1)]
 
 client = TestClient(app)
 

@@ -13,6 +13,9 @@ from httpx import AsyncClient
 
 from src.main import app
 
+# Mark all tests in this module as ping tests (run first)
+pytestmark = [pytest.mark.pings, pytest.mark.order(1)]
+
 
 class TestDatabasePingEndpoints:
     """Test database ping endpoints structure and basic functionality."""
