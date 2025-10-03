@@ -32,8 +32,14 @@ pytest==8.4.2
     #   pytest-asyncio
 pytest-asyncio==1.2.0
     # via -r requirements_raw/local_requirements.in
+python-dateutil==2.9.0.post0
+    # via -r requirements_raw/local_requirements.in
+pytz==2025.2
+    # via -r requirements_raw/local_requirements.in
 ruff==0.13.1
     # via -r requirements_raw/local_requirements.in
+six==1.17.0
+    # via python-dateutil
 sniffio==1.3.1
     # via anyio
 typing-extensions==4.15.0
