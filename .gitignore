@@ -120,9 +120,6 @@ tmp/*
 # Pyre type checker
 .pyre/
 
-# VSCode
-.vscode/
-
 # Alembic
 alembic.ini.bak
 
