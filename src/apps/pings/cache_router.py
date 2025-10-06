@@ -9,11 +9,11 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException, Request, status
 
 from src.core.logging import get_logger
-from src.middleware.trace import get_trace_id
 from src.core.schemas import APIResponse
+from src.middleware.trace import get_trace_id
 from src.utils.security import secure_response
 
-router = APIRouter(tags=["cache-health"])
+router = APIRouter()
 
 
 def _is_sensitive_key(key: str) -> bool:
