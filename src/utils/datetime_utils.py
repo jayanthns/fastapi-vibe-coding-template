@@ -67,12 +67,20 @@ class DateTimeUtils:
 
         Args:
             tz_name: Timezone name (e.g., 'UTC', 'US/Eastern', 'Asia/Kolkata')
+                    Also supports common abbreviations like 'est', 'pst', 'ist'
 
         Returns:
             timezone object
 
         Raises:
             DateTimeUtilsError: If timezone is invalid
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> tz = utils.get_timezone('UTC')
+            >>> tz = utils.get_timezone('US/Eastern')
+            >>> tz = utils.get_timezone('est')  # Abbreviation for US/Eastern
+            >>> tz = utils.get_timezone('Asia/Kolkata')
         """
         try:
             # Check if it's a common abbreviation
@@ -100,6 +108,12 @@ class DateTimeUtils:
 
         Returns:
             Current datetime in specified timezone
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> now_utc = utils.now()  # Returns: datetime(2024, 1, 15, 10, 30, 0, tzinfo=UTC)
+            >>> now_est = utils.now('US/Eastern')  # Returns: datetime(2024, 1, 15, 5, 30, 0, tzinfo=EST)
+            >>> now_ist = utils.now('Asia/Kolkata')  # Returns: datetime(2024, 1, 15, 16, 0, 0, tzinfo=IST)
         """
         if tz:
             timezone_obj = self.get_timezone(tz)
@@ -115,6 +129,12 @@ class DateTimeUtils:
 
         Returns:
             Current date in specified timezone
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> today_utc = utils.today()  # Returns: date(2024, 1, 15)
+            >>> today_est = utils.today('US/Eastern')  # Returns: date(2024, 1, 14) (if EST is behind UTC)
+            >>> today_ist = utils.today('Asia/Kolkata')  # Returns: date(2024, 1, 15)
         """
         return self.now(tz).date()
 
@@ -123,12 +143,22 @@ class DateTimeUtils:
         Convert datetime from one timezone to another.
 
         Args:
-            dt: Datetime to convert
-            from_tz: Source timezone
-            to_tz: Target timezone
+            dt: Datetime to convert (can be naive or timezone-aware)
+            from_tz: Source timezone name
+            to_tz: Target timezone name
 
         Returns:
-            Converted datetime
+            Converted datetime in target timezone
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt_utc = datetime(2024, 1, 15, 10, 30, 0)
+            >>> dt_est = utils.convert_timezone(dt_utc, 'UTC', 'US/Eastern')
+            >>> # Returns: datetime(2024, 1, 15, 5, 30, 0, tzinfo=EST)
+
+            >>> dt_aware = datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)
+            >>> dt_ist = utils.convert_timezone(dt_aware, 'UTC', 'Asia/Kolkata')
+            >>> # Returns: datetime(2024, 1, 15, 16, 0, 0, tzinfo=IST)
         """
         try:
             from_tz_obj = self.get_timezone(from_tz)
@@ -168,6 +198,18 @@ class DateTimeUtils:
 
         Returns:
             Formatted datetime string
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = datetime(2024, 1, 15, 10, 30, 0)
+            >>> formatted = utils.format_datetime(dt)
+            >>> # Returns: "2024-01-15 10:30:00"
+
+            >>> formatted = utils.format_datetime(dt, "%Y-%m-%d")
+            >>> # Returns: "2024-01-15"
+
+            >>> formatted = utils.format_datetime(dt, "%B %d, %Y at %I:%M %p", "US/Eastern")
+            >>> # Returns: "January 15, 2024 at 05:30 AM"
         """
         try:
             if tz:
@@ -190,11 +232,25 @@ class DateTimeUtils:
 
         Args:
             date_str: Date string to parse
-            format_str: Format string (if None, auto-detect)
+            format_str: Format string (if None, auto-detect using dateutil)
             tz: Timezone to assign if datetime is naive
 
         Returns:
             Parsed datetime
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = utils.parse_datetime("2024-01-15 10:30:00")
+            >>> # Returns: datetime(2024, 1, 15, 10, 30, 0)
+
+            >>> dt = utils.parse_datetime("2024-01-15", "%Y-%m-%d")
+            >>> # Returns: datetime(2024, 1, 15, 0, 0, 0)
+
+            >>> dt = utils.parse_datetime("Jan 15, 2024 10:30 AM", tz="US/Eastern")
+            >>> # Returns: datetime(2024, 1, 15, 10, 30, 0, tzinfo=EST)
+
+            >>> dt = utils.parse_datetime("2024-01-15T10:30:00Z")  # ISO format
+            >>> # Returns: datetime(2024, 1, 15, 10, 30, 0, tzinfo=UTC)
         """
         try:
             if format_str:
@@ -227,10 +283,19 @@ class DateTimeUtils:
 
         Args:
             dt: Base datetime
-            days: Number of days to add (can be negative)
+            days: Number of days to add (can be negative for subtraction)
 
         Returns:
             New datetime with days added
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = datetime(2024, 1, 15, 10, 30, 0)
+            >>> new_dt = utils.add_days(dt, 5)
+            >>> # Returns: datetime(2024, 1, 20, 10, 30, 0)
+
+            >>> new_dt = utils.add_days(dt, -3)
+            >>> # Returns: datetime(2024, 1, 12, 10, 30, 0)
         """
         return dt + timedelta(days=days)
 
@@ -240,10 +305,19 @@ class DateTimeUtils:
 
         Args:
             dt: Base datetime
-            hours: Number of hours to add (can be negative)
+            hours: Number of hours to add (can be negative for subtraction)
 
         Returns:
             New datetime with hours added
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = datetime(2024, 1, 15, 10, 30, 0)
+            >>> new_dt = utils.add_hours(dt, 3)
+            >>> # Returns: datetime(2024, 1, 15, 13, 30, 0)
+
+            >>> new_dt = utils.add_hours(dt, -2)
+            >>> # Returns: datetime(2024, 1, 15, 8, 30, 0)
         """
         return dt + timedelta(hours=hours)
 
@@ -253,10 +327,19 @@ class DateTimeUtils:
 
         Args:
             dt: Base datetime
-            minutes: Number of minutes to add (can be negative)
+            minutes: Number of minutes to add (can be negative for subtraction)
 
         Returns:
             New datetime with minutes added
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = datetime(2024, 1, 15, 10, 30, 0)
+            >>> new_dt = utils.add_minutes(dt, 45)
+            >>> # Returns: datetime(2024, 1, 15, 11, 15, 0)
+
+            >>> new_dt = utils.add_minutes(dt, -15)
+            >>> # Returns: datetime(2024, 1, 15, 10, 15, 0)
         """
         return dt + timedelta(minutes=minutes)
 
@@ -266,10 +349,23 @@ class DateTimeUtils:
 
         Args:
             dt: Base datetime
-            months: Number of months to add (can be negative)
+            months: Number of months to add (can be negative for subtraction)
 
         Returns:
             New datetime with months added
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = datetime(2024, 1, 15, 10, 30, 0)
+            >>> new_dt = utils.add_months(dt, 2)
+            >>> # Returns: datetime(2024, 3, 15, 10, 30, 0)
+
+            >>> new_dt = utils.add_months(dt, -1)
+            >>> # Returns: datetime(2023, 12, 15, 10, 30, 0)
+
+            >>> dt = datetime(2024, 1, 31, 10, 30, 0)
+            >>> new_dt = utils.add_months(dt, 1)  # February doesn't have 31 days
+            >>> # Returns: datetime(2024, 2, 29, 10, 30, 0) (leap year)
         """
         return dt + relativedelta.relativedelta(months=months)
 
@@ -279,10 +375,23 @@ class DateTimeUtils:
 
         Args:
             dt: Base datetime
-            years: Number of years to add (can be negative)
+            years: Number of years to add (can be negative for subtraction)
 
         Returns:
             New datetime with years added
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = datetime(2024, 1, 15, 10, 30, 0)
+            >>> new_dt = utils.add_years(dt, 1)
+            >>> # Returns: datetime(2025, 1, 15, 10, 30, 0)
+
+            >>> new_dt = utils.add_years(dt, -2)
+            >>> # Returns: datetime(2022, 1, 15, 10, 30, 0)
+
+            >>> dt = datetime(2024, 2, 29, 10, 30, 0)  # Leap year
+            >>> new_dt = utils.add_years(dt, 1)  # 2025 is not a leap year
+            >>> # Returns: datetime(2025, 2, 28, 10, 30, 0)
         """
         return dt + relativedelta.relativedelta(years=years)
 
@@ -297,13 +406,29 @@ class DateTimeUtils:
         Calculate business days between two dates.
 
         Args:
-            start_date: Start date
-            end_date: End date
+            start_date: Start date (inclusive)
+            end_date: End date (inclusive)
             exclude_weekends: Whether to exclude weekends (default: True)
             exclude_holidays: List of holidays to exclude
 
         Returns:
-            Number of business days
+            Number of business days between the dates
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> start = date(2024, 1, 15)  # Monday
+            >>> end = date(2024, 1, 19)    # Friday
+            >>> days = utils.get_business_days_between(start, end)
+            >>> # Returns: 5 (Monday to Friday)
+
+            >>> start = date(2024, 1, 15)  # Monday
+            >>> end = date(2024, 1, 21)    # Sunday
+            >>> days = utils.get_business_days_between(start, end)
+            >>> # Returns: 5 (Monday to Friday, excluding weekend)
+
+            >>> holidays = [date(2024, 1, 16)]  # Tuesday holiday
+            >>> days = utils.get_business_days_between(start, end, exclude_holidays=holidays)
+            >>> # Returns: 4 (Monday, Wed, Thu, Fri)
         """
         if exclude_holidays is None:
             exclude_holidays = []
@@ -343,6 +468,20 @@ class DateTimeUtils:
 
         Returns:
             Next business day
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = date(2024, 1, 15)  # Monday
+            >>> next_biz = utils.get_next_business_day(dt)
+            >>> # Returns: date(2024, 1, 16) (Tuesday)
+
+            >>> dt = date(2024, 1, 19)  # Friday
+            >>> next_biz = utils.get_next_business_day(dt)
+            >>> # Returns: date(2024, 1, 22) (Monday, skipping weekend)
+
+            >>> holidays = [date(2024, 1, 16)]  # Tuesday holiday
+            >>> next_biz = utils.get_next_business_day(dt, exclude_holidays=holidays)
+            >>> # Returns: date(2024, 1, 17) (Wednesday, skipping holiday)
         """
         if exclude_holidays is None:
             exclude_holidays = []
@@ -408,7 +547,33 @@ class DateTimeUtils:
             end_dt: End datetime
 
         Returns:
-            Dictionary with duration components
+            Dictionary with duration components (total_seconds, days, hours, minutes, seconds, microseconds)
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> start = datetime(2024, 1, 15, 10, 30, 0)
+            >>> end = datetime(2024, 1, 15, 12, 45, 30)
+            >>> duration = utils.get_duration_between(start, end)
+            >>> # Returns: {
+            >>> #     'total_seconds': 8130,
+            >>> #     'days': 0,
+            >>> #     'hours': 2,
+            >>> #     'minutes': 15,
+            >>> #     'seconds': 30,
+            >>> #     'microseconds': 0
+            >>> # }
+
+            >>> start = datetime(2024, 1, 15, 10, 30, 0)
+            >>> end = datetime(2024, 1, 17, 14, 20, 15)
+            >>> duration = utils.get_duration_between(start, end)
+            >>> # Returns: {
+            >>> #     'total_seconds': 190815,
+            >>> #     'days': 2,
+            >>> #     'hours': 3,
+            >>> #     'minutes': 50,
+            >>> #     'seconds': 15,
+            >>> #     'microseconds': 0
+            >>> # }
         """
         duration = end_dt - start_dt
 
@@ -431,6 +596,23 @@ class DateTimeUtils:
 
         Returns:
             Human-readable duration string
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> start = datetime(2024, 1, 15, 10, 30, 0)
+            >>> end = datetime(2024, 1, 15, 12, 45, 30)
+            >>> duration = utils.get_human_readable_duration(start, end)
+            >>> # Returns: "2 hours, 15 minutes, 30 seconds"
+
+            >>> start = datetime(2024, 1, 15, 10, 30, 0)
+            >>> end = datetime(2024, 1, 17, 14, 20, 15)
+            >>> duration = utils.get_human_readable_duration(start, end)
+            >>> # Returns: "2 days, 3 hours, 50 minutes, 15 seconds"
+
+            >>> start = datetime(2024, 1, 15, 10, 30, 0)
+            >>> end = datetime(2024, 1, 15, 10, 30, 0)
+            >>> duration = utils.get_human_readable_duration(start, end)
+            >>> # Returns: "0 seconds"
         """
         duration = self.get_duration_between(start_dt, end_dt)
 
@@ -469,7 +651,16 @@ class DateTimeUtils:
             dt: Datetime (default: current time)
 
         Returns:
-            Unix timestamp
+            Unix timestamp (seconds since epoch)
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> timestamp = utils.get_timestamp()  # Current time
+            >>> # Returns: 1705312200 (example timestamp)
+
+            >>> dt = datetime(2024, 1, 15, 10, 30, 0)
+            >>> timestamp = utils.get_timestamp(dt)
+            >>> # Returns: 1705312200
         """
         if dt is None:
             dt = self.now()
@@ -483,11 +674,19 @@ class DateTimeUtils:
         Convert Unix timestamp to datetime.
 
         Args:
-            timestamp: Unix timestamp
+            timestamp: Unix timestamp (seconds since epoch)
             tz: Timezone (default: UTC)
 
         Returns:
             Datetime object
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = utils.from_timestamp(1705312200)
+            >>> # Returns: datetime(2024, 1, 15, 10, 30, 0, tzinfo=UTC)
+
+            >>> dt = utils.from_timestamp(1705312200, 'US/Eastern')
+            >>> # Returns: datetime(2024, 1, 15, 5, 30, 0, tzinfo=EST)
         """
         dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
 
@@ -505,6 +704,16 @@ class DateTimeUtils:
 
         Returns:
             ISO format string
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)
+            >>> iso_str = utils.get_iso_format(dt)
+            >>> # Returns: "2024-01-15T10:30:00+00:00"
+
+            >>> dt = datetime(2024, 1, 15, 10, 30, 0)
+            >>> iso_str = utils.get_iso_format(dt)
+            >>> # Returns: "2024-01-15T10:30:00"
         """
         return dt.isoformat()
 
@@ -517,6 +726,17 @@ class DateTimeUtils:
 
         Returns:
             Parsed datetime
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = utils.from_iso_format("2024-01-15T10:30:00+00:00")
+            >>> # Returns: datetime(2024, 1, 15, 10, 30, 0, tzinfo=UTC)
+
+            >>> dt = utils.from_iso_format("2024-01-15T10:30:00")
+            >>> # Returns: datetime(2024, 1, 15, 10, 30, 0)
+
+            >>> dt = utils.from_iso_format("2024-01-15T10:30:00Z")
+            >>> # Returns: datetime(2024, 1, 15, 10, 30, 0, tzinfo=UTC)
         """
         return datetime.fromisoformat(iso_str.replace("Z", "+00:00"))
 
@@ -530,6 +750,15 @@ class DateTimeUtils:
 
         Returns:
             Start of week date
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = date(2024, 1, 17)  # Wednesday
+            >>> week_start = utils.get_week_start(dt)  # Monday start
+            >>> # Returns: date(2024, 1, 15) (Monday)
+
+            >>> week_start = utils.get_week_start(dt, 6)  # Sunday start
+            >>> # Returns: date(2024, 1, 14) (Sunday)
         """
         days_since_start = (dt.weekday() - week_start_day) % 7
         return dt - timedelta(days=days_since_start)
@@ -605,7 +834,17 @@ class DateTimeUtils:
             dt: Date to check
 
         Returns:
-            True if weekend, False otherwise
+            True if weekend (Saturday or Sunday), False otherwise
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> dt = date(2024, 1, 15)  # Monday
+            >>> is_weekend = utils.is_weekend(dt)
+            >>> # Returns: False
+
+            >>> dt = date(2024, 1, 20)  # Saturday
+            >>> is_weekend = utils.is_weekend(dt)
+            >>> # Returns: True
         """
         return dt.weekday() >= 5
 
@@ -632,6 +871,27 @@ class DateTimeUtils:
 
         Returns:
             Age in years
+
+        Examples:
+            >>> utils = DateTimeUtils()
+            >>> birth = date(1990, 5, 15)
+            >>> age = utils.get_age(birth)  # Using today as reference
+            >>> # Returns: 33 (example age)
+
+            >>> birth = date(1990, 5, 15)
+            >>> ref = date(2024, 1, 15)
+            >>> age = utils.get_age(birth, ref)
+            >>> # Returns: 33
+
+            >>> birth = date(1990, 5, 15)
+            >>> ref = date(2024, 3, 10)  # Before birthday
+            >>> age = utils.get_age(birth, ref)
+            >>> # Returns: 33
+
+            >>> birth = date(1990, 5, 15)
+            >>> ref = date(2024, 6, 1)  # After birthday
+            >>> age = utils.get_age(birth, ref)
+            >>> # Returns: 34
         """
         if reference_date is None:
             reference_date = self.today()
