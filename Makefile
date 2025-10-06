@@ -7,11 +7,19 @@ else
 	VENV_ACTIVATE = source ./venv/bin/activate
 endif
 
-run:
-	@echo "Running FastAPI server..."
+run-prod:
+	@echo "Running FastAPI server in production mode (gunicorn + uvicorn workers)..."
 	@$(VENV_ACTIVATE) && ./deploy/uvicorn_start.sh
 
-venv_init:
+run:
+	@echo "Running FastAPI server in development mode (uvicorn with reload)..."
+	@$(VENV_ACTIVATE) && uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+
+run-dev:
+	@echo "Running FastAPI server in development mode (uvicorn with reload)..."
+	@$(VENV_ACTIVATE) && uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+
+venv-init:
 	python3 -m venv venv
 	@$(VENV_ACTIVATE) && python -m pip install --upgrade uv pip-tools pip wheel
 
@@ -151,28 +159,28 @@ test-fast:
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "not slow"
 
 # New pytest commands as requested
-pytest_all:
+pytest-all:
 	@echo "Running all tests with coverage and HTML report..."
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest --cov=src --cov-report=html
 
-pytest_fast:
+pytest-fast:
 	@echo "Running fast tests only (excluding slow tests)..."
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "not slow" --cov=src --cov-report=html
 
-pytest_slow:
+pytest-slow:
 	@echo "Running slow tests only..."
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "slow" --cov=src --cov-report=html
 
 # Test Order Commands
-test_pings:
+test-pings:
 	@echo "Running ping tests first (database and cache)..."
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "pings" --cov=src --cov-report=term-missing --cov-report=html
 
-test_utils:
+test-utils:
 	@echo "Running utility tests (middle)..."
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "utils" --cov=src --cov-report=term-missing --cov-report=html
 
-test_last:
+test-last:
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "last" --cov=src --cov-report=term-missing --cov-report=html
 
 test-unit:
@@ -219,6 +227,43 @@ test-watch:
 help:
 	@echo "Available commands:"
 	@echo ""
+	@echo "Development Server:"
+	@echo "  run                           - Run FastAPI server in development mode (uvicorn with reload)"
+	@echo "  run-dev                       - Run FastAPI server in development mode (uvicorn with reload)"
+	@echo "  run-prod                      - Run FastAPI server in production mode (gunicorn + uvicorn workers)"
+	@echo ""
+	@echo "Virtual Environment:"
+	@echo "  venv-init                     - Create virtual environment"
+	@echo "  uv-venv-init                  - Create virtual environment with uv"
+	@echo ""
+	@echo "Dependencies (pip-tools):"
+	@echo "  update-deps                   - Update requirement files"
+	@echo "  install-deps                  - Install dependencies"
+	@echo "  update-package                - Update and install dependencies"
+	@echo ""
+	@echo "Dependencies (uv - faster):"
+	@echo "  uv-update-deps                - Update requirement files with uv"
+	@echo "  uv-install-deps               - Install dependencies with uv"
+	@echo "  uv-update-package             - Update and install dependencies with uv"
+	@echo ""
+	@echo "Security Auditing:"
+	@echo "  pip-audit-prod                - Audit production dependencies"
+	@echo "  pip-audit-all                 - Audit all dependencies"
+	@echo "  uv-pip-audit-prod             - uv audit production dependencies"
+	@echo "  uv-pip-audit-all              - uv audit all dependencies"
+	@echo ""
+	@echo "Docker Services:"
+	@echo "  d-db                          - Start PostgreSQL only"
+	@echo "  d-redis                       - Start Redis only"
+	@echo "  d-redis-logs                  - View Redis logs"
+	@echo "  d-db-and-redis                - Start PostgreSQL + Redis"
+	@echo "  d-db-and-redis-logs           - View database and Redis logs"
+	@echo "  d-app                         - Start application only"
+	@echo "  d-up                          - Start all services"
+	@echo "  d-down                        - Stop all services"
+	@echo "  d-logs                        - View all logs"
+	@echo "  d-logs-app                    - View app logs only"
+	@echo ""
 	@echo "Database Migration Commands:"
 	@echo "  makemigrations MSG='message'  - Create new migration (like Django makemigrations)"
 	@echo "  migrate                       - Apply migrations (like Django migrate)"
@@ -232,16 +277,21 @@ help:
 	@echo "  db-init                       - Initialize database"
 	@echo "  db-reset                      - Reset database"
 	@echo ""
+	@echo "Development Setup:"
+	@echo "  dev-setup                     - Setup development environment"
+	@echo "  dev-reset                     - Reset development database"
+	@echo ""
 	@echo "Testing Commands:"
 	@echo "  test                          - Run all tests"
 	@echo "  test-verbose                  - Run tests with verbose output"
 	@echo "  test-coverage                 - Run tests with coverage report"
 	@echo "  test-fast                     - Run fast tests (exclude slow tests)"
-	@echo "  pytest_all                    - Run all tests with coverage + HTML report"
-	@echo "  pytest_fast                   - Run fast tests with coverage + HTML report"
-	@echo "  pytest_slow                   - Run slow tests with coverage + HTML report"
-	@echo "  test_pings                    - Run ping tests first (database and cache)"
-	@echo "  test_utils                    - Run utility tests (middle)"
+	@echo "  pytest-all                    - Run all tests with coverage + HTML report"
+	@echo "  pytest-fast                   - Run fast tests with coverage + HTML report"
+	@echo "  pytest-slow                   - Run slow tests with coverage + HTML report"
+	@echo "  test-pings                    - Run ping tests first (database and cache)"
+	@echo "  test-utils                    - Run utility tests (middle)"
+	@echo "  test-last                     - Run background job tests (last)"
 	@echo "  test-unit                     - Run unit tests only"
 	@echo "  test-integration              - Run integration tests only"
 	@echo "  test-api                      - Run API tests only"
@@ -252,13 +302,10 @@ help:
 	@echo "  test-article-run              - Run all article API tests"
 	@echo "  test-article-method METHOD=   - Run specific article API test method"
 	@echo ""
-	@echo "Development:"
-	@echo "  dev-setup                     - Setup development environment"
-	@echo "  dev-reset                     - Reset development database"
-	@echo ""
 	@echo "Examples:"
-	@echo "  make makemigrations MSG='add user table'"
-	@echo "  make migrate"
-	@echo "  make db-reset"
-	@echo "  make test-coverage"
-	@echo "  make test-fast"
+	@echo "  make venv-init                # Create virtual environment"
+	@echo "  make uv-update-package        # Install dependencies with uv"
+	@echo "  make d-db-and-redis           # Start database services"
+	@echo "  make migrate                  # Apply migrations"
+	@echo "  make run                      # Start development server"
+	@echo "  make test-coverage            # Run tests with coverage"
