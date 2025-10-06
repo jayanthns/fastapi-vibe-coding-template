@@ -10,8 +10,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import UUID, DateTime
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -34,7 +33,7 @@ class BaseModel(Base):
 
     # UUID primary key with auto-generation and indexing
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UUID(),
         primary_key=True,
         default=uuid.uuid4,
         index=True,
@@ -211,14 +210,14 @@ class AuditModel(BaseModel):
 
     # Audit fields
     created_by: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
+        UUID(),
         nullable=True,
         index=True,
         comment="ID of the user who created this record",
     )
 
     updated_by: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
+        UUID(),
         nullable=True,
         index=True,
         comment="ID of the user who last updated this record",

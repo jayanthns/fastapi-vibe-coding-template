@@ -1,12 +1,43 @@
 """
-String utilities for text processing, sanitization, and manipulation.
+String Utilities Module
 
-This module provides comprehensive string utilities including:
-- Text sanitization and validation
-- Slug generation (URL-friendly strings)
-- Text normalization and cleaning
-- Template string processing
-- Multi-language text handling
+This module provides comprehensive string processing, sanitization, and manipulation utilities
+for FastAPI applications. It includes advanced text processing capabilities with security
+features, internationalization support, and template processing.
+
+Key Features:
+- Text sanitization and validation (HTML, SQL injection, XSS protection)
+- Slug generation for URL-friendly strings with unicode support
+- Text normalization and cleaning (whitespace, accents, unicode)
+- Template string processing with variable substitution
+- Multi-language text handling (language detection, transliteration)
+- Security-focused text processing for web applications
+
+Classes:
+    StringSanitizer: HTML and SQL injection sanitization
+    SlugGenerator: URL-friendly slug generation with unicode support
+    TextNormalizer: Text cleaning and normalization utilities
+    TemplateProcessor: Template string processing with variable substitution
+    MultiLanguageHandler: Multi-language text processing and detection
+
+Example:
+    ```python
+    from src.utils.string_utils import StringSanitizer, SlugGenerator
+
+    # Sanitize HTML content
+    sanitizer = StringSanitizer()
+    clean_text = sanitizer.sanitize_html("<script>alert('xss')</script>Hello")
+
+    # Generate URL-friendly slug
+    slug_gen = SlugGenerator()
+    slug = slug_gen.generate_slug("Café & Restaurant")
+    # Result: "cafe-restaurant"
+    ```
+
+Security Note:
+    This module provides basic sanitization. For production applications,
+    always use parameterized queries for database operations and consider
+    additional security measures for user input validation.
 """
 
 import re
@@ -16,7 +47,41 @@ from urllib.parse import quote, unquote
 
 
 class StringSanitizer:
-    """Text sanitization and validation utilities."""
+    """
+    Text sanitization and validation utilities for secure text processing.
+
+    This class provides methods to sanitize and validate text content, protecting
+    against common web vulnerabilities like XSS attacks and SQL injection.
+
+    Methods:
+        remove_html_tags: Remove all HTML tags from text
+        remove_script_tags: Remove script and style tags
+        sanitize_html: Sanitize HTML content with optional allowed tags
+        detect_sql_injection: Detect potential SQL injection patterns
+        sanitize_sql_input: Basic SQL input sanitization
+        clean_whitespace: Clean and normalize whitespace
+        remove_control_characters: Remove control characters from text
+
+    Example:
+        ```python
+        sanitizer = StringSanitizer()
+
+        # Remove all HTML tags
+        clean_text = sanitizer.remove_html_tags("<p>Hello <b>World</b></p>")
+        # Result: "Hello World"
+
+        # Sanitize HTML with allowed tags
+        safe_html = sanitizer.sanitize_html(
+            "<p>Hello <script>alert('xss')</script></p>",
+            allowed_tags=["p", "b"]
+        )
+        # Result: "<p>Hello </p>"
+        ```
+
+    Security Note:
+        These methods provide basic sanitization. For production applications,
+        use additional security measures and parameterized queries.
+    """
 
     # Common patterns for sanitization
     HTML_TAGS = re.compile(r"<[^>]+>")
@@ -124,7 +189,48 @@ class StringSanitizer:
 
 
 class SlugGenerator:
-    """URL-friendly slug generation utilities."""
+    """
+    URL-friendly slug generation utilities with unicode support.
+
+    This class provides methods to generate URL-friendly slugs from text content,
+    with support for unicode characters, custom separators, and length limits.
+
+    Methods:
+        generate_slug: Generate a URL-friendly slug from text
+        generate_unique_slug: Generate a unique slug with conflict resolution
+
+    Features:
+        - Unicode normalization and accent removal
+        - Customizable separators and length limits
+        - Case preservation options
+        - Conflict resolution for unique slugs
+        - Special character handling
+
+    Example:
+        ```python
+        slug_gen = SlugGenerator()
+
+        # Basic slug generation
+        slug = slug_gen.generate_slug("Café & Restaurant")
+        # Result: "cafe-restaurant"
+
+        # With custom separator and length
+        slug = slug_gen.generate_slug(
+            "My Amazing Blog Post Title",
+            separator="_",
+            max_length=20
+        )
+        # Result: "my_amazing_blog"
+
+        # Generate unique slug
+        existing_slugs = ["hello-world", "hello-world-2"]
+        unique_slug = slug_gen.generate_unique_slug(
+            "Hello World",
+            existing_slugs=existing_slugs
+        )
+        # Result: "hello-world-3"
+        ```
+    """
 
     @classmethod
     def generate_slug(
@@ -193,7 +299,47 @@ class SlugGenerator:
 
 
 class TextNormalizer:
-    """Text normalization and cleaning utilities."""
+    """
+    Text normalization and cleaning utilities for consistent text processing.
+
+    This class provides methods to normalize and clean text content, including
+    unicode normalization, accent removal, whitespace cleaning, and text truncation.
+
+    Methods:
+        normalize_unicode: Normalize unicode text to specified form
+        remove_accents: Remove accents and diacritical marks
+        normalize_whitespace: Clean and normalize whitespace
+        clean_text: Comprehensive text cleaning
+        truncate_text: Truncate text with ellipsis
+
+    Features:
+        - Unicode normalization (NFC, NFD, NFKC, NFKD)
+        - Accent and diacritical mark removal
+        - Whitespace normalization
+        - Text truncation with ellipsis
+        - Comprehensive text cleaning pipeline
+
+    Example:
+        ```python
+        normalizer = TextNormalizer()
+
+        # Normalize unicode
+        normalized = normalizer.normalize_unicode("café")
+        # Result: "café" (NFC form)
+
+        # Remove accents
+        no_accents = normalizer.remove_accents("café résumé")
+        # Result: "cafe resume"
+
+        # Clean whitespace
+        clean = normalizer.normalize_whitespace("  Hello   World  ")
+        # Result: "Hello World"
+
+        # Truncate text
+        truncated = normalizer.truncate_text("This is a very long text", 10)
+        # Result: "This is..."
+        ```
+    """
 
     @classmethod
     def normalize_unicode(cls, text: str, form: str = "NFC") -> str:
@@ -265,7 +411,7 @@ class TextNormalizer:
             return text
 
         if not word_boundary:
-            return text[:max_length - len(suffix)] + suffix
+            return text[: max_length - len(suffix)] + suffix
 
         # Find last space before max length
         truncate_at = max_length - len(suffix)
@@ -278,7 +424,45 @@ class TextNormalizer:
 
 
 class TemplateProcessor:
-    """Template string processing utilities."""
+    """
+    Template string processing utilities with variable substitution.
+
+    This class provides methods to process template strings with variable substitution,
+    including safe mode processing and template validation.
+
+    Methods:
+        process_template: Process template with variable substitution
+        extract_template_variables: Extract variables from template string
+        validate_template: Validate template syntax
+
+    Features:
+        - Variable substitution with {{variable}} syntax
+        - Safe mode processing (escapes HTML)
+        - Template variable extraction
+        - Template validation
+        - Error handling for missing variables
+
+    Example:
+        ```python
+        processor = TemplateProcessor()
+
+        # Process template with variables
+        template = "Hello {{name}}, welcome to {{site}}!"
+        variables = {"name": "John", "site": "MyApp"}
+        result = processor.process_template(template, variables)
+        # Result: "Hello John, welcome to MyApp!"
+
+        # Safe mode (escapes HTML)
+        template = "Hello {{name}}!"
+        variables = {"name": "<script>alert('xss')</script>"}
+        result = processor.process_template(template, variables, safe_mode=True)
+        # Result: "Hello &lt;script&gt;alert('xss')&lt;/script&gt;!"
+
+        # Extract variables from template
+        variables = processor.extract_template_variables("Hello {{name}} from {{city}}!")
+        # Result: ["name", "city"]
+        ```
+    """
 
     @classmethod
     def process_template(
@@ -345,7 +529,44 @@ class TemplateProcessor:
 
 
 class MultiLanguageHandler:
-    """Multi-language text handling utilities."""
+    """
+    Multi-language text handling utilities with language detection and transliteration.
+
+    This class provides methods to handle multi-language text content, including
+    language detection, transliteration, and text normalization for search.
+
+    Methods:
+        detect_language: Detect language of text content
+        transliterate_cyrillic: Transliterate Cyrillic text to Latin
+        normalize_for_search: Normalize text for search operations
+
+    Features:
+        - Basic language detection (English, Spanish, French)
+        - Cyrillic to Latin transliteration
+        - Text normalization for search
+        - Unicode handling for international text
+
+    Example:
+        ```python
+        handler = MultiLanguageHandler()
+
+        # Detect language
+        language = handler.detect_language("Hello world")
+        # Result: "en"
+
+        # Transliterate Cyrillic
+        transliterated = handler.transliterate_cyrillic("Привет мир")
+        # Result: "Privet mir"
+
+        # Normalize for search
+        normalized = handler.normalize_for_search("  Hello   World  ")
+        # Result: "hello world"
+        ```
+
+    Note:
+        Language detection is basic and pattern-based. For production applications,
+        consider using specialized libraries like langdetect or polyglot.
+    """
 
     # Language detection patterns (basic)
     LANGUAGE_PATTERNS = {

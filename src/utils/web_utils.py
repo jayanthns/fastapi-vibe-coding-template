@@ -1,13 +1,59 @@
 """
-Web & API utilities for HTTP client operations, retry mechanisms, and more.
+Web & API Utilities Module
 
-This module provides comprehensive web utilities including:
-- HTTP Client Utilities
-- Retry mechanisms with exponential backoff
-- Rate limiting and throttling
-- Request/response logging
-- Circuit breaker patterns
-- HTTP client pooling
+This module provides comprehensive web and API utilities for FastAPI applications,
+including advanced HTTP client operations, retry mechanisms, rate limiting, and
+circuit breaker patterns for robust API interactions.
+
+Key Features:
+- HTTP Client with advanced configuration and connection pooling
+- Retry mechanisms with exponential backoff and jitter
+- Rate limiting with token bucket algorithm
+- Circuit breaker pattern for fault tolerance
+- Request/response logging and monitoring
+- Connection pooling for efficient resource usage
+- Async/await support for modern Python applications
+
+Classes:
+    RetryConfig: Configuration for retry mechanisms
+    RateLimitConfig: Configuration for rate limiting
+    CircuitBreakerConfig: Configuration for circuit breaker
+    RateLimiter: Token bucket rate limiter implementation
+    CircuitBreaker: Circuit breaker pattern implementation
+    RetryHandler: Retry mechanism with exponential backoff
+    RequestLogger: Request/response logging utilities
+    HTTPClientManager: Advanced HTTP client with all features
+    ConnectionPool: HTTP client connection pooling
+
+Example:
+    ```python
+    from src.utils.web_utils import HTTPClientManager, RetryConfig
+
+    # Create HTTP client with retry and rate limiting
+    retry_config = RetryConfig(max_attempts=3, backoff_factor=2.0)
+    client = HTTPClientManager(
+        base_url="https://api.example.com",
+        retry_config=retry_config,
+        enable_logging=True
+    )
+
+    # Make requests with automatic retry and rate limiting
+    async with client as http_client:
+        response = await http_client.get("/users")
+        data = response.json()
+    ```
+
+Advanced Features:
+    - Automatic retry on transient failures
+    - Rate limiting to respect API quotas
+    - Circuit breaker to prevent cascade failures
+    - Connection pooling for performance
+    - Comprehensive logging and monitoring
+    - Async context manager support
+
+Security Note:
+    This module provides robust HTTP client functionality. Always validate
+    and sanitize data from external APIs and implement proper authentication.
 """
 
 import asyncio
@@ -88,7 +134,52 @@ class RequestLog:
 
 
 class RateLimiter:
-    """Token bucket rate limiter implementation."""
+    """
+    Token bucket rate limiter implementation for API rate limiting.
+
+    This class implements a token bucket algorithm for rate limiting HTTP requests,
+    allowing burst traffic while maintaining average rate limits.
+
+    Features:
+        - Token bucket algorithm with configurable rate and burst size
+        - Thread-safe async operations
+        - Automatic token refill based on time elapsed
+        - Burst allowance for handling traffic spikes
+
+    Methods:
+        acquire: Acquire a token (returns True if successful)
+        wait_for_token: Wait until a token is available
+        _refill_tokens: Internal method to refill tokens based on time
+
+    Example:
+        ```python
+        from src.utils.web_utils import RateLimiter, RateLimitConfig
+
+        # Create rate limiter: 10 requests per second, burst of 20
+        config = RateLimitConfig(rate=10, burst_size=20)
+        limiter = RateLimiter(config)
+
+        # Check if request is allowed
+        if await limiter.acquire():
+            # Make API request
+            response = await make_api_request()
+        else:
+            # Rate limit exceeded
+            print("Rate limit exceeded")
+
+        # Wait for token to become available
+        await limiter.wait_for_token()
+        response = await make_api_request()
+        ```
+
+    Algorithm:
+        The token bucket algorithm works by:
+        1. Tokens are added to the bucket at a constant rate
+        2. Each request consumes one token
+        3. If tokens are available, request is allowed
+        4. If no tokens available, request is rate limited
+        5. Burst size determines maximum tokens that can accumulate
+    """
 
     def __init__(self, config: RateLimitConfig):
         self.config = config
@@ -122,7 +213,61 @@ class RateLimiter:
 
 
 class CircuitBreaker:
-    """Circuit breaker implementation."""
+    """
+    Circuit breaker implementation for fault tolerance and system protection.
+
+    This class implements the circuit breaker pattern to prevent cascade failures
+    by monitoring request success/failure rates and temporarily stopping requests
+    when failure thresholds are exceeded.
+
+    States:
+        - CLOSED: Normal operation, requests are allowed
+        - OPEN: Circuit is open, requests are blocked
+        - HALF_OPEN: Testing state, limited requests allowed
+
+    Features:
+        - Configurable failure threshold and timeout
+        - Automatic state transitions
+        - Success counting for recovery
+        - Thread-safe async operations
+        - Fast-fail when circuit is open
+
+    Methods:
+        call: Execute function with circuit breaker protection
+        _should_attempt_reset: Check if circuit should transition to half-open
+        _on_success: Handle successful request
+        _on_failure: Handle failed request
+
+    Example:
+        ```python
+        from src.utils.web_utils import CircuitBreaker, CircuitBreakerConfig
+
+        # Create circuit breaker: open after 5 failures, timeout 60s
+        config = CircuitBreakerConfig(
+            failure_threshold=5,
+            timeout=60.0,
+            success_threshold=3
+        )
+        breaker = CircuitBreaker(config)
+
+        # Use circuit breaker to protect API calls
+        try:
+            result = await breaker.call(make_api_request)
+            print(f"Success: {result}")
+        except CircuitBreakerOpenError:
+            print("Circuit breaker is open, request blocked")
+        except Exception as e:
+            print(f"Request failed: {e}")
+        ```
+
+    Pattern:
+        The circuit breaker pattern works by:
+        1. Monitor request success/failure rates
+        2. Open circuit when failure threshold exceeded
+        3. Block requests when circuit is open
+        4. Allow test requests when timeout expires (half-open)
+        5. Close circuit when success threshold reached
+    """
 
     def __init__(self, config: CircuitBreakerConfig):
         self.config = config
@@ -294,7 +439,61 @@ class RequestLogger:
 
 
 class HTTPClientManager:
-    """HTTP client with advanced features."""
+    """
+    Advanced HTTP client with retry mechanisms, rate limiting, and circuit breaker.
+
+    This class provides a comprehensive HTTP client with built-in resilience patterns
+    including automatic retries, rate limiting, circuit breaker, and request logging.
+
+    Features:
+        - Automatic retry with exponential backoff
+        - Rate limiting with token bucket algorithm
+        - Circuit breaker for fault tolerance
+        - Request/response logging
+        - Connection pooling
+        - Async context manager support
+        - Configurable timeouts and limits
+
+    Methods:
+        get: Make GET request
+        post: Make POST request
+        put: Make PUT request
+        patch: Make PATCH request
+        delete: Make DELETE request
+        request: Make custom HTTP request
+        close: Close the HTTP client
+
+    Example:
+        ```python
+        from src.utils.web_utils import HTTPClientManager, RetryConfig
+
+        # Create client with retry configuration
+        retry_config = RetryConfig(max_attempts=3, backoff_factor=2.0)
+        client = HTTPClientManager(
+            base_url="https://api.example.com",
+            retry_config=retry_config,
+            enable_logging=True
+        )
+
+        # Use as async context manager
+        async with client as http_client:
+            # Make requests with automatic retry and rate limiting
+            response = await http_client.get("/users")
+            users = response.json()
+
+            # POST request with data
+            new_user = await http_client.post("/users", json={"name": "John"})
+        ```
+
+    Configuration:
+        - base_url: Base URL for all requests
+        - timeout: Request timeout in seconds
+        - retry_config: Retry mechanism configuration
+        - rate_limit_config: Rate limiting configuration
+        - circuit_breaker_config: Circuit breaker configuration
+        - enable_logging: Enable request/response logging
+        - **client_kwargs: Additional httpx.AsyncClient parameters
+    """
 
     def __init__(
         self,
@@ -338,7 +537,7 @@ class HTTPClientManager:
             timeout = Timeout(self.timeout)
             client_kwargs = self.client_kwargs.copy()
             if self.base_url is not None:
-                client_kwargs['base_url'] = self.base_url
+                client_kwargs["base_url"] = self.base_url
             self._client = AsyncClient(timeout=timeout, **client_kwargs)
 
     async def close(self):

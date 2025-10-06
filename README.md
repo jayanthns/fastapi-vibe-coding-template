@@ -314,6 +314,27 @@ make migrate-history
 
 # Show current migration status
 make migrate-current
+```
+
+#### **Template Customization**
+
+This template includes a single migration file with all database tables. Customize it based on your needs:
+
+**📁 Migration File:** `alembic/versions/42ab7b48e86b_initial_database_schema_with_all_tables.py`
+
+**🎯 Available Tables:**
+- **Users Table** - Authentication and user management
+- **Articles Table** - Content management system
+- **Sensitive Fields Table** - Data protection and privacy
+
+**✂️ Customization Options:**
+
+1. **Authentication Only** - Remove Articles and Sensitive Fields sections
+2. **Content Management** - Remove Sensitive Fields section
+3. **Data Protection** - Remove Articles section
+4. **Full Setup** - Keep all sections
+
+**📖 Detailed Instructions:** See [Migrations Documentation](docs/MIGRATIONS.md) for step-by-step customization guide.
 
 # Show latest migration details
 make migrate-show
