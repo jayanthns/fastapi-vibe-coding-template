@@ -4,7 +4,7 @@
 
 This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Alembic, comprehensive user management, JWT authentication, Redis caching, and PII data masking. Features include UUID primary keys, secure password handling, industry-standard caching with automatic fallback, and extensive logging with request tracing.
 
-> **📝 Template Options**: This repository includes demo features (articles CRUD and background jobs) that can be removed if you want a completely clean template. See [Template Cleanup](docs/TEMPLATE_CLEANUP.md) for instructions to remove all demo code and start fresh.
+> **📝 Template Options**: This repository includes demo features (articles CRUD) that can be removed if you want a completely clean template. See [Template Cleanup](docs/TEMPLATE_CLEANUP.md) for instructions to remove all demo code and start fresh.
 
 ## Table of contents
 
@@ -108,12 +108,6 @@ This project is a production-ready FastAPI skeleton with SQLAlchemy (async), Ale
     - [Cache Health Checks](#cache-health-checks)
     - [Startup Behavior](#startup-behavior)
     - [Documentation](#documentation)
-  - [26) Background Jobs API (Template Feature)](#26-background-jobs-api-template-feature)
-    - [Background Jobs Features](#background-jobs-features)
-    - [Background Jobs API Endpoints](#background-jobs-api-endpoints)
-    - [Usage Example](#usage-example)
-    - [Testing](#testing)
-    - [Background Jobs Code Cleanup](#background-jobs-code-cleanup)
   - [27) Notification System](#27-notification-system)
     - [📧 OOP-Based Email & SMS Notifications](#-oop-based-email--sms-notifications)
     - [Key Features](#key-features-4)
@@ -438,10 +432,6 @@ src/                    # Main application directory
 │   │   ├── service.py     # SensitiveField business logic
 │   │   ├── cache_service.py # Caching service
 │   │   └── router.py      # SensitiveField API routes
-│   ├── background_jobs/ # Background jobs domain
-│   │   ├── __init__.py
-│   │   ├── service.py     # Background job logic
-│   │   └── router.py      # Background job API routes
 │   └── pings/          # Health checks domain
 │       ├── __init__.py
 │       ├── cache_router.py # Cache health checks
@@ -1470,71 +1460,10 @@ For comprehensive caching usage examples, fallback patterns, monitoring, and adv
 
 **[📚 Redis Caching Guide](docs/REDIS_CACHING.md)**
 
-## 26) Background Jobs API (Template Feature)
+## 26) Notification System
 
-The project includes a complete background jobs system with status tracking and caching.
 
-> **📝 Template Note**: This is a demo/template feature. If you don't need background job functionality, see [Background Jobs Code Cleanup](#background-jobs-code-cleanup) section below for instructions on how to remove it.
-
-### Background Jobs Features
-
-- ✅ Asynchronous job processing
-- ✅ Status tracking with in-memory caching
-- ✅ Trace ID integration
-- ✅ RESTful API endpoints
-- ✅ Comprehensive testing
-
-### Background Jobs API Endpoints
-
-- `POST /api/v1/jobs/process-article` - Create article processing job
-- `POST /api/v1/jobs/send-email` - Create email sending job
-- `POST /api/v1/jobs/generate-report` - Create report generation job
-- `GET /api/v1/jobs/{job_id}/status` - Get job status
-- `DELETE /api/v1/jobs/{job_id}` - Cancel job
-- `GET /api/v1/jobs` - List all jobs
-- `GET /api/v1/jobs/all` - List all jobs (dedicated endpoint)
-
-### Usage Example
-
-```bash
-# Create a background job
-curl -X POST "<http://localhost:8000/api/v1/jobs/process-article?article_id=123&processing_time=5>"
-
-# Check job status
-curl "<http://localhost:8000/api/v1/jobs/{job_id}/status>"
-
-# List all jobs
-curl "<http://localhost:8000/api/v1/jobs>"
-```
-
-### Testing
-
-```bash
-# Run background job tests
-make test-background
-
-# Run all tests
-make test
-```
-
-For complete documentation, see [docs/BACKGROUND_JOBS_API.md](docs/BACKGROUND_JOBS_API.md).
-
-### Background Jobs Code Cleanup
-
-If you don't need the background jobs functionality, you can remove it completely. See [docs/BACKGROUND_JOBS_CLEANUP.md](docs/BACKGROUND_JOBS_CLEANUP.md) for detailed step-by-step instructions.
-
-**Quick cleanup summary:**
-
-1. Remove `app/api/v1/background_jobs.py`
-2. Remove `app/services/background_job_service.py` and `app/core/background_tasks.py`
-3. Update `app/api/urls.py` and `app/main.py`
-4. Remove `tests/test_background_jobs.py`
-5. Remove `docs/BACKGROUND_JOBS_API.md`
-
-After cleanup, you'll still have a fully functional FastAPI application with articles CRUD, database integration, logging, and all core features.
-
-## 27) Notification System
-
+## 26) Notification System
 ### 📧 OOP-Based Email & SMS Notifications
 
 The application includes a comprehensive notification system built with object-oriented programming principles, supporting email notifications with a foundation for SMS and other notification types.
@@ -2087,8 +2016,6 @@ For comprehensive documentation, examples, timezone handling, business day calcu
 - **[Notification System](docs/NOTIFICATIONS.md)** - OOP-based email & SMS notification system with templates
 - **[File Utilities](docs/FILE_UTILS.md)** - Comprehensive file operations for text, JSON, CSV with security
 - **[Date/Time Utilities](docs/DATETIME_UTILS.md)** - Date and time operations with timezone support
-- **[Background Jobs API](docs/BACKGROUND_JOBS_API.md)** - Complete background jobs system documentation
-- **[Background Jobs Cleanup](docs/BACKGROUND_JOBS_CLEANUP.md)** - How to remove background jobs feature
 - **[Template Cleanup](docs/TEMPLATE_CLEANUP.md)** - Complete cleanup guide to remove all demo code
 - **[Testing Guide](docs/TESTING.md)** - Comprehensive testing setup and best practices
 

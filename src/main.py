@@ -5,7 +5,6 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.urls import api_router
-from src.core.background_tasks import background_task_manager
 from src.core.cache import cache
 from src.core.config import settings
 from src.core.logging import setup_logging
@@ -18,8 +17,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Setup logging configuration
     setup_logging()
 
-    # Start background task manager
-    await background_task_manager.start()
 
     # Initialize cache service with fallback support
     try:
@@ -46,7 +43,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # Cleanup
-    await background_task_manager.stop()
     if cache.is_redis:
         await cache.close_async_client()
 

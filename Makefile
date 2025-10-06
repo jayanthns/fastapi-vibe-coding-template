@@ -173,7 +173,6 @@ test_utils:
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "utils" --cov=src --cov-report=term-missing --cov-report=html
 
 test_last:
-	@echo "Running background job tests last..."
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "last" --cov=src --cov-report=term-missing --cov-report=html
 
 test-unit:
@@ -211,9 +210,6 @@ test-api:
 	@echo "Running API tests only..."
 	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "api"
 
-test-background:
-	@echo "Running background job tests only..."
-	@$(VENV_ACTIVATE) && PYTHONPATH=. pytest -m "background"
 
 test-watch:
 	@echo "Running tests in watch mode..."
@@ -246,11 +242,9 @@ help:
 	@echo "  pytest_slow                   - Run slow tests with coverage + HTML report"
 	@echo "  test_pings                    - Run ping tests first (database and cache)"
 	@echo "  test_utils                    - Run utility tests (middle)"
-	@echo "  test_last                     - Run background job tests last"
 	@echo "  test-unit                     - Run unit tests only"
 	@echo "  test-integration              - Run integration tests only"
 	@echo "  test-api                      - Run API tests only"
-	@echo "  test-background               - Run background job tests only"
 	@echo "  test-watch                    - Run tests in watch mode"
 	@echo "  test-db-setup                 - Setup test database"
 	@echo "  test-db-drop                  - Drop test database"
