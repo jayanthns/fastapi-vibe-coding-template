@@ -4,14 +4,10 @@ Tests for DateTime Utilities
 Comprehensive test suite for date/time utility functions.
 """
 
-from datetime import date, datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch
-from zoneinfo import ZoneInfo
+from datetime import date, datetime, timezone
+from unittest.mock import patch
 
 import pytest
-
-# Mark all tests in this module as utility tests (run middle)
-# Test order is managed centrally in conftest.py
 
 from src.utils.datetime_utils import (
     DateTimeUtils,
@@ -26,6 +22,9 @@ from src.utils.datetime_utils import (
     parse_datetime,
     today,
 )
+
+# Mark all tests in this module as utility tests (run middle)
+# Test order is managed centrally in conftest.py
 
 
 class TestDateTimeUtils:

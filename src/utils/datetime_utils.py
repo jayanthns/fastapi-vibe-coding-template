@@ -8,15 +8,12 @@ Author: FastAPI Vibe Coding
 Created: 2024
 """
 
-import logging
-import re
-from datetime import date, datetime, time, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import date, datetime, timedelta, timezone
+from typing import Dict, List, Optional, Union
 from zoneinfo import ZoneInfo
 
-import pytz
-from dateutil import parser, relativedelta
-from dateutil.tz import gettz
+import pytz  # type: ignore
+from dateutil import parser, relativedelta  # type: ignore
 
 from src.core.logging import get_logger_for_trace_id
 
@@ -48,7 +45,7 @@ class DateTimeUtils:
             trace_id: Optional trace ID for logging
         """
         self.trace_id = trace_id or "datetime-utils"
-        self.logger = get_logger_for_trace_id(trace_id, "src.datetime_utils")
+        self.logger = get_logger_for_trace_id(self.trace_id, "src.datetime_utils")
 
         # Common timezone mappings
         self.timezone_mappings = {
@@ -84,7 +81,7 @@ class DateTimeUtils:
 
             # Try zoneinfo first (Python 3.9+)
             try:
-                return ZoneInfo(tz_name)
+                return ZoneInfo(tz_name)  # type: ignore
             except Exception:
                 # Fallback to pytz
                 return pytz.timezone(tz_name)
@@ -175,7 +172,7 @@ class DateTimeUtils:
         try:
             if tz:
                 dt = self.convert_timezone(
-                    dt, dt.tzinfo.zone if dt.tzinfo else "UTC", tz
+                    dt, dt.tzinfo.zone if dt.tzinfo else "UTC", tz  # type: ignore
                 )
 
             return dt.strftime(format_str)
