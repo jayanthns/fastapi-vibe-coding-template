@@ -5,42 +5,41 @@ This model allows dynamic configuration of which fields should be masked
 and how they should be matched (exact match vs regex pattern).
 """
 
-import uuid
+from sqlalchemy import Boolean, String, Text
+from sqlalchemy.orm import Mapped, mapped_column
 
-from sqlalchemy import Boolean, Column, DateTime, String, Text
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-
-from src.db.session import Base
+from src.apps.base_models import BaseModel
 
 
-class SensitiveField(Base):
-    """Model for configuring sensitive field patterns for data masking."""
+class SensitiveField(BaseModel):
+    """
+    Model for configuring sensitive field patterns for data masking.
 
-    __tablename__ = "sensitive_fields"
+    Extends BaseModel to inherit:
+    - UUID primary key (id)
+    - Created and updated timestamps (created_at, updated_at)
+    - Automatic table naming (sensitive_fields)
+    - Common utility methods
+    """
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    field_name = Column(
+    # Field configuration
+    field_name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
         index=True,
         comment="Field name or pattern to match",
     )
-    is_exact_match = Column(
-        Boolean, default=True, comment="True for exact match, False for regex pattern"
+    is_exact_match: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        nullable=False,
+        comment="True for exact match, False for regex pattern",
     )
-    is_active = Column(Boolean, default=True, comment="Whether this pattern is active")
-    description = Column(Text, comment="Description of what this field contains")
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        comment="When this pattern was created",
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False, comment="Whether this pattern is active"
     )
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        comment="When this pattern was last updated",
+    description: Mapped[str | None] = mapped_column(
+        Text, nullable=True, comment="Description of what this field contains"
     )
 
     def __repr__(self):

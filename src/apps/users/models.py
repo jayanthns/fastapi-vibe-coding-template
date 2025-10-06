@@ -1,44 +1,76 @@
 """
-User model with industry-standard fields and UUID primary key.
+User model with industry-standard fields and comprehensive user management.
 """
 
 import uuid
+from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
+from sqlalchemy import Boolean, DateTime, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
 
-from src.db.session import Base
+from src.apps.base_models import BaseModel
 
 
-class User(Base):
-    """User model with comprehensive fields for user management."""
+class User(BaseModel):
+    """
+    User model with comprehensive fields for user management.
 
-    __tablename__ = "users"
+    Extends BaseModel to inherit:
+    - UUID primary key (id)
+    - Created and updated timestamps (created_at, updated_at)
+    - Automatic table naming (users)
+    - Common utility methods
+    """
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    email = Column(String(255), nullable=False, unique=True, index=True)
-    username = Column(String(50), nullable=False, unique=True, index=True)
-    _password_hash = Column("password_hash", String(255), nullable=False)
-    first_name = Column(String(100), nullable=False)
-    last_name = Column(String(100), nullable=False)
-    age = Column(Integer, nullable=True)
-    is_active = Column(Boolean, default=True, nullable=False)
-    is_verified = Column(Boolean, default=False, nullable=False)
-    is_superuser = Column(Boolean, default=False, nullable=False)
-    last_login = Column(DateTime(timezone=True), nullable=True)
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
+    # User authentication fields
+    email: Mapped[str] = mapped_column(
+        String(255),
         nullable=False,
-        comment="When this user was created",
+        unique=True,
+        index=True,
+        comment="User's email address",
     )
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
+    username: Mapped[str] = mapped_column(
+        String(50), nullable=False, unique=True, index=True, comment="Unique username"
+    )
+    _password_hash: Mapped[str] = mapped_column(
+        "password_hash", String(255), nullable=False, comment="Hashed password"
+    )
+
+    # User profile fields
+    first_name: Mapped[str] = mapped_column(
+        String(100), nullable=False, comment="User's first name"
+    )
+    last_name: Mapped[str] = mapped_column(
+        String(100), nullable=False, comment="User's last name"
+    )
+    age: Mapped[int | None] = mapped_column(
+        Integer, nullable=True, comment="User's age"
+    )
+
+    # User status fields
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
         nullable=False,
-        comment="When this user was last updated",
+        comment="Whether the user account is active",
+    )
+    is_verified: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        comment="Whether the user's email is verified",
+    )
+    is_superuser: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        comment="Whether the user has superuser privileges",
+    )
+
+    # Activity tracking
+    last_login: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, comment="When the user last logged in"
     )
 
     def __repr__(self):

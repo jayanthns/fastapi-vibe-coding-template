@@ -1,24 +1,35 @@
-import uuid
-from datetime import datetime
+"""
+Article model for blog posts and content management.
+"""
 
 from sqlalchemy import String, Text
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.db.session import Base
+from src.apps.base_models import BaseModel
 
 
-class Article(Base):
-    __tablename__ = "articles"
+class Article(BaseModel):
+    """
+    Article model for blog posts and content management.
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True
+    Extends BaseModel to inherit:
+    - UUID primary key (id)
+    - Created and updated timestamps (created_at, updated_at)
+    - Automatic table naming (articles)
+    - Common utility methods
+    """
+
+    # Article-specific fields
+    title: Mapped[str] = mapped_column(
+        String(255), nullable=False, index=True, comment="Title of the article"
     )
-    title: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow, nullable=False
+    content: Mapped[str] = mapped_column(
+        Text, nullable=False, comment="Main content of the article"
     )
-    updated_at: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+
+    def __repr__(self) -> str:
+        """Generate a string representation of the article."""
+        return (
+            f"<Article(id={self.id}, title='{self.title[:50]}...', "
+            f"created_at={self.created_at})>"
+        )

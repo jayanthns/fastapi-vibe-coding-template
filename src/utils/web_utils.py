@@ -336,9 +336,10 @@ class HTTPClientManager:
         """Ensure HTTP client is initialized."""
         if self._client is None:
             timeout = Timeout(self.timeout)
-            self._client = AsyncClient(
-                base_url=self.base_url, timeout=timeout, **self.client_kwargs
-            )
+            client_kwargs = self.client_kwargs.copy()
+            if self.base_url is not None:
+                client_kwargs['base_url'] = self.base_url
+            self._client = AsyncClient(timeout=timeout, **client_kwargs)
 
     async def close(self):
         """Close the HTTP client."""
@@ -454,9 +455,11 @@ class ConnectionPool:
                     keepalive_expiry=self.keepalive_expiry,
                 )
 
-                self._pools[base_url] = HTTPClientManager(
+                client = HTTPClientManager(
                     base_url=base_url, limits=limits, **client_kwargs
                 )
+                await client._ensure_client()
+                self._pools[base_url] = client
 
             return self._pools[base_url]
 
