@@ -383,14 +383,20 @@ python scripts/load_sensitive_fields.py data/user_sensitive_fields.json
 # Activate virtual environment
 source venv/bin/activate
 
-# Start the FastAPI server
+# Start the FastAPI server in development mode (with auto-reload)
 make run
+# OR
+make run-dev
+
+# For production-like setup (gunicorn + uvicorn workers)
+make run-prod
 
 # Or manually:
-./deploy/uvicorn_start.sh
+# Development mode:
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 
-# Or using uvicorn directly:
-uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+# Production mode:
+./deploy/uvicorn_start.sh
 ```
 
 The application will be available at:
@@ -440,7 +446,7 @@ make migrate
 python scripts/load_sensitive_fields.py data/sensitive_fields.json
 
 # 8. Start the application
-make run
+make run  # Development mode with auto-reload
 ```
 
 ### Daily Development Workflow
@@ -456,7 +462,7 @@ make d-db-and-redis
 make migrate
 
 # 4. Start the application
-make run
+make run  # Development mode with auto-reload
 
 # 5. Run tests
 make test
@@ -488,9 +494,9 @@ make test-integration # Integration tests only
 make test-api         # API tests only
 
 # Run tests in order
-make test_pings       # Ping tests first
-make test_utils       # Utility tests
-make test_last        # Background job tests
+make test-pings       # Ping tests first
+make test-utils       # Utility tests
+make test-last        # Background job tests
 ```
 
 ### Test Database Setup
@@ -521,7 +527,7 @@ TEST_REDIS_URL=redis://localhost:6379/1
 ### Virtual Environment
 
 ```bash
-make venv_init              # Create virtual environment
+make venv-init              # Create virtual environment
 make uv-venv-init          # Create virtual environment with uv
 ```
 
@@ -572,9 +578,11 @@ make migrate-downgrade     # Downgrade one migration
 ### Development
 
 ```bash
+make run                   # Start FastAPI server in development mode (uvicorn with reload)
+make run-dev               # Start FastAPI server in development mode (uvicorn with reload)
+make run-prod              # Start FastAPI server in production mode (gunicorn + uvicorn workers)
 make dev-setup             # Complete development setup
 make dev-reset             # Reset development database
-make run                   # Start the application
 ```
 
 ### Testing
@@ -586,11 +594,11 @@ make test-fast             # Run fast tests only
 make test-unit             # Run unit tests only
 make test-integration      # Run integration tests only
 make test-api              # Run API tests only
-make pytest_all            # Run all tests with HTML report
-make pytest_fast           # Run fast tests with HTML report
-make test_pings            # Run ping tests first
-make test_utils            # Run utility tests
-make test_last             # Run background job tests
+make pytest-all            # Run all tests with HTML report
+make pytest-fast           # Run fast tests with HTML report
+make test-pings            # Run ping tests first
+make test-utils            # Run utility tests
+make test-last             # Run background job tests
 ```
 
 ## Troubleshooting

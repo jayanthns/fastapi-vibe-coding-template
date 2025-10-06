@@ -168,12 +168,12 @@ python tests/test_config.py
 
 ```bash
 # Run tests in the specified order
-make test_pings    # Quick health checks first
-make test_utils    # Core utilities second
-make test_last     # Background jobs last
+make test-pings    # Quick health checks first
+make test-utils    # Core utilities second
+make test-last     # Background jobs last
 
 # Or run all tests with the new ordering
-make pytest_all    # All tests with coverage
+make pytest-all    # All tests with coverage
 ```
 
 ### Visual Module Labels
@@ -236,14 +236,14 @@ make test-api
 make test-background
 
 # Run tests in logical order
-make test_pings    # Ping tests first (health checks)
-make test_utils    # Utility tests second (core functions)
-make test_last     # Background job tests last (complex operations)
+make test-pings    # Ping tests first (health checks)
+make test-utils    # Utility tests second (core functions)
+make test-last     # Background job tests last (complex operations)
 
 # Run tests with coverage and HTML reports
-make pytest_all    # All tests with coverage + HTML report
-make pytest_fast   # Fast tests only (excludes slow tests)
-make pytest_slow   # Slow tests only
+make pytest-all    # All tests with coverage + HTML report
+make pytest-fast   # Fast tests only (excludes slow tests)
+make pytest-slow   # Slow tests only
 
 # Run tests in watch mode (requires pytest-watch)
 make test-watch
@@ -461,7 +461,7 @@ The `pytest.ini` file provides an alternative configuration format, though `pypr
 - **Progressive Complexity**: Place utility tests in the middle, background jobs last
 - **Easy Modification**: Change order by updating the configuration dictionary
 - **Validation**: Use `python tests/test_config.py` to validate configuration
-- **Order-Specific Commands**: Use `make test_pings`, `make test_utils`, `make test_last`
+- **Order-Specific Commands**: Use `make test-pings`, `make test-utils`, `make test-last`
 
 ## Continuous Integration
 
@@ -478,12 +478,12 @@ pytest --cov=src --cov-report=xml --cov-fail-under=80
 pytest -m "not slow"
 
 # Run tests in logical order for better feedback (centralized ordering)
-make test_pings    # Health checks first (Order 1)
-make test_utils    # Core utilities second (Order 2)
-make test_last     # Background jobs last (Order 4, if time permits)
+make test-pings    # Health checks first (Order 1)
+make test-utils    # Core utilities second (Order 2)
+make test-last     # Background jobs last (Order 4, if time permits)
 
 # Or run all tests with automatic ordering
-make pytest_all    # All tests with centralized order management
+make pytest-all    # All tests with centralized order management
 ```
 
 ## Troubleshooting
