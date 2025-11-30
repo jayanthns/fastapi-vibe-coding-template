@@ -13,10 +13,12 @@ from alembic import context
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-# Import models from apps to ensure they are registered with SQLAlchemy
-from src.apps.users import models as users_models  # noqa: E402, F401
 from src.apps.animals import models as animals_models  # noqa: E402, F401
 from src.apps.audit import models as audit_models  # noqa: E402, F401
+from src.apps.background_jobs import \
+    models as background_jobs_models  # noqa: E402, F401
+# Import models from apps to ensure they are registered with SQLAlchemy
+from src.apps.users import models as users_models  # noqa: E402, F401
 from src.core.config import settings  # noqa: E402
 from src.db.session import Base  # noqa: E402
 

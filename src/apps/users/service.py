@@ -8,14 +8,9 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.users.repository import UserRepository
-from src.apps.users.schemas import (
-    Token,
-    UserCreate,
-    UserLogin,
-    UserPasswordChange,
-    UserResponse,
-    UserUpdate,
-)
+from src.apps.users.schemas import (Token, UserCreate, UserLogin,
+                                    UserPasswordChange, UserResponse,
+                                    UserUpdate)
 from src.utils.security import create_access_token, create_refresh_token
 
 

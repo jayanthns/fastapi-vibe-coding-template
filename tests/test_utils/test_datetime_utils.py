@@ -10,22 +10,16 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
+from src.utils.datetime_utils import (DateTimeUtils, DateTimeUtilsError,
+                                      convert_timezone, format_datetime,
+                                      from_timestamp,
+                                      get_business_days_between,
+                                      get_duration_between, get_timestamp, now,
+                                      parse_datetime, today)
+
 # Mark all tests in this module as utility tests (run middle)
 # Test order is managed centrally in conftest.py
 
-from src.utils.datetime_utils import (
-    DateTimeUtils,
-    DateTimeUtilsError,
-    convert_timezone,
-    format_datetime,
-    from_timestamp,
-    get_business_days_between,
-    get_duration_between,
-    get_timestamp,
-    now,
-    parse_datetime,
-    today,
-)
 
 
 class TestDateTimeUtils:

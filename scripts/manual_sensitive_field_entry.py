@@ -10,9 +10,9 @@ from pathlib import Path
 # Add the parent directory to the path so we can import from app
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.db.session import get_db
 from src.apps.sensitive_fields.repository import SensitiveFieldRepository
 from src.apps.sensitive_fields.schemas import SensitiveFieldCreate
+from src.db.session import get_db
 
 
 async def add_sensitive_field_interactive():

@@ -98,7 +98,9 @@ markers = [
     "background: marks tests as background job tests",
     "pings: marks tests as ping/health check tests (run first)",
     "utils: marks tests as utility tests (run middle)",
+    "utils: marks tests as utility tests (run middle)",
     "last: marks tests to run last (background jobs)",
+    "order: marks tests for ordering",
 ]
 
 # Async test configuration

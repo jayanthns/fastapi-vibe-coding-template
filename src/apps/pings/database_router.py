@@ -12,8 +12,8 @@ from sqlalchemy import inspect, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.core.logging import get_logger
-from src.db.session import get_db
 from src.core.schemas import APIResponse
+from src.db.session import get_db
 from src.utils.security import secure_response
 
 router = APIRouter()

@@ -24,6 +24,7 @@ class TestDatabasePingEndpoints:
     async def async_client(self, async_session):
         """Create async HTTP client for testing."""
         from httpx import ASGITransport
+
         from src.db.session import get_db, get_db_with_trace_id
 
         async def get_session_override():

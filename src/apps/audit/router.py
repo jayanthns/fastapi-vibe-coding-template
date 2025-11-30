@@ -8,14 +8,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.apps.audit.repository import AuditLogRepository
+from src.apps.audit.schemas import AuditLog, AuditLogCreate, AuditLogFilter
+from src.apps.audit.service import AuditService
 from src.core.logging import get_logger
 from src.core.pagination import PageParams, PaginatedResponse
 from src.core.schemas import APIResponse
 from src.db.session import get_db_with_trace_id
 from src.middleware.trace import get_trace_id
-from src.apps.audit.repository import AuditLogRepository
-from src.apps.audit.schemas import AuditLog, AuditLogCreate, AuditLogFilter
-from src.apps.audit.service import AuditService
 
 router = APIRouter()
 

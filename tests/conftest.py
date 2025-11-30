@@ -8,7 +8,8 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
+                                    create_async_engine)
 from sqlalchemy.pool import StaticPool
 
 # Import all models to ensure they are registered with SQLAlchemy
@@ -111,6 +112,45 @@ def client_fixture(async_session: AsyncSession):
     app.dependency_overrides[get_db] = get_session_override
     client = TestClient(app)
     yield client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def configure_dramatiq_broker():
+    """Configure Dramatiq broker for tests."""
+    import dramatiq
+    from dramatiq.brokers.redis import RedisBroker
+
+    from src.apps.background_jobs.middleware import JobTrackingMiddleware
+    from src.core.config import settings
+
+    # Reconfigure broker with current settings (picks up env vars)
+    redis_broker = RedisBroker(url=settings.redis_url)
+    redis_broker.add_middleware(JobTrackingMiddleware())
+    dramatiq.set_broker(redis_broker)
+
+    # Import tasks to register them with the new broker
+    import src.apps.background_jobs.tasks  # noqa: F401
+
+    yield
+
+
+@pytest.fixture(name="async_client")
+async def async_client_fixture(async_session: AsyncSession):
+    """Create an async test client with database dependency override."""
+    from httpx import ASGITransport, AsyncClient
+
+    async def get_session_override():
+        return async_session
+
+    app.dependency_overrides[get_db_with_trace_id] = get_session_override
+    app.dependency_overrides[get_db] = get_session_override
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        yield client
+
     app.dependency_overrides.clear()
 
 

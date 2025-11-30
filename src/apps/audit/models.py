@@ -4,7 +4,7 @@ Audit Log database models.
 
 from typing import Optional
 
-from sqlalchemy import Index, JSON, String, Text
+from sqlalchemy import JSON, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.core.models import UUIDModel

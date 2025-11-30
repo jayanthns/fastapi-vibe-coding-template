@@ -8,14 +8,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.apps.animals.repository import AnimalRepository
+from src.apps.animals.schemas import Animal, AnimalCreate, AnimalUpdate
+from src.apps.animals.service import AnimalService
 from src.core.logging import get_logger
 from src.core.pagination import PageParams, PaginatedResponse
 from src.core.schemas import APIResponse
 from src.db.session import get_db_with_trace_id
 from src.middleware.trace import get_trace_id
-from src.apps.animals.repository import AnimalRepository
-from src.apps.animals.schemas import Animal, AnimalCreate, AnimalUpdate
-from src.apps.animals.service import AnimalService
 
 router = APIRouter()
 

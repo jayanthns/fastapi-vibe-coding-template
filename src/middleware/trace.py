@@ -7,7 +7,8 @@ import time
 from uuid import uuid4
 
 from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.middleware.base import (BaseHTTPMiddleware,
+                                       RequestResponseEndpoint)
 
 from src.core.logging import RequestLogger, log_error, log_request_access
 

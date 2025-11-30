@@ -5,9 +5,9 @@ based on the USE_REDIS configuration flag.
 
 from typing import Any, Optional
 
-from src.core.config import settings
 from src.core.cache.memory_cache import memory_cache_service
 from src.core.cache.redis_cache import redis_cache_service
+from src.core.config import settings
 
 
 class UnifiedCacheService:

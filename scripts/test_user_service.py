@@ -10,10 +10,10 @@ from pathlib import Path
 # Add the parent directory to the path so we can import from app
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.db.session import get_db
 from src.apps.users.repository import UserRepository
 from src.apps.users.schemas import UserCreate
 from src.apps.users.service import UserService
+from src.db.session import get_db
 from src.utils.security import get_password_hash, verify_password
 
 

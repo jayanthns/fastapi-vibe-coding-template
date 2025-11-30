@@ -15,10 +15,13 @@ Main Components:
 
 from src.core.cache.base_cache import BaseCacheService
 from src.core.cache.cache import CacheManager, cached, cached_sync
-from src.core.cache.fallback_cache import FallbackCacheService, fallback_cache_service
-from src.core.cache.memory_cache import MemoryCacheService, memory_cache_service
+from src.core.cache.fallback_cache import (FallbackCacheService,
+                                           fallback_cache_service)
+from src.core.cache.memory_cache import (MemoryCacheService,
+                                         memory_cache_service)
 from src.core.cache.redis_cache import RedisCacheService, redis_cache_service
-from src.core.cache.unified_cache import UnifiedCacheService, unified_cache_service
+from src.core.cache.unified_cache import (UnifiedCacheService,
+                                          unified_cache_service)
 
 # Main cache interface - industry standard fallback pattern
 cache = fallback_cache_service

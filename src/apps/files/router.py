@@ -5,11 +5,11 @@ FastAPI router for Files API endpoints.
 from fastapi import APIRouter, File, Request, UploadFile
 from fastapi.responses import PlainTextResponse, StreamingResponse
 
+from src.apps.files.schemas import FileSuccessSchema, LinearDataResponseSchema
+from src.apps.files.service import FileService
 from src.core.logging import get_logger
 from src.core.schemas import APIResponse
 from src.middleware.trace import get_trace_id
-from src.apps.files.schemas import FileSuccessSchema, LinearDataResponseSchema
-from src.apps.files.service import FileService
 
 router = APIRouter()
 

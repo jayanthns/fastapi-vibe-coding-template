@@ -9,19 +9,14 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+from src.utils.notifications import (BaseNotification, EmailNotification,
+                                     NotificationRecipient, NotificationStatus,
+                                     NotificationType, SMSNotification,
+                                     create_notification, send_email)
+
 # Mark all tests in this module as utility tests (run middle)
 # Test order is managed centrally in conftest.py
 
-from src.utils.notifications import (
-    BaseNotification,
-    EmailNotification,
-    NotificationRecipient,
-    NotificationStatus,
-    NotificationType,
-    SMSNotification,
-    create_notification,
-    send_email,
-)
 
 
 class TestNotificationRecipient:

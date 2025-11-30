@@ -1,9 +1,10 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from src.apps.audit.service import AuditService
+import pytest
+
 from src.apps.audit.repository import AuditLogRepository
 from src.apps.audit.schemas import AuditLogCreate
+from src.apps.audit.service import AuditService
 from src.core.enums import AuditAction
 
 

@@ -6,19 +6,16 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.urls import api_router
-
 # from src.core.background_tasks import background_task_manager
 from src.core.cache import cache
 from src.core.config import settings
-from src.core.exceptions import (
-    general_exception_handler,
-    http_exception_handler,
-    validation_exception_handler,
-)
+from src.core.exceptions import (general_exception_handler,
+                                 http_exception_handler,
+                                 validation_exception_handler)
 from src.core.logging import setup_logging
 from src.db.session import engine
 from src.middleware.trace import TraceIDMiddleware
+from src.urls import api_router
 
 
 @asynccontextmanager

@@ -1,7 +1,8 @@
 import json
+from io import BytesIO
+
 import pytest
 from fastapi import HTTPException, UploadFile
-from io import BytesIO
 
 from src.apps.files.service import FileService
 

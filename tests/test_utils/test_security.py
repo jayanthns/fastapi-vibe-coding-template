@@ -7,25 +7,16 @@ and response helpers.
 
 import pytest
 
+from src.utils.security import (_is_ip_address, _is_sensitive_field,
+                                _mask_domain, _mask_email, _mask_host,
+                                _mask_ip_address, _mask_string, _mask_url,
+                                create_masked_response, mask_credentials,
+                                mask_sensitive_data, mask_urls,
+                                public_response, secure_response)
+
 # Mark all tests in this module as utility tests (run middle)
 # Test order is managed centrally in conftest.py
 
-from src.utils.security import (
-    _is_ip_address,
-    _is_sensitive_field,
-    _mask_domain,
-    _mask_email,
-    _mask_host,
-    _mask_ip_address,
-    _mask_string,
-    _mask_url,
-    create_masked_response,
-    mask_credentials,
-    mask_sensitive_data,
-    mask_urls,
-    public_response,
-    secure_response,
-)
 
 
 class TestMaskSensitiveData:

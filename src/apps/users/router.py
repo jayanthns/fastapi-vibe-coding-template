@@ -8,21 +8,15 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.apps.users.repository import UserRepository
+from src.apps.users.schemas import (UserCreate, UserLogin, UserPasswordChange,
+                                    UserProfile, UserResponse, UserUpdate)
+from src.apps.users.service import UserService
 from src.core.auth import get_current_active_user, get_current_superuser
 from src.core.logging import get_logger
 from src.core.pagination import PageParams, PaginatedResponse
 from src.core.schemas import APIResponse
 from src.db.session import get_db
-from src.apps.users.repository import UserRepository
-from src.apps.users.schemas import (
-    UserCreate,
-    UserLogin,
-    UserPasswordChange,
-    UserProfile,
-    UserResponse,
-    UserUpdate,
-)
-from src.apps.users.service import UserService
 
 router = APIRouter()
 

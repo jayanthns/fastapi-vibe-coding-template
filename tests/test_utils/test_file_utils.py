@@ -12,21 +12,13 @@ from unittest.mock import patch
 
 import pytest
 
+from src.utils.file_utils import (FileUtils, FileUtilsError, file_exists,
+                                  get_file_info, read_csv, read_json,
+                                  read_text, write_csv, write_json, write_text)
+
 # Mark all tests in this module as utility tests (run middle)
 # Test order is managed centrally in conftest.py
 
-from src.utils.file_utils import (
-    FileUtils,
-    FileUtilsError,
-    file_exists,
-    get_file_info,
-    read_csv,
-    read_json,
-    read_text,
-    write_csv,
-    write_json,
-    write_text,
-)
 
 
 class TestFileUtils:

@@ -6,7 +6,6 @@ This script creates a test database for running tests.
 """
 
 import asyncio
-
 # Test database configuration - read from environment
 import os
 import sys

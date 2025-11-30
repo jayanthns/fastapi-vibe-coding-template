@@ -5,8 +5,8 @@ Handles periodic cleanup of old jobs and system maintenance.
 
 import asyncio
 
-from src.core.logging import get_logger_for_trace_id
 from src.apps.background_jobs.service import background_job_service
+from src.core.logging import get_logger_for_trace_id
 
 
 class BackgroundTaskManager:

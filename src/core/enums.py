@@ -5,7 +5,14 @@ Common enums used across the application.
 from enum import Enum
 
 
-class AuditAction(str, Enum):
+class StrEnum(str, Enum):
+    """Base class for string enums."""
+
+    def __str__(self) -> str:
+        return self.value
+
+
+class AuditAction(StrEnum):
     """Audit action types for tracking user activities."""
 
     CREATE = "CREATE"
@@ -14,6 +21,3 @@ class AuditAction(str, Enum):
     LOGIN = "LOGIN"
     LOGOUT = "LOGOUT"
     OTHER = "OTHER"
-
-    def __str__(self) -> str:
-        return self.value
