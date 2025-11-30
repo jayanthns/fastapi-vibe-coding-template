@@ -1,6 +1,6 @@
-# Import models from Django-style apps
-from src.apps.articles.models import Article
+# Import models from apps
+from src.apps.animals.models import Animal
+from src.apps.audit.models import AuditLog
 from src.apps.users.models import User
-from src.apps.sensitive_fields.models import SensitiveField
 
-__all__ = ["Article", "User", "SensitiveField"]
+__all__ = ["Animal", "AuditLog", "User"]

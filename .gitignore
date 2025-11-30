@@ -129,3 +129,6 @@ alembic.ini.bak
 # DB related
 app.db
 app.db-journal
+
+# Mac related
+.DS_Store

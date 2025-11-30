@@ -13,7 +13,8 @@ import jwt
 from passlib.context import CryptContext  # type: ignore
 
 from src.core.config import settings
-from src.apps.sensitive_fields.cache_service import SensitiveFieldCacheService
+
+# from src.apps.sensitive_fields.cache_service import SensitiveFieldCacheService
 
 # Password hashing context - using pbkdf2_sha256 for better compatibility
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -24,13 +25,13 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
-async def get_sensitive_patterns() -> List[Dict[str, Any]]:
-    """Get sensitive field patterns from database cache."""
-    try:
-        return await SensitiveFieldCacheService.get_sensitive_patterns()
-    except Exception:
-        # If database access fails, return empty list to use fallback
-        return []
+# async def get_sensitive_patterns() -> List[Dict[str, Any]]:
+#     """Get sensitive field patterns from database cache."""
+#     try:
+#         return await SensitiveFieldCacheService.get_sensitive_patterns()
+#     except Exception:
+#         # If database access fails, return empty list to use fallback
+#         return []
 
 
 def mask_sensitive_data(

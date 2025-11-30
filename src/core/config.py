@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import ClassVar, Optional
 
 from pydantic import model_validator
@@ -44,6 +45,9 @@ class Settings(BaseSettings):
     redis_port: Optional[int] = None
     redis_db: Optional[int] = None
     redis_password: Optional[str] = None
+
+    # Paths
+    temp_dir: Path = Path("tmp")
 
     # Pydantic v2 uses model_config; legacy Config kept for reference was removed
 

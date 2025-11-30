@@ -28,11 +28,15 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
         # Generate unique trace_id for this request
         trace_id = str(uuid4())
 
-        # Store trace_id in request state (similar to Django's request.META)
+        # Get correlation_id from headers or generate new one if needed
+        correlation_id = request.headers.get("X-Correlation-ID")
+
+        # Store trace_id and correlation_id in request state
         request.state.trace_id = trace_id
+        request.state.correlation_id = correlation_id
 
         # Create and attach request-scoped logger
-        request_logger = RequestLogger(trace_id, "src.request")
+        request_logger = RequestLogger(trace_id, "src.request", correlation_id)
         request.state.logger = request_logger
 
         # Add request start time for performance tracking

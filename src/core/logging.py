@@ -18,7 +18,8 @@ class TraceIDFormatter(logging.Formatter):
     def __init__(self, fmt: Optional[str] = None, datefmt: Optional[str] = None):
         if fmt is None:
             fmt = (
-                "%(asctime)s | %(levelname)-8s | %(trace_id)s | %(name)s | %(message)s"
+                "%(asctime)s | %(levelname)-8s | %(trace_id)s | "
+                "%(correlation_id)s | %(name)s | %(message)s"
             )
         super().__init__(fmt, datefmt)
 
@@ -26,6 +27,8 @@ class TraceIDFormatter(logging.Formatter):
         # Ensure trace_id is present, default to 'no-trace-id' if not set
         if not hasattr(record, "trace_id"):
             record.trace_id = "no-trace-id"
+        if not hasattr(record, "correlation_id"):
+            record.correlation_id = "no-cid"
         return super().format(record)
 
 
@@ -35,12 +38,25 @@ class RequestLogger:
     Similar to Django's request-level logging pattern.
     """
 
-    def __init__(self, trace_id: str, logger_name: str = "app"):
+    def __init__(
+        self,
+        trace_id: str,
+        logger_name: str = "app",
+        correlation_id: Optional[str] = None,
+    ):
         self.trace_id = trace_id
+        self.correlation_id = correlation_id
         self.logger = logging.getLogger(logger_name)
 
-        # Create a custom adapter that adds trace_id to all log records
-        self._adapter = logging.LoggerAdapter(self.logger, {"trace_id": trace_id})
+        # Create a custom adapter that adds trace_id and correlation_id
+        # to all log records
+        self._adapter = logging.LoggerAdapter(
+            self.logger,
+            {
+                "trace_id": trace_id,
+                "correlation_id": correlation_id or "no-cid",
+            },
+        )
 
     def debug(self, msg: str, *args, **kwargs):
         self._adapter.debug(msg, *args, **kwargs)
@@ -102,11 +118,14 @@ class LoggingConfig:
         """Setup file-based logging with rotation."""
         # Create formatters
         detailed_formatter = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(trace_id)s | %(name)s | %(funcName)s:%(lineno)d | %(message)s"
+            "%(asctime)s | %(levelname)-8s | %(trace_id)s | "
+            "%(correlation_id)s | %(name)s | "
+            "%(funcName)s:%(lineno)d | %(message)s"
         )
 
         simple_formatter = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(trace_id)s | %(name)s | %(message)s"
+            "%(asctime)s | %(levelname)-8s | %(trace_id)s | "
+            "%(correlation_id)s | %(name)s | %(message)s"
         )
 
         # Setup app logger with rotation
@@ -211,6 +230,7 @@ def get_logger(request: Request) -> RequestLogger:
             logger.info("Processing request")
     """
     from src.middleware.trace import get_trace_id
+
     trace_id = get_trace_id(request)
     return RequestLogger(trace_id, "src.request")
 
@@ -229,7 +249,9 @@ def log_request_access(
         processing_time: Request processing time in seconds
     """
     request_logger = RequestLogger(trace_id, "src.access")
-    request_logger.info(f"ACCESS: {method} {path} - {status_code} - {processing_time:.4f}s")
+    request_logger.info(
+        f"ACCESS: {method} {path} - {status_code} - {processing_time:.4f}s"
+    )
 
 
 def log_error(

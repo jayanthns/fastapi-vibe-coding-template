@@ -12,10 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import StaticPool
 
 # Import all models to ensure they are registered with SQLAlchemy
-from src.apps.articles.models import Article  # noqa: F401
-from src.apps.sensitive_fields.models import SensitiveField  # noqa: F401
+from src.apps.animals.models import Animal  # noqa: F401
+from src.apps.audit.models import AuditLog  # noqa: F401
 from src.apps.users.models import User  # noqa: F401
-from src.db.session import Base, get_db_with_trace_id
+from src.db.session import Base, get_db, get_db_with_trace_id
 from src.main import app
 
 # ============================================================================
@@ -83,17 +83,17 @@ def event_loop():
 @pytest.fixture(name="async_session")
 async def async_session_fixture():
     """Create an async in-memory SQLite database for testing using SQLAlchemy Base."""
-    engine = create_async_engine(
+    test_engine = create_async_engine(
         "sqlite+aiosqlite://",
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
     # Create all tables using our SQLAlchemy Base
-    async with engine.begin() as conn:
+    async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
     async_session_maker = async_sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
+        bind=test_engine, class_=AsyncSession, expire_on_commit=False
     )
 
     async with async_session_maker() as session:
@@ -108,6 +108,7 @@ def client_fixture(async_session: AsyncSession):
         return async_session
 
     app.dependency_overrides[get_db_with_trace_id] = get_session_override
+    app.dependency_overrides[get_db] = get_session_override
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()

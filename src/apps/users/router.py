@@ -10,15 +10,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.auth import get_current_active_user, get_current_superuser
 from src.core.logging import get_logger
+from src.core.pagination import PageParams, PaginatedResponse
+from src.core.schemas import APIResponse
 from src.db.session import get_db
 from src.apps.users.repository import UserRepository
-from src.core.schemas import APIResponse
 from src.apps.users.schemas import (
     UserCreate,
-    UserList,
     UserLogin,
     UserPasswordChange,
     UserProfile,
+    UserResponse,
     UserUpdate,
 )
 from src.apps.users.service import UserService
@@ -63,9 +64,6 @@ async def register_user(
     except ValueError as e:
         logger.warning(f"Registration failed: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Registration error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/login", response_model=APIResponse[dict])
@@ -96,9 +94,6 @@ async def login_user(
     except ValueError as e:
         logger.warning(f"Login failed: {str(e)}")
         raise HTTPException(status_code=401, detail=str(e))
-    except Exception as e:
-        logger.error(f"Login error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/me", response_model=APIResponse[UserProfile])
@@ -175,17 +170,13 @@ async def change_password(
     except ValueError as e:
         logger.warning(f"Password change failed: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Password change error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # Admin endpoints
-@router.get("/", response_model=APIResponse[UserList])
+@router.get("/", response_model=APIResponse[PaginatedResponse[UserResponse]])
 async def list_users(
     request: Request,
-    skip: int = Query(0, ge=0, description="Number of users to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Number of users to return"),
+    params: PageParams = Depends(),
     search: Optional[str] = Query(None, description="Search term for users"),
     is_active: Optional[bool] = Query(None, description="Filter by active status"),
     current_user: dict = Depends(get_current_superuser),
@@ -196,23 +187,19 @@ async def list_users(
     logger.info(f"User list request by admin: {current_user['id']}")
 
     users, total = await service.get_users(
-        skip=skip, limit=limit, search=search, is_active=is_active
+        skip=params.skip, limit=params.limit, search=search, is_active=is_active
     )
 
-    pages = (total + limit - 1) // limit if limit > 0 else 0
-
-    user_list = UserList(
+    paginated_response = PaginatedResponse.create(
         items=users,
         total=total,
-        page=(skip // limit) + 1 if limit > 0 else 1,
-        size=limit,
-        pages=pages,
+        params=params,
     )
 
     logger.info(f"Returned {len(users)} users out of {total}")
 
     return APIResponse.create_with_trace_id(
-        data=user_list.model_dump(),
+        data=paginated_response,
         message=f"Retrieved {len(users)} users",
         trace_id=getattr(request.state, "trace_id", None),
     )

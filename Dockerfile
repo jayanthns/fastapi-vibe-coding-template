@@ -25,20 +25,16 @@ COPY . .
 # Ensure appuser has ownership of the application directory
 RUN chown -R appuser:appuser $APP_HOME
 
-# # Copy supervisord configuration
-# COPY deploy/supervisor_scripts/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-# COPY deploy/supervisor_scripts/celery_supervisord.conf /etc/supervisor/conf.d/celery_supervisord.conf
-# COPY deploy/supervisor_scripts/uvicorn_supervisord.conf /etc/supervisor/conf.d/uvicorn_supervisord.conf
-# COPY deploy/supervisor_scripts/dramatiq_supervisord.conf /etc/supervisor/conf.d/dramatiq_supervisord.conf
+# Copy supervisord configuration
+COPY deploy/supervisor_scripts/gunicorn_supervisord.conf /etc/supervisor/conf.d/gunicorn_supervisord.conf
 
-# # Change permissions for deploy folder scripts
-RUN sed -i 's/\r$//g' /app/deploy/*.sh
-RUN chmod +x /app/deploy/*.sh
-
+# Change permissions for deploy folder scripts
+RUN find /app/deploy -name "*.sh" -exec sed -i 's/\r$//g' {} +
+RUN find /app/deploy -name "*.sh" -exec chmod +x {} +
 
 # Ensure that supervisord runs as appuser and log directories are owned by appuser
-# RUN mkdir -p /var/log/supervisor \
-#     && chown -R appuser:appuser /var/log/supervisor
+RUN mkdir -p /var/log/supervisor \
+    && chown -R appuser:appuser /var/log/supervisor
 
 # RUN mkdir -p /app/tmp/logs \
 #     && chown -R appuser:appuser /app/tmp/logs \
@@ -51,4 +47,5 @@ USER appuser
 EXPOSE 8000
 
 # Run the application
-CMD ["/app/deploy/uvicorn_start.sh"]
+ENTRYPOINT ["/app/deploy/entrypoint_scripts/entrypoint.sh"]
+CMD ["/app/deploy/entrypoint_scripts/gunicorn_entrypoint.sh"]

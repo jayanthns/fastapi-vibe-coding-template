@@ -2,12 +2,20 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.urls import api_router
-from src.core.background_tasks import background_task_manager
+
+# from src.core.background_tasks import background_task_manager
 from src.core.cache import cache
 from src.core.config import settings
+from src.core.exceptions import (
+    general_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+)
 from src.core.logging import setup_logging
 from src.db.session import engine
 from src.middleware.trace import TraceIDMiddleware
@@ -19,22 +27,28 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     setup_logging()
 
     # Start background task manager
-    await background_task_manager.start()
+    # await background_task_manager.start()
 
     # Initialize cache service with fallback support
     try:
         ping_result = await cache.ping()
         cache_type = cache.service_type
-        is_fallback = getattr(cache, 'is_fallback_active', False)
+        is_fallback = getattr(cache, "is_fallback_active", False)
 
         if ping_result:
             if is_fallback:
-                print(f"✅ {cache_type.title()} cache (fallback) connection established successfully")
+                print(
+                    f"✅ {cache_type.title()} cache (fallback) connection established successfully"
+                )
                 print("   Redis unavailable, using memory cache fallback")
             else:
-                print(f"✅ {cache_type.title()} cache connection established successfully")
+                print(
+                    f"✅ {cache_type.title()} cache connection established successfully"
+                )
         else:
-            print("⚠️  Cache connection failed - both Redis and memory cache unavailable")
+            print(
+                "⚠️  Cache connection failed - both Redis and memory cache unavailable"
+            )
             print("   Cache features will be disabled")
     except Exception as e:
         print(f"⚠️  Cache connection failed: {e}")
@@ -46,12 +60,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # Cleanup
-    await background_task_manager.stop()
+    # await background_task_manager.stop()
     if cache.is_redis:
         await cache.close_async_client()
 
 
 app = FastAPI(title=settings.app_name, debug=settings.debug, lifespan=lifespan)
+
+# Register exception handlers
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
 
 # Add trace ID middleware (should be first to capture all requests)
 app.add_middleware(TraceIDMiddleware)

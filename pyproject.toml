@@ -18,6 +18,16 @@ dependencies = [
   "psycopg2-binary>=2.9.9",
   "aiosqlite>=0.20.0",
   "python-dotenv>=1.0.1",
+  "python-multipart>=0.0.6",
+  "asyncpg>=0.29.0",
+  "PyJWT>=2.8.0",
+  "passlib[bcrypt]>=1.7.4",
+  "email-validator>=2.1.0",
+  "redis>=5.0.0",
+  "pytz>=2024.1",
+  "python-dateutil>=2.9.0",
+  "greenlet>=3.0.0",
+  "gunicorn>=21.0.0",
 ]
 
 [project.optional-dependencies]
@@ -34,7 +44,8 @@ dev = [
 homepage = "https://example.com"
 
 [tool.setuptools]
-packages = { find = { where = ["app"], include = ["app*" ] } }
+package-dir = { "" = "src" }
+packages = { find = { where = ["src"] } }
 
 [tool.ruff]
 line-length = 100

@@ -14,11 +14,9 @@ from alembic import context
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 # Import models from apps to ensure they are registered with SQLAlchemy
-from src.apps.articles import models as articles_models  # noqa: E402, F401
-from src.apps.sensitive_fields import (  # noqa: E402, F401
-    models as sensitive_fields_models,
-)
 from src.apps.users import models as users_models  # noqa: E402, F401
+from src.apps.animals import models as animals_models  # noqa: E402, F401
+from src.apps.audit import models as audit_models  # noqa: E402, F401
 from src.core.config import settings  # noqa: E402
 from src.db.session import Base  # noqa: E402
 
@@ -41,6 +39,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         compare_type=True,
+        render_as_batch=url.startswith("sqlite"),
     )
 
     with context.begin_transaction():
@@ -49,7 +48,10 @@ def run_migrations_offline() -> None:
 
 def do_run_migrations(connection: Connection) -> None:
     context.configure(
-        connection=connection, target_metadata=target_metadata, compare_type=True
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_type=True,
+        render_as_batch=connection.dialect.name == "sqlite",
     )
 
     with context.begin_transaction():

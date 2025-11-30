@@ -12,6 +12,11 @@ echo "WORKERS: ${WORKERS:-1}"
 echo "RELOAD: ${RELOAD:-false}"
 echo "GUNICORN_CMD: ${GUNICORN_CMD:-gunicorn}"
 
+# Run database migrations
+echo "Running database migrations..."
+alembic upgrade head
+echo "Database migrations completed."
+
 # Defaults (can be overridden via env vars)
 APP_MODULE=${APP_MODULE:-src.main:app}
 HOST=${HOST:-0.0.0.0}

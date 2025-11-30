@@ -21,13 +21,22 @@ class TestDatabasePingEndpoints:
     """Test database ping endpoints structure and basic functionality."""
 
     @pytest.fixture
-    async def async_client(self):
+    async def async_client(self, async_session):
         """Create async HTTP client for testing."""
         from httpx import ASGITransport
+        from src.db.session import get_db, get_db_with_trace_id
+
+        async def get_session_override():
+            return async_session
+
+        app.dependency_overrides[get_db] = get_session_override
+        app.dependency_overrides[get_db_with_trace_id] = get_session_override
 
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as ac:
             yield ac
+
+        app.dependency_overrides.clear()
 
     def test_all_endpoints_accessible(self, client: TestClient):
         """Test that all database ping endpoints are accessible using TestClient."""
@@ -126,8 +135,14 @@ class TestDatabasePingEndpoints:
             # Check response structure for error responses
             elif response.status_code == 503:
                 assert (
-                    "detail" in data
-                ), f"Missing 'detail' field in error response for {endpoint}"
+                    "error" in data
+                ), f"Missing 'error' field in error response for {endpoint}"
+                assert (
+                    "message" in data
+                ), f"Missing 'message' field in error response for {endpoint}"
+                assert (
+                    data["success"] is False
+                ), f"Success should be False in error response for {endpoint}"
 
     def test_ping_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of ping endpoint."""
@@ -149,7 +164,8 @@ class TestDatabasePingEndpoints:
             assert "database_type" in data["data"]
         else:
             # Error case - should have proper error structure
-            assert "detail" in data
+            assert "error" in data
+            assert data["success"] is False
 
     def test_read_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of read endpoint."""
@@ -167,7 +183,8 @@ class TestDatabasePingEndpoints:
             assert "response_time_ms" in data["data"]
             assert "result" in data["data"]
         else:
-            assert "detail" in data
+            assert "error" in data
+            assert data["success"] is False
 
     def test_write_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of write endpoint."""
@@ -185,7 +202,8 @@ class TestDatabasePingEndpoints:
             assert "response_time_ms" in data["data"]
             assert "results" in data["data"]
         else:
-            assert "detail" in data
+            assert "error" in data
+            assert data["success"] is False
 
     def test_ddl_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of DDL endpoint."""
@@ -203,7 +221,8 @@ class TestDatabasePingEndpoints:
             assert "response_time_ms" in data["data"]
             assert "results" in data["data"]
         else:
-            assert "detail" in data
+            assert "error" in data
+            assert data["success"] is False
 
     def test_info_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of info endpoint."""
@@ -221,7 +240,8 @@ class TestDatabasePingEndpoints:
             assert "connection_pool" in data["data"]
             assert "statistics" in data["data"]
         else:
-            assert "detail" in data
+            assert "error" in data
+            assert data["success"] is False
 
     def test_tables_endpoint_basic_structure(self, client: TestClient):
         """Test basic structure of tables endpoint."""
@@ -239,7 +259,8 @@ class TestDatabasePingEndpoints:
             assert "tables" in data["data"]
             assert isinstance(data["data"]["tables"], list)
         else:
-            assert "detail" in data
+            assert "error" in data
+            assert data["success"] is False
 
     def test_trace_id_presence(self, client: TestClient):
         """Test that trace_id is present in all responses."""
@@ -379,26 +400,14 @@ class TestDatabasePingEndpoints:
             if response.status_code == 503:
                 data = response.json()
                 assert (
-                    "detail" in data
-                ), f"Missing 'detail' field in error response for {endpoint}"
-
-                # The detail should contain error information
-                detail = data["detail"]
-                assert isinstance(
-                    detail, (str, dict)
-                ), f"Detail should be string or dict for {endpoint}"
-
-                # If it's a dict (which it should be for our API), check structure
-                if isinstance(detail, dict):
-                    assert (
-                        "data" in detail
-                    ), f"Missing 'data' field in error detail for {endpoint}"
-                    assert (
-                        "success" in detail["data"]
-                    ), f"Missing 'success' field in error data for {endpoint}"
-                    assert (
-                        detail["data"]["success"] is False
-                    ), f"Success should be False in error response for {endpoint}"
+                    "error" in data
+                ), f"Missing 'error' field in error response for {endpoint}"
+                assert (
+                    "message" in data
+                ), f"Missing 'message' field in error response for {endpoint}"
+                assert (
+                    data["success"] is False
+                ), f"Success should be False in error response for {endpoint}"
 
     def test_api_documentation_accessible(self, client: TestClient):
         """Test that API documentation is accessible."""

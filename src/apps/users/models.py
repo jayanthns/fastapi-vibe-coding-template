@@ -2,21 +2,18 @@
 User model with industry-standard fields and UUID primary key.
 """
 
-import uuid
-
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
+from sqlalchemy.orm import Mapped, mapped_column
 
+from src.core.models import UUIDModel
 from src.db.session import Base
 
 
-class User(Base):
+class User(Base, UUIDModel):
     """User model with comprehensive fields for user management."""
 
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     email = Column(String(255), nullable=False, unique=True, index=True)
     username = Column(String(50), nullable=False, unique=True, index=True)
     _password_hash = Column("password_hash", String(255), nullable=False)
@@ -27,19 +24,6 @@ class User(Base):
     is_verified = Column(Boolean, default=False, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
     last_login = Column(DateTime(timezone=True), nullable=True)
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        nullable=False,
-        comment="When this user was created",
-    )
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-        comment="When this user was last updated",
-    )
 
     def __repr__(self):
         return (
