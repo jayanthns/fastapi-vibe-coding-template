@@ -27,6 +27,7 @@ RUN chown -R appuser:appuser $APP_HOME
 
 # Copy supervisord configuration
 COPY deploy/supervisor_scripts/gunicorn_supervisord.conf /etc/supervisor/conf.d/gunicorn_supervisord.conf
+COPY deploy/supervisor_scripts/dramatiq_supervisord.conf /etc/supervisor/conf.d/dramatiq_supervisord.conf
 
 # Change permissions for deploy folder scripts
 RUN find /app/deploy -name "*.sh" -exec sed -i 's/\r$//g' {} +
