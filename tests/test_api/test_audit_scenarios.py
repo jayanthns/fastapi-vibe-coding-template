@@ -5,26 +5,30 @@ from src.core.enums import AuditAction
 
 
 class TestAuditScenarios:
-    def test_audit_lifecycle(self, client: TestClient):
-        """Test full lifecycle of audit logs: Create -> List -> Get -> Filter"""
+    async def test_audit_lifecycle(self, client: TestClient, async_session):
+        """Test full lifecycle of audit logs: List -> Get -> Filter"""
+        from src.apps.audit.models import AuditLog
+        from uuid import uuid4
+        from datetime import datetime
 
-        # 1. Create Audit Log
-        create_payload = {
-            "action": AuditAction.LOGIN.value,
-            "target_model": "auth.User",
-            "target_object_id": "1",
-            "actor_id": "123",
-            "actor_email": "test@example.com",
-            "ip_address": "127.0.0.1",
-            "changes": {"status": "active"},
-        }
-        response = client.post("/api/v1/audit/", json=create_payload)
-        assert response.status_code == 201
-        data = response.json()
-        assert data["success"] is True
-        audit_id = data["data"]["id"]
-        assert data["data"]["action"] == AuditAction.LOGIN.value
-        assert data["data"]["target_model"] == "auth.User"
+        # 1. Seed Audit Log directly (since POST endpoint is removed)
+        audit_id = uuid4()
+        audit_log = AuditLog(
+            id=audit_id,
+            action=AuditAction.LOGIN.value,
+            target_model="auth.User",
+            target_object_id="1",
+            actor_id="123",
+            actor_email="test@example.com",
+            ip_address="127.0.0.1",
+            changes={"status": "active"},
+            created_at=datetime.utcnow(),
+        )
+        async_session.add(audit_log)
+        await async_session.commit()
+        await async_session.refresh(audit_log)
+
+        audit_id = str(audit_id)  # Convert to string for comparison
 
         # 2. List Audit Logs
         response = client.get("/api/v1/audit/")

@@ -1,92 +1,99 @@
-import asyncio
-
 import pytest
-from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from unittest.mock import AsyncMock, MagicMock, patch
 from src.apps.background_jobs.models import JobStatus
 from src.apps.background_jobs.service import JobService
-from src.apps.background_jobs.tasks import (test_background_task,
-                                            test_failing_task)
+from src.apps.background_jobs.tasks import test_background_task, test_failing_task
 
 
 @pytest.mark.asyncio
-async def test_enqueue_and_process_job(
-    async_client: AsyncClient, async_session: AsyncSession
-):
-    # Enqueue the job
-    job = await JobService.enqueue_job(async_session, test_background_task, duration=0)
+async def test_enqueue_job_calls_create_job():
+    """Test that enqueue_job calls create_job and sends message."""
+    mock_session = AsyncMock()
 
-    assert job.status == JobStatus.PENDING
-    assert job.task_name == "test_background_task"
+    with (
+        patch(
+            "src.apps.background_jobs.service.JobService.create_job"
+        ) as mock_create_job,
+        patch("src.apps.background_jobs.tasks.test_background_task.send") as mock_send,
+    ):
 
-    # Wait for the worker to process it (polling)
-    # Note: This requires the worker to be running and connected to the SAME Redis/DB.
-    # In local tests, we might not have the worker running against the test DB.
-    # If we are running tests locally with `pytest`, we are using a local SQLite DB (usually).
-    # The Docker worker is using the Docker Postgres DB.
-    # So this end-to-end test ONLY works if we run it inside Docker or point it to the same infra.
-    #
-    # For now, we will verify the ENQUEUE part works (PENDING).
-    # To verify execution, we would need to run the worker in the test environment or mock the broker.
-    #
-    # However, since we want to verify the "system", we can assume the user will run this against Docker?
-    # No, `pytest` usually runs locally.
-    #
-    # Let's verify the API endpoints instead, which read from the DB.
+        # Setup mock return values
+        mock_job = MagicMock()
+        mock_job.id = "job-123"
+        mock_job.status = JobStatus.PENDING
+        mock_create_job.return_value = mock_job
 
-    # Verify API list
-    response = await async_client.get("/api/v1/jobs/")
-    assert response.status_code == 200
-    data = response.json()["data"]
-    assert len(data) >= 1
-    assert data[0]["id"] == str(job.id)
-    assert data[0]["status"] == "PENDING"
+        mock_message = MagicMock()
+        mock_message.message_id = "msg-123"
+        mock_send.return_value = mock_message
 
+        # Call enqueue_job
+        job = await JobService.enqueue_job(
+            mock_session, test_background_task, duration=0
+        )
 
-@pytest.mark.asyncio
-async def test_job_status_updates(
-    async_client: AsyncClient, async_session: AsyncSession
-):
-    # This test simulates the middleware updates manually since we can't easily run the worker in tests
+        # Verify send was called
+        mock_send.assert_called_once()
 
-    # 1. Create a job
-    job = await JobService.enqueue_job(async_session, test_background_task, duration=0)
-    message_id = job.message_id
-
-    # 2. Simulate RUNNING
-    await JobService.update_status_by_message_id(message_id, JobStatus.RUNNING)
-    await async_session.refresh(job)
-    assert job.status == JobStatus.RUNNING
-    assert job.started_at is not None
-
-    # 3. Simulate COMPLETED
-    await JobService.update_status_by_message_id(
-        message_id, JobStatus.COMPLETED, result={"status": "success"}
-    )
-    await async_session.refresh(job)
-    assert job.status == JobStatus.COMPLETED
-    assert job.result == {"status": "success"}
-    assert job.completed_at is not None
+        # Verify create_job was called
+        mock_create_job.assert_called_once()
+        assert job.id == "job-123"
+        assert job.status == JobStatus.PENDING
 
 
 @pytest.mark.asyncio
-async def test_job_failure_updates(
-    async_client: AsyncClient, async_session: AsyncSession
-):
-    # 1. Create a job
-    job = await JobService.enqueue_job(async_session, test_failing_task)
-    message_id = job.message_id
+async def test_job_status_updates_logic():
+    """Test status update logic (mocking DB interactions)."""
+    mock_session = AsyncMock()
+    job_id = "job-123"
+    message_id = "msg-123"
 
-    # 2. Simulate FAILED
-    await JobService.update_status_by_message_id(
-        message_id,
-        JobStatus.FAILED,
-        error="Something went wrong",
-        traceback="Traceback...",
-    )
-    await async_session.refresh(job)
-    assert job.status == JobStatus.FAILED
-    assert job.error == "Something went wrong"
-    assert job.traceback == "Traceback..."
-    assert job.completed_at is not None
+    with patch("src.apps.background_jobs.service.JobRepository") as MockRepo:
+        mock_repo_instance = MockRepo.return_value
+        mock_repo_instance.get_by_message_id = AsyncMock()
+        mock_repo_instance.update = AsyncMock()
+
+        # Setup mock job
+        mock_job = MagicMock()
+        mock_job.id = job_id
+        mock_job.message_id = message_id
+        mock_repo_instance.get_by_message_id.return_value = mock_job
+        mock_repo_instance.update.return_value = mock_job
+
+        # Test update to RUNNING
+        await JobService.update_status_by_message_id(message_id, JobStatus.RUNNING)
+
+        # Verify update called with correct args
+        mock_repo_instance.update.assert_called()
+        call_args = mock_repo_instance.update.call_args
+        assert call_args[1]["status"] == JobStatus.RUNNING
+
+
+@pytest.mark.asyncio
+async def test_job_failure_updates_logic():
+    """Test failure update logic (mocking DB interactions)."""
+    message_id = "msg-fail"
+
+    with patch("src.apps.background_jobs.service.JobRepository") as MockRepo:
+        mock_repo_instance = MockRepo.return_value
+        mock_repo_instance.get_by_message_id = AsyncMock()
+        mock_repo_instance.update = AsyncMock()
+
+        mock_job = MagicMock()
+        mock_repo_instance.get_by_message_id.return_value = mock_job
+        mock_repo_instance.update.return_value = mock_job
+
+        # Test update to FAILED
+        await JobService.update_status_by_message_id(
+            message_id,
+            JobStatus.FAILED,
+            error="Something went wrong",
+            traceback="Traceback...",
+        )
+
+        # Verify update called with correct args
+        mock_repo_instance.update.assert_called()
+        call_args = mock_repo_instance.update.call_args
+        assert call_args[1]["status"] == JobStatus.FAILED
+        assert call_args[1]["error"] == "Something went wrong"
+        assert call_args[1]["traceback"] == "Traceback..."

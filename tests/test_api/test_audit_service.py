@@ -1,65 +1,58 @@
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.apps.audit.repository import AuditLogRepository
-from src.apps.audit.schemas import AuditLogCreate
 from src.apps.audit.service import AuditService
 from src.core.enums import AuditAction
 
 
 @pytest.mark.asyncio
 class TestAuditService:
-    async def test_log_event_generic(self):
-        """Test generic event logging with mock repository."""
-        mock_repo = MagicMock(spec=AuditLogRepository)
-        mock_repo.create = AsyncMock()
+    @patch("src.apps.background_jobs.service.JobService.enqueue_job")
+    @patch("src.db.session.AsyncSessionLocal")
+    async def test_log_event_generic(self, mock_session_local, mock_enqueue_job):
+        """Test generic event logging with mocked JobService."""
+        # Setup mock session
+        mock_session = AsyncMock()
+        mock_session_local.return_value.__aenter__.return_value = mock_session
 
-        service = AuditService(repository=mock_repo)
+        service = AuditService()
 
-        # Setup mock return value
-        mock_log = MagicMock()
-        mock_log.action = AuditAction.LOGIN.value
-        mock_log.ip_address = "127.0.0.1"
-        mock_log.actor_id = "123"
-        mock_log.actor_email = "test@example.com"
-        mock_repo.create.return_value = mock_log
-
-        log = await service.log_event(
+        await service.log_event(
             action=AuditAction.LOGIN.value,
             target_model="auth.User",
             target_object_id="1",
             ip_address="127.0.0.1",
             actor_id="123",
             actor_email="test@example.com",
+            trace_id="trace-123",
         )
 
-        # Verify repository call
-        mock_repo.create.assert_called_once()
-        call_args = mock_repo.create.call_args[0][0]
-        assert isinstance(call_args, AuditLogCreate)
-        assert call_args.action == AuditAction.LOGIN.value
-        assert call_args.target_model == "auth.User"
-        assert call_args.target_object_id == "1"
-        assert call_args.ip_address == "127.0.0.1"
-        assert call_args.actor_id == "123"
-        assert call_args.actor_email == "test@example.com"
+        # Verify JobService.enqueue_job call
+        mock_enqueue_job.assert_called_once()
+        call_args = mock_enqueue_job.call_args
 
-        # Verify return value
-        assert log.action == AuditAction.LOGIN.value
-        assert log.ip_address == "127.0.0.1"
-        assert log.actor_id == "123"
-        assert log.actor_email == "test@example.com"
+        # Check arguments passed to enqueue_job
+        # args[0] is session, args[1] is task, args[2] is payload
+        assert call_args[0][0] == mock_session
 
-    async def test_log_create_helper(self):
+        payload = call_args[0][2]
+        assert payload["action"] == AuditAction.LOGIN.value
+        assert payload["target_model"] == "auth.User"
+        assert payload["target_object_id"] == "1"
+        assert payload["ip_address"] == "127.0.0.1"
+        assert payload["actor_id"] == "123"
+        assert payload["actor_email"] == "test@example.com"
+        assert payload["trace_id"] == "trace-123"
+
+    @patch("src.apps.background_jobs.service.JobService.enqueue_job")
+    @patch("src.db.session.AsyncSessionLocal")
+    async def test_log_create_helper(self, mock_session_local, mock_enqueue_job):
         """Test log_create helper."""
-        mock_repo = MagicMock(spec=AuditLogRepository)
-        mock_repo.create = AsyncMock()
-        service = AuditService(repository=mock_repo)
+        mock_session = AsyncMock()
+        mock_session_local.return_value.__aenter__.return_value = mock_session
 
-        mock_log = MagicMock()
-        mock_log.action = AuditAction.CREATE.value
-        mock_repo.create.return_value = mock_log
+        service = AuditService()
 
         await service.log_create(
             target_model="animals.Animal",
@@ -68,22 +61,21 @@ class TestAuditService:
             changes={"name": "AuditDog"},
         )
 
-        mock_repo.create.assert_called_once()
-        call_args = mock_repo.create.call_args[0][0]
-        assert call_args.action == AuditAction.CREATE.value
-        assert call_args.target_model == "animals.Animal"
-        assert call_args.target_object_id == "1"
-        assert call_args.changes == {"name": "AuditDog"}
+        mock_enqueue_job.assert_called_once()
+        payload = mock_enqueue_job.call_args[0][2]
+        assert payload["action"] == AuditAction.CREATE.value
+        assert payload["target_model"] == "animals.Animal"
+        assert payload["target_object_id"] == "1"
+        assert payload["changes"] == {"name": "AuditDog"}
 
-    async def test_log_update_helper(self):
+    @patch("src.apps.background_jobs.service.JobService.enqueue_job")
+    @patch("src.db.session.AsyncSessionLocal")
+    async def test_log_update_helper(self, mock_session_local, mock_enqueue_job):
         """Test log_update helper."""
-        mock_repo = MagicMock(spec=AuditLogRepository)
-        mock_repo.create = AsyncMock()
-        service = AuditService(repository=mock_repo)
+        mock_session = AsyncMock()
+        mock_session_local.return_value.__aenter__.return_value = mock_session
 
-        mock_log = MagicMock()
-        mock_log.action = AuditAction.UPDATE.value
-        mock_repo.create.return_value = mock_log
+        service = AuditService()
 
         await service.log_update(
             target_model="animals.Animal",
@@ -91,27 +83,26 @@ class TestAuditService:
             changes={"age": {"before": 2, "after": 3}},
         )
 
-        mock_repo.create.assert_called_once()
-        call_args = mock_repo.create.call_args[0][0]
-        assert call_args.action == AuditAction.UPDATE.value
-        assert call_args.target_model == "animals.Animal"
-        assert call_args.target_object_id == "2"
-        assert call_args.changes == {"age": {"before": 2, "after": 3}}
+        mock_enqueue_job.assert_called_once()
+        payload = mock_enqueue_job.call_args[0][2]
+        assert payload["action"] == AuditAction.UPDATE.value
+        assert payload["target_model"] == "animals.Animal"
+        assert payload["target_object_id"] == "2"
+        assert payload["changes"] == {"age": {"before": 2, "after": 3}}
 
-    async def test_log_delete_helper(self):
+    @patch("src.apps.background_jobs.service.JobService.enqueue_job")
+    @patch("src.db.session.AsyncSessionLocal")
+    async def test_log_delete_helper(self, mock_session_local, mock_enqueue_job):
         """Test log_delete helper."""
-        mock_repo = MagicMock(spec=AuditLogRepository)
-        mock_repo.create = AsyncMock()
-        service = AuditService(repository=mock_repo)
+        mock_session = AsyncMock()
+        mock_session_local.return_value.__aenter__.return_value = mock_session
 
-        mock_log = MagicMock()
-        mock_log.action = AuditAction.DELETE.value
-        mock_repo.create.return_value = mock_log
+        service = AuditService()
 
         await service.log_delete(target_model="animals.Animal", target_object_id="3")
 
-        mock_repo.create.assert_called_once()
-        call_args = mock_repo.create.call_args[0][0]
-        assert call_args.action == AuditAction.DELETE.value
-        assert call_args.target_model == "animals.Animal"
-        assert call_args.target_object_id == "3"
+        mock_enqueue_job.assert_called_once()
+        payload = mock_enqueue_job.call_args[0][2]
+        assert payload["action"] == AuditAction.DELETE.value
+        assert payload["target_model"] == "animals.Animal"
+        assert payload["target_object_id"] == "3"

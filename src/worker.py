@@ -1,4 +1,6 @@
 import dramatiq
+
+print("DEBUG: src/worker.py imported")
 from dramatiq.brokers.redis import RedisBroker
 
 from src.apps.background_jobs.middleware import JobTrackingMiddleware

@@ -3,6 +3,8 @@
 import logging
 import dramatiq
 from src.apps.audit.repository_sync import AuditLogRepositorySync
+
+print(f"DEBUG: audit/tasks.py imported. Broker is {dramatiq.get_broker()}")
 from src.apps.audit.schemas import AuditLogCreate
 from src.db.session_sync import SessionLocalSync
 

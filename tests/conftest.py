@@ -8,16 +8,33 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.pool import StaticPool
 
+# Import all models to ensure they are registered with SQLAlchemy
 # Import all models to ensure they are registered with SQLAlchemy
 from src.apps.animals.models import Animal  # noqa: F401
 from src.apps.audit.models import AuditLog  # noqa: F401
 from src.apps.users.models import User  # noqa: F401
-from src.db.session import Base, get_db, get_db_with_trace_id
-from src.main import app
+from src.db.session import Base
+
+# ============================================================================
+# GLOBAL DRAMATIQ CONFIGURATION (Must run before test collection)
+# ============================================================================
+import dramatiq
+from dramatiq.brokers.stub import StubBroker
+from src.apps.background_jobs.middleware import JobTrackingMiddleware
+
+# Configure Dramatiq to use StubBroker globally for all tests
+# This ensures that when tasks are imported during test collection,
+# they register with this StubBroker instead of a real RedisBroker.
+dramatiq_broker = StubBroker()
+dramatiq_broker.add_middleware(JobTrackingMiddleware())
+dramatiq.set_broker(dramatiq_broker)
 
 # ============================================================================
 # CENTRALIZED TEST ORDER MANAGEMENT
@@ -81,14 +98,44 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(name="async_session")
-async def async_session_fixture():
-    """Create an async in-memory SQLite database for testing using SQLAlchemy Base."""
-    test_engine = create_async_engine(
+@pytest.fixture(scope="session")
+def app_fixture():
+    """Fixture to provide the FastAPI app instance."""
+    print("DEBUG: app_fixture starting")
+    # Import app here to ensure it's imported AFTER the dramatiq broker patch
+    from src.main import app
+
+    return app
+
+
+@pytest.fixture(scope="session")
+def test_engine():
+    """Create a session-scoped async engine for tests."""
+    return create_async_engine(
         "sqlite+aiosqlite://",
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def patch_global_engine(test_engine):
+    """
+    Patch the global database engine to use the test engine.
+    This ensures src.main.lifespan uses the test DB.
+    """
+    from unittest.mock import patch
+
+    # Patch the engine in src.db.session
+    # We also need to patch it in src.main because it imports it directly
+    # But patching src.db.session.engine might be enough if done before src.main import
+    with patch("src.db.session.engine", test_engine):
+        yield
+
+
+@pytest.fixture(name="async_session")
+async def async_session_fixture(test_engine):
+    """Create an async in-memory SQLite database for testing."""
     # Create all tables using our SQLAlchemy Base
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -98,46 +145,70 @@ async def async_session_fixture():
     )
 
     async with async_session_maker() as session:
+        # Clear all tables before each test to ensure isolation
+        # We iterate in reverse order of dependencies to avoid FK constraint violations
+        for table in reversed(Base.metadata.sorted_tables):
+            await session.execute(table.delete())
+        await session.commit()
+
         yield session
 
 
 @pytest.fixture(name="client")
-def client_fixture(async_session: AsyncSession):
+def client_fixture(async_session: AsyncSession, app_fixture):
     """Create a test client with database dependency override."""
+    app = app_fixture
+    from src.db.session import get_db, get_db_with_trace_id
 
     async def get_session_override():
         return async_session
 
     app.dependency_overrides[get_db_with_trace_id] = get_session_override
     app.dependency_overrides[get_db] = get_session_override
-    client = TestClient(app)
-    yield client
+
+    from unittest.mock import patch, MagicMock
+
+    # Patch RedisBroker to prevent connection attempts during lifespan
+    # This is redundant with session fixture but ensures safety at function level
+    with patch("dramatiq.brokers.redis.RedisBroker") as MockRedisBroker:
+        MockRedisBroker.return_value = MagicMock()
+
+        with patch("dramatiq.set_broker"):
+            with TestClient(app) as client:
+                yield client
+
     app.dependency_overrides.clear()
 
 
 @pytest.fixture(scope="session", autouse=True)
 def configure_dramatiq_broker():
-    """Configure Dramatiq broker for tests."""
-    import dramatiq
-    from dramatiq.brokers.redis import RedisBroker
+    """
+    Ensure Dramatiq broker patches are active during tests.
+    Prevents src.main.lifespan from overwriting our global StubBroker.
+    """
+    print("DEBUG: configure_dramatiq_broker starting")
+    from unittest.mock import MagicMock, patch
 
-    from src.apps.background_jobs.middleware import JobTrackingMiddleware
-    from src.core.config import settings
+    # Patch set_broker to prevent src.main.lifespan from overwriting our StubBroker
+    # Patch RedisBroker to prevent connection attempts during lifespan
+    with (
+        patch("dramatiq.set_broker"),
+        patch("dramatiq.brokers.redis.RedisBroker") as MockRedisBroker,
+    ):
 
-    # Reconfigure broker with current settings (picks up env vars)
-    redis_broker = RedisBroker(url=settings.redis_url)
-    redis_broker.add_middleware(JobTrackingMiddleware())
-    dramatiq.set_broker(redis_broker)
+        # Configure MockRedisBroker to return a mock that behaves nicely if accessed
+        MockRedisBroker.return_value = MagicMock()
 
-    # Import tasks to register them with the new broker
-    import src.apps.background_jobs.tasks  # noqa: F401
-
-    yield
+        yield dramatiq_broker
+        dramatiq_broker.flush_all()
+        dramatiq_broker.close()
 
 
 @pytest.fixture(name="async_client")
-async def async_client_fixture(async_session: AsyncSession):
+async def async_client_fixture(async_session: AsyncSession, app_fixture):
     """Create an async test client with database dependency override."""
+    app = app_fixture
+    from src.db.session import get_db, get_db_with_trace_id
     from httpx import ASGITransport, AsyncClient
 
     async def get_session_override():
@@ -152,6 +223,30 @@ async def async_client_fixture(async_session: AsyncSession):
         yield client
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def mock_async_session_local(async_session: AsyncSession):
+    """
+    Patch AsyncSessionLocal to return the test session.
+    This ensures that code using AsyncSessionLocal() directly (like AuditService)
+    uses the in-memory SQLite database instead of the real database.
+    """
+    from unittest.mock import patch
+
+    # Create a context manager that yields the existing async_session
+    class MockSessionContext:
+        async def __aenter__(self):
+            return async_session
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+    # Patch the AsyncSessionLocal in src.db.session
+    # Patch where it is defined, so imports get the mock
+    with patch("src.db.session.AsyncSessionLocal") as mock_session_local:
+        mock_session_local.return_value = MockSessionContext()
+        yield mock_session_local
 
 
 # Test data fixtures

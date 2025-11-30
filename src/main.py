@@ -30,6 +30,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from dramatiq.brokers.redis import RedisBroker
 
     redis_broker = RedisBroker(url=settings.redis_url)
+    print(f"DEBUG: RedisBroker class is {RedisBroker}")
+    print(f"DEBUG: RedisBroker instance is {redis_broker}")
     from src.apps.background_jobs.middleware import JobTrackingMiddleware
 
     redis_broker.add_middleware(JobTrackingMiddleware())
