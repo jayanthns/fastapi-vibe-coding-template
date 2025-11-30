@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     # Database
     # Direct URL takes precedence if provided (env: DATABASE_URL)
     database_url: Optional[str] = None
+    database_sync_url: Optional[str] = None
 
     # Discrete credentials (envs: DATABASE_DRIVER, DATABASE_HOST, DATABASE_PORT,
     # DATABASE_USERNAME, DATABASE_PASSWORD, DATABASE_NAME)
@@ -73,6 +74,31 @@ class Settings(BaseSettings):
 
         # Fallback to local SQLite async database
         self.database_url = "sqlite+aiosqlite:///./app.db"
+        return self
+
+    @model_validator(mode="after")
+    def assemble_sync_database_url(self) -> "Settings":
+        """
+        Build a synchronous SQLAlchemy URL for worker processes.
+        This converts:
+            postgresql+asyncpg:// → postgresql://
+        """
+        if not self.database_url:
+            return self
+
+        # Convert async → sync automatically
+        if self.database_url.startswith("postgresql+asyncpg"):
+            self.database_sync_url = self.database_url.replace(
+                "postgresql+asyncpg", "postgresql"
+            )
+        elif self.database_url.startswith("sqlite+aiosqlite"):
+            self.database_sync_url = self.database_url.replace(
+                "sqlite+aiosqlite", "sqlite"
+            )
+        else:
+            # Fallback: assume URL is already sync-compatible
+            self.database_sync_url = self.database_url
+
         return self
 
     @model_validator(mode="after")

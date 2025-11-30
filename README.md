@@ -54,6 +54,8 @@ Detailed documentation is available in the `docs/` directory:
 - **[Deployment Guide](docs/DEPLOYMENT.md)**: Docker and production deployment.
 - **[Package Manager Guide](docs/PACKAGE_MANAGER.md)**: Managing dependencies with `uv`.
 - **[Pydantic Guide](docs/PYDANTIC_GUIDE.md)**: Data validation and schemas.
+- **[Background Jobs Guide](docs/BACKGROUND_JOBS_GUIDE.md)**: Architecture and usage of Dramatiq background tasks.
+- **[Audit Log Guide](docs/AUDIT_LOG_GUIDE.md)**: Usage of the asynchronous audit logging system.
 
 ## 🛠️ Development Commands
 

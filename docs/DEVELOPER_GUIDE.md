@@ -149,3 +149,32 @@ logger.info("Creating animal", extra={"animal_name": name})
 ```
 
 Logs are structured (JSON in production) and include correlation IDs for tracing.
+
+## Background Jobs (Dramatiq)
+
+We use **Dramatiq** with **Redis** for reliable background task processing.
+
+### Quick Start
+
+1.  **Define a Task**: Create a `tasks.py` in your app.
+    ```python
+    import dramatiq
+    import asyncio
+    from src.apps.my_app.service import MyService
+
+    @dramatiq.actor
+    def my_background_task(arg1, arg2):
+        asyncio.run(MyService.do_work(arg1, arg2))
+    ```
+
+2.  **Enqueue a Task**: Call `.send()` on the actor.
+    ```python
+    my_background_task.send("value1", "value2")
+    ```
+
+3.  **Run the Worker**:
+    ```bash
+    dramatiq src.worker --processes 1 --threads 1
+    ```
+
+For detailed architecture, monitoring, and best practices, see the [Background Jobs Guide](BACKGROUND_JOBS_GUIDE.md).

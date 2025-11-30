@@ -21,8 +21,15 @@ class SQLAlchemyTraceIDHandler(logging.Handler):
         super().__init__()
         self.trace_id = trace_id
 
-    def emit(self, record: logging.LogRecord) -> None:
-        # Add trace_id to the log record
+    def emit(self, record):
+        """Emit a record, adding trace_id and correlation_id if missing."""
+        # Add default values if fields are missing
+        if not hasattr(record, "trace_id"):
+            record.trace_id = "no-trace-id"
+        if not hasattr(record, "correlation_id"):
+            record.correlation_id = "no-cid"
+
+        # Add trace_id from this handler's context to the log record
         record.trace_id = self.trace_id
         # Use the app logger to emit the record
         logger = logging.getLogger("src.sqlalchemy")

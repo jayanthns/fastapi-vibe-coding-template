@@ -57,6 +57,9 @@ class AuditLog(Base, UUIDModel):
     user_agent: Mapped[Optional[str]] = mapped_column(
         Text, nullable=True, comment="User Agent string of the actor"
     )
+    trace_id: Mapped[Optional[str]] = mapped_column(
+        String(36), nullable=True, index=True, comment="Trace ID for request tracking"
+    )
 
     __table_args__ = (
         Index("ix_audit_logs_target", "target_model", "target_object_id"),

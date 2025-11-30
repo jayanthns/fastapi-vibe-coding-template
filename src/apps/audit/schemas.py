@@ -22,6 +22,7 @@ class AuditLogBase(BaseModel):
     )
     ip_address: Optional[str] = Field(None, description="IP address")
     user_agent: Optional[str] = Field(None, description="User Agent string")
+    trace_id: Optional[str] = None
 
 
 class AuditLogCreate(AuditLogBase):
@@ -35,7 +36,7 @@ class AuditLog(AuditLogBase):
 
     id: UUID
     created_at: datetime
-    updated_at: datetime
+    trace_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

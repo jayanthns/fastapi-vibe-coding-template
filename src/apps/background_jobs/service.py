@@ -12,7 +12,12 @@ from src.db.session import AsyncSessionLocal
 class JobService:
     @staticmethod
     async def create_job(
-        session: AsyncSession, message_id: str, task_name: str, args: list, kwargs: dict
+        session: AsyncSession,
+        message_id: str,
+        task_name: str,
+        args: list,
+        kwargs: dict,
+        trace_id: str | None = None,
     ) -> BackgroundJob:
         repo = JobRepository(session)
         return await repo.create(
@@ -21,6 +26,7 @@ class JobService:
             args=args,
             kwargs=kwargs,
             status=JobStatus.PENDING,
+            trace_id=trace_id,
         )
 
     @staticmethod
@@ -63,16 +69,29 @@ class JobService:
 
     @staticmethod
     async def enqueue_job(
-        session: AsyncSession, actor: dramatiq.Actor, *args, **kwargs
+        session: AsyncSession,
+        actor: dramatiq.Actor,
+        *args,
+        trace_id: str | None = None,
+        **kwargs,
     ) -> BackgroundJob:
         """
         Helper to enqueue a job and create the DB record in one go.
         """
+        import logging
+
+        logger = logging.getLogger(__name__)
+
         message = actor.send(*args, **kwargs)
-        return await JobService.create_job(
+        job = await JobService.create_job(
             session,
             message_id=message.message_id,
             task_name=actor.actor_name,
             args=list(args),
             kwargs=kwargs,
+            trace_id=trace_id,
         )
+        logger.info(
+            f"Background job created: {job.id} (Task: {job.task_name}, Message ID: {job.message_id})"
+        )
+        return job

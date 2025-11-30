@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.apps.animals.repository import AnimalRepository
 from src.apps.animals.schemas import Animal, AnimalCreate, AnimalUpdate
 from src.apps.animals.service import AnimalService
+from src.apps.audit.utils import get_audit_context_from_request
 from src.core.logging import get_logger
 from src.core.pagination import PageParams, PaginatedResponse
 from src.core.schemas import APIResponse
@@ -42,7 +43,10 @@ async def create_animal(
     logger = get_logger(request)
     logger.info(f"Creating new animal: {payload.name} ({payload.species})")
 
-    animal = await service.create_animal(payload)
+    # Extract audit context from request
+    audit_context = get_audit_context_from_request(request)
+
+    animal = await service.create_animal(payload, audit_context)
 
     logger.info(f"Successfully created animal with ID: {animal.id}")
     return APIResponse.create_with_trace_id(
@@ -118,7 +122,10 @@ async def update_animal(
     logger = get_logger(request)
     logger.info(f"Updating animal with ID: {animal_id}")
 
-    animal = await service.update_animal(animal_id, payload)
+    # Extract audit context from request
+    audit_context = get_audit_context_from_request(request)
+
+    animal = await service.update_animal(animal_id, payload, audit_context)
     if not animal:
         logger.warning(f"Animal not found for update with ID: {animal_id}")
         raise HTTPException(
@@ -145,8 +152,11 @@ async def delete_animal(
     logger = get_logger(request)
     logger.info(f"Attempting to delete animal with ID: {animal_id}")
 
-    success = await service.delete_animal(animal_id)
-    if not success:
+    # Extract audit context from request
+    audit_context = get_audit_context_from_request(request)
+
+    deleted = await service.delete_animal(animal_id, audit_context)
+    if not deleted:
         logger.warning(f"Animal not found for deletion: {animal_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

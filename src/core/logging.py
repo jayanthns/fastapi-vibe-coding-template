@@ -177,6 +177,11 @@ class LoggingConfig:
         # Configure root logger
         root_logger = logging.getLogger()
         root_logger.setLevel(logging.INFO)
+
+        # Clear existing handlers to prevent duplicate logs (e.g. from Dramatiq or Uvicorn)
+        if root_logger.handlers:
+            root_logger.handlers.clear()
+
         root_logger.addHandler(console_handler)
 
         # Configure app logger

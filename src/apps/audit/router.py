@@ -9,8 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.audit.repository import AuditLogRepository
-from src.apps.audit.schemas import AuditLog, AuditLogCreate, AuditLogFilter
-from src.apps.audit.service import AuditService
+from src.apps.audit.schemas import AuditLog, AuditLogFilter
+from src.apps.audit.service import AuditService, AuditServiceQuery
 from src.core.logging import get_logger
 from src.core.pagination import PageParams, PaginatedResponse
 from src.core.schemas import APIResponse
@@ -20,49 +20,16 @@ from src.middleware.trace import get_trace_id
 router = APIRouter()
 
 
-def get_audit_service(
+def get_audit_query_service(
     db: AsyncSession = Depends(get_db_with_trace_id),
-) -> AuditService:
-    """Get audit service instance."""
+) -> AuditServiceQuery:
+    """Get audit query service instance for read operations."""
     repository = AuditLogRepository(db)
-    return AuditService(repository)
+    return AuditService.create_for_queries(repository)
 
 
-@router.post(
-    "/",
-    response_model=APIResponse[AuditLog],
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_audit_log(
-    request: Request,
-    payload: AuditLogCreate,
-    service: AuditService = Depends(get_audit_service),
-):
-    """Create a new audit log entry."""
-    logger = get_logger(request)
-    logger.info(
-        f"Creating audit log: {payload.action} on "
-        f"{payload.target_model}({payload.target_object_id})"
-    )
-
-    audit_log = await service.log_event(
-        action=payload.action,
-        target_model=payload.target_model,
-        target_object_id=payload.target_object_id,
-        actor_id=payload.actor_id,
-        actor_email=payload.actor_email,
-        changes=payload.changes,
-        ip_address=payload.ip_address,
-        user_agent=payload.user_agent,
-    )
-
-    logger.info(f"Audit log created successfully: {audit_log.id}")
-    return APIResponse.create_with_trace_id(
-        data=audit_log,
-        message="Audit log created successfully",
-        status_code=201,
-        trace_id=get_trace_id(request),
-    )
+# POST endpoint removed - audit logs are created via background workers
+# Services call AuditService.log_create/update/delete which publishes to queue
 
 
 @router.get("/", response_model=APIResponse[PaginatedResponse[AuditLog]])
@@ -76,7 +43,7 @@ async def list_audit_logs(
     target_object_id: Optional[str] = Query(
         None, description="Filter by target object ID"
     ),
-    service: AuditService = Depends(get_audit_service),
+    service: AuditServiceQuery = Depends(get_audit_query_service),
 ):
     """List audit logs with optional filtering and pagination."""
     logger = get_logger(request)
@@ -112,7 +79,7 @@ async def list_audit_logs(
 async def get_audit_log(
     request: Request,
     audit_id: UUID,
-    service: AuditService = Depends(get_audit_service),
+    service: AuditServiceQuery = Depends(get_audit_query_service),
 ):
     """Retrieve a single audit log by ID."""
     logger = get_logger(request)
@@ -143,7 +110,7 @@ async def get_target_history(
     request: Request,
     target_model: str,
     target_object_id: str,
-    service: AuditService = Depends(get_audit_service),
+    service: AuditServiceQuery = Depends(get_audit_query_service),
 ):
     """Get audit history for a specific target object."""
     logger = get_logger(request)
@@ -165,7 +132,7 @@ async def get_actor_history(
     request: Request,
     actor_id: Optional[str] = Query(None, description="Actor ID"),
     actor_email: Optional[str] = Query(None, description="Actor email"),
-    service: AuditService = Depends(get_audit_service),
+    service: AuditServiceQuery = Depends(get_audit_query_service),
 ):
     """Get audit history for a specific actor."""
     logger = get_logger(request)

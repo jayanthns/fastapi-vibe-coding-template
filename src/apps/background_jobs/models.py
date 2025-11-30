@@ -1,5 +1,4 @@
-from sqlalchemy import (JSON, Column, DateTime, ForeignKey, Integer, String,
-                        Text)
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 
 from src.core.enums import StrEnum
@@ -21,6 +20,7 @@ class BackgroundJob(Base, UUIDModel):
     message_id = Column(String, nullable=False, index=True)
     task_name = Column(String, nullable=False, index=True)
     status = Column(String, nullable=False, default=JobStatus.PENDING, index=True)
+    trace_id = Column(String, nullable=True, index=True)
 
     args = Column(JSON, default=list)
     kwargs = Column(JSON, default=dict)

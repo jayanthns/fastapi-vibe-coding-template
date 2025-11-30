@@ -29,6 +29,10 @@ shell:
 	@echo "Starting Python shell..."
 	@$(VENV_ACTIVATE) && python
 
+run-worker:
+	@echo "Starting Dramatiq worker..."
+	@$(VENV_ACTIVATE) && dramatiq src.worker --processes 1 --threads 1
+
 # ============================================================================
 # SETUP & INSTALLATION
 # ============================================================================
@@ -326,6 +330,7 @@ help:
 	@echo "  run-dev                Run development server with auto-reload"
 	@echo "  kill-port              Kill processes using port 8000"
 	@echo "  shell                  Start Python shell"
+	@echo "  run-worker             Start Dramatiq worker"
 	@echo ""
 	@echo "== Setup & Installation =="
 	@echo "  init                   Initialize venv and install dependencies"
@@ -405,4 +410,4 @@ help:
 	@echo "  make pytest-k K=test_animals"
 	@echo "  make test-api"
 
-.PHONY: run run-dev kill-port shell init install install-legacy add-package add-dev-package remove-package remove-dev-package compile-deps update-deps package-sync export-requirements makemigrations migrate migrate-downgrade migrate-reset migrate-history migrate-current migrate-show db-init db-reset pytest-run pytest-v pytest-q pytest-lf pytest-x pytest-slow pytest-k pytest-w dynamic-test run-tests pytest test pytest-open-report test-report test-fast test-api isort_check black_check flake8 ruff ruff-fix static-tests format d-shell d-db d-redis d-db-logs d-redis-logs d-db-and-redis d-db-and-redis-down d-db-and-redis-restart d-up d-down d-restart d-logs d-logs-app d-ps d-build d-pull d-push d-exec d-supervisor-logs d-uvicorn-logs d-gunicorn-logs d-all-logs help
+.PHONY: run run-dev kill-port shell init install install-legacy add-package add-dev-package remove-package remove-dev-package compile-deps update-deps package-sync export-requirements makemigrations migrate migrate-downgrade migrate-reset migrate-history migrate-current migrate-show db-init db-reset pytest-run pytest-v pytest-q pytest-lf pytest-x pytest-slow pytest-k pytest-w dynamic-test run-tests pytest test pytest-open-report test-report test-fast test-api isort_check black_check flake8 ruff ruff-fix static-tests format d-shell d-db d-redis d-db-logs d-redis-logs d-db-and-redis d-db-and-redis-down d-db-and-redis-restart d-up d-down d-restart d-logs d-logs-app d-ps d-build d-pull d-push d-exec d-supervisor-logs d-uvicorn-logs d-gunicorn-logs d-all-logs help run-worker

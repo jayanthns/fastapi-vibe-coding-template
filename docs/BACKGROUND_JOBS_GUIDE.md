@@ -30,6 +30,7 @@ We store job details in a dedicated table with the following fields:
 | `created_at` | DateTime | When the job was enqueued |
 | `started_at` | DateTime | When execution began |
 | `completed_at` | DateTime | When execution finished |
+| `trace_id` | String | Trace ID for request tracking |
 
 ## Developer Guide: How to Add a Background Task
 
@@ -56,14 +57,25 @@ Create a `tasks.py` in your app. Define an actor that wraps the service call.
 ```python
 # src/apps/animals/tasks.py
 import dramatiq
-from src.apps.animals.service import AnimalService
-import asyncio
+from src.db.session_sync import SessionLocalSync
+from src.apps.animals.repository_sync import AnimalRepositorySync
 
 @dramatiq.actor(max_retries=3)
 def process_animal_upload_task(file_id: str, user_id: str):
-    # Since our services are async, we need to run them in an event loop
-    asyncio.run(AnimalService.process_csv_upload(file_id, user_id))
+    # Dramatiq workers run in a synchronous environment.
+    # DO NOT use AsyncSession or asyncio.run() if possible.
+    # Instead, use the synchronous session and repository.
+    
+    with SessionLocalSync() as session:
+        repo = AnimalRepositorySync(session)
+        # Perform synchronous operations
+        repo.process_upload(file_id, user_id)
 ```
+
+> [!IMPORTANT]
+> **Synchronous vs Asynchronous**: Dramatiq workers are synchronous by default. While you *can* use `asyncio.run()` to call async code, it is **highly recommended** to use synchronous database sessions (`SessionLocalSync`) and synchronous repositories for background tasks to avoid event loop issues and connection pool exhaustion.
+>
+> If you must reuse async service logic, ensure it is properly isolated and handles the event loop correctly. However, the preferred pattern is to have a synchronous path for background workers.
 
 ### 3. Trigger the Task
 

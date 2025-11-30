@@ -9,9 +9,11 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 # from src.core.background_tasks import background_task_manager
 from src.core.cache import cache
 from src.core.config import settings
-from src.core.exceptions import (general_exception_handler,
-                                 http_exception_handler,
-                                 validation_exception_handler)
+from src.core.exceptions import (
+    general_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+)
 from src.core.logging import setup_logging
 from src.db.session import engine
 from src.middleware.trace import TraceIDMiddleware
@@ -22,6 +24,20 @@ from src.urls import api_router
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Setup logging configuration
     setup_logging()
+
+    # Configure Dramatiq broker for async audit logging
+    import dramatiq
+    from dramatiq.brokers.redis import RedisBroker
+
+    redis_broker = RedisBroker(url=settings.redis_url)
+    from src.apps.background_jobs.middleware import JobTrackingMiddleware
+
+    redis_broker.add_middleware(JobTrackingMiddleware())
+    dramatiq.set_broker(redis_broker)
+
+    # Import audit tasks to register them with the broker
+    from src.apps.audit import tasks as audit_tasks  # noqa: F401
+    from src import test_tasks  # noqa: F401  # Test tasks for debugging
 
     # Start background task manager
     # await background_task_manager.start()
