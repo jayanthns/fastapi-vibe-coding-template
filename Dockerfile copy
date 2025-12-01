@@ -1,0 +1,76 @@
+# TODO: Need to test this multi stage docker build Dockerfile
+
+# Stage 1: Builder
+FROM python:3.12-slim-bullseye AS builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip install uv
+
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies into a virtual environment
+# --no-install-project: Install dependencies but not the project itself yet
+RUN uv sync --frozen --no-install-project
+
+# Copy the rest of the application
+COPY . .
+
+# Install the project itself into the virtual environment
+RUN uv sync --frozen
+
+# Stage 2: Runtime
+FROM python:3.12-slim-bullseye AS runtime
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    netcat \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -m -s /bin/bash appuser
+
+# Set environment variables
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/app/.venv/bin:$PATH"
+
+# Copy virtual environment from builder
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy application code
+COPY . .
+
+# Ensure appuser has ownership
+RUN chown -R appuser:appuser /app
+
+# Copy supervisord configuration
+COPY deploy/supervisor_scripts/gunicorn_supervisord.conf /etc/supervisor/conf.d/gunicorn_supervisord.conf
+COPY deploy/supervisor_scripts/dramatiq_supervisord.conf /etc/supervisor/conf.d/dramatiq_supervisord.conf
+
+# Change permissions for deploy folder scripts
+RUN find /app/deploy -name "*.sh" -exec sed -i 's/\r$//g' {} + \
+    && find /app/deploy -name "*.sh" -exec chmod +x {} +
+
+# Ensure supervisord logs directory exists and permissions
+RUN mkdir -p /var/log/supervisor \
+    && chown -R appuser:appuser /var/log/supervisor
+
+# Switch to appuser
+USER appuser
+
+EXPOSE 8000
+
+# Run the application
+ENTRYPOINT ["/app/deploy/entrypoint_scripts/entrypoint.sh"]
+CMD ["/app/deploy/entrypoint_scripts/gunicorn_entrypoint.sh"]
