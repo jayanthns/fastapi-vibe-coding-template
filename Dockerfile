@@ -15,12 +15,14 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
 WORKDIR $APP_HOME
 
 # Install dependencies
-COPY requirements/requirements.txt requirements/requirements.txt
-RUN python -m pip install --upgrade uv pip wheel
-RUN python -m uv pip install -r requirements/requirements.txt
+COPY pyproject.toml uv.lock ./
+RUN pip install uv
+RUN uv sync --frozen --no-install-project
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy project
 COPY . .
+RUN uv sync --frozen
 
 # Ensure appuser has ownership of the application directory
 RUN chown -R appuser:appuser $APP_HOME
