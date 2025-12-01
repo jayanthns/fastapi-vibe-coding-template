@@ -5,20 +5,27 @@ Tests the file utilities including text, JSON, and CSV operations
 with error handling and edge cases.
 """
 
-import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from src.utils.file_utils import (FileUtils, FileUtilsError, file_exists,
-                                  get_file_info, read_csv, read_json,
-                                  read_text, write_csv, write_json, write_text)
+from src.utils.file_utils import (
+    FileUtils,
+    FileUtilsError,
+    file_exists,
+    get_file_info,
+    read_csv,
+    read_json,
+    read_text,
+    write_csv,
+    write_json,
+    write_text,
+)
 
 # Mark all tests in this module as utility tests (run middle)
 # Test order is managed centrally in conftest.py
-
 
 
 class TestFileUtils:
@@ -195,9 +202,7 @@ class TestJSONFileOperations:
             tmp_path = tmp.name
 
         try:
-            with pytest.raises(
-                FileUtilsError, match="Failed to serialize data to JSON"
-            ):
+            with pytest.raises(FileUtilsError, match="Failed to serialize data to JSON"):
                 file_utils.write_json_file(tmp_path, data)
 
         finally:

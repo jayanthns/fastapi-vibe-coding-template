@@ -1,6 +1,4 @@
 import dramatiq
-
-print("DEBUG: src/worker.py imported")
 from dramatiq.brokers.redis import RedisBroker
 
 from src.apps.background_jobs.middleware import JobTrackingMiddleware
@@ -16,5 +14,5 @@ redis_broker.add_middleware(JobTrackingMiddleware())
 dramatiq.set_broker(redis_broker)
 
 # Import tasks here to ensure they are registered
-from src.apps.audit import tasks as audit_tasks  # noqa: F401
-from src.apps.background_jobs import tasks as bg_tasks  # noqa: F401
+from src.apps.audit import tasks as audit_tasks  # noqa: F401, E402
+from src.apps.background_jobs import tasks as bg_tasks  # noqa: F401, E402

@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from src.apps.background_jobs.tasks import test_background_task, test_failing_task
 
 

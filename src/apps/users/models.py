@@ -3,7 +3,6 @@ User model with industry-standard fields and UUID primary key.
 """
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
 
 from src.core.models import UUIDModel
 from src.db.session import Base

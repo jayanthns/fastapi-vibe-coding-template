@@ -2,7 +2,7 @@
 Service layer for Animal business logic with async audit logging.
 """
 
-from typing import Optional, Sequence
+from collections.abc import Sequence
 from uuid import UUID
 
 from src.apps.animals.models import Animal
@@ -16,11 +16,11 @@ class AuditContext:
 
     def __init__(
         self,
-        user_id: Optional[str] = None,
-        user_email: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        trace_id: Optional[str] = None,
+        user_id: str | None = None,
+        user_email: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        trace_id: str | None = None,
     ):
         self.user_id = user_id
         self.user_email = user_email
@@ -37,7 +37,7 @@ class AnimalService:
         self.audit_service = AuditService()
 
     async def create_animal(
-        self, animal_data: AnimalCreate, audit_context: Optional[AuditContext] = None
+        self, animal_data: AnimalCreate, audit_context: AuditContext | None = None
     ) -> Animal:
         """
         Create a new animal and log audit event.
@@ -66,13 +66,11 @@ class AnimalService:
 
         return animal
 
-    async def get_animal(self, animal_id: UUID) -> Optional[Animal]:
+    async def get_animal(self, animal_id: UUID) -> Animal | None:
         """Get an animal by ID."""
         return await self.repository.get_by_id(animal_id)
 
-    async def list_animals(
-        self, skip: int = 0, limit: int = 100
-    ) -> tuple[Sequence[Animal], int]:
+    async def list_animals(self, skip: int = 0, limit: int = 100) -> tuple[Sequence[Animal], int]:
         """List all animals with pagination."""
         return await self.repository.list(skip, limit)
 
@@ -80,8 +78,8 @@ class AnimalService:
         self,
         animal_id: UUID,
         animal_data: AnimalUpdate,
-        audit_context: Optional[AuditContext] = None,
-    ) -> Optional[Animal]:
+        audit_context: AuditContext | None = None,
+    ) -> Animal | None:
         """
         Update an animal and log audit event.
 
@@ -116,7 +114,7 @@ class AnimalService:
         return animal
 
     async def delete_animal(
-        self, animal_id: UUID, audit_context: Optional[AuditContext] = None
+        self, animal_id: UUID, audit_context: AuditContext | None = None
     ) -> bool:
         """
         Delete an animal and log audit event.

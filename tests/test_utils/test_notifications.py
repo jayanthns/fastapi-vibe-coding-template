@@ -5,18 +5,23 @@ Tests the OOP notification system including base classes,
 email notifications, and error handling.
 """
 
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
-from src.utils.notifications import (BaseNotification, EmailNotification,
-                                     NotificationRecipient, NotificationStatus,
-                                     NotificationType, SMSNotification,
-                                     create_notification, send_email)
+from src.utils.notifications import (
+    BaseNotification,
+    EmailNotification,
+    NotificationRecipient,
+    NotificationStatus,
+    NotificationType,
+    SMSNotification,
+    create_notification,
+    send_email,
+)
 
 # Mark all tests in this module as utility tests (run middle)
 # Test order is managed centrally in conftest.py
-
 
 
 class TestNotificationRecipient:
@@ -24,9 +29,7 @@ class TestNotificationRecipient:
 
     def test_create_recipient_with_email(self):
         """Test creating recipient with email."""
-        recipient = NotificationRecipient(
-            id="user1", email="user@example.com", name="Test User"
-        )
+        recipient = NotificationRecipient(id="user1", email="user@example.com", name="Test User")
 
         assert recipient.id == "user1"
         assert recipient.email == "user@example.com"
@@ -35,9 +38,7 @@ class TestNotificationRecipient:
 
     def test_create_recipient_with_phone(self):
         """Test creating recipient with phone."""
-        recipient = NotificationRecipient(
-            id="user2", phone="+1234567890", name="Mobile User"
-        )
+        recipient = NotificationRecipient(id="user2", phone="+1234567890", name="Mobile User")
 
         assert recipient.id == "user2"
         assert recipient.phone == "+1234567890"
@@ -80,9 +81,7 @@ class TestEmailNotification:
     def test_validate_recipient_no_email(self):
         """Test email validation with no email."""
         email_notifier = EmailNotification()
-        recipient = NotificationRecipient(
-            id="user1", phone="+1234567890"  # No email provided
-        )
+        recipient = NotificationRecipient(id="user1", phone="+1234567890")  # No email provided
 
         assert email_notifier.validate_recipient(recipient) is False
 
@@ -121,9 +120,7 @@ class TestEmailNotification:
         """Test sending email to invalid recipient."""
         email_notifier = EmailNotification(trace_id="test-trace")
 
-        recipient = NotificationRecipient(
-            id="user1", email="invalid-email"  # Invalid email format
-        )
+        recipient = NotificationRecipient(id="user1", email="invalid-email")  # Invalid email format
 
         result = await email_notifier.send(
             recipients=recipient, subject="Test Subject", content="Test content"
@@ -227,9 +224,7 @@ class TestSMSNotification:
     def test_validate_recipient_no_phone(self):
         """Test phone validation with no phone number."""
         sms_notifier = SMSNotification()
-        recipient = NotificationRecipient(
-            id="user1", email="user@example.com"  # No phone provided
-        )
+        recipient = NotificationRecipient(id="user1", email="user@example.com")  # No phone provided
 
         assert sms_notifier.validate_recipient(recipient) is False
 

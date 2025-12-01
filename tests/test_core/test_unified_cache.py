@@ -1,5 +1,7 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+
 from src.core.cache.unified_cache import UnifiedCacheService
 
 
@@ -79,9 +81,7 @@ async def test_unified_cache_memory_selection(
 
 
 @pytest.mark.asyncio
-async def test_unified_cache_switching(
-    unified_cache, mock_redis_service, mock_memory_service
-):
+async def test_unified_cache_switching(unified_cache, mock_redis_service, mock_memory_service):
     # Start with Redis
     with patch("src.core.cache.unified_cache.settings.use_redis", True):
         unified_cache._service = None

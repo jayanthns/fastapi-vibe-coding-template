@@ -2,8 +2,6 @@
 Audit Log database models.
 """
 
-from typing import Optional
-
 from sqlalchemy import JSON, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -19,12 +17,12 @@ class AuditLog(Base, UUIDModel):
     __tablename__ = "audit_logs"
 
     # Actor information
-    actor_id: Mapped[Optional[str]] = mapped_column(
+    actor_id: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
         comment="ID of the user who performed the action",
     )
-    actor_email: Mapped[Optional[str]] = mapped_column(
+    actor_email: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
         comment="Email of the user who performed the action",
@@ -51,13 +49,13 @@ class AuditLog(Base, UUIDModel):
     )
 
     # Request metadata
-    ip_address: Mapped[Optional[str]] = mapped_column(
+    ip_address: Mapped[str | None] = mapped_column(
         String(45), nullable=True, comment="IP address of the actor"
     )
-    user_agent: Mapped[Optional[str]] = mapped_column(
+    user_agent: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="User Agent string of the actor"
     )
-    trace_id: Mapped[Optional[str]] = mapped_column(
+    trace_id: Mapped[str | None] = mapped_column(
         String(36), nullable=True, index=True, comment="Trace ID for request tracking"
     )
 

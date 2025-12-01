@@ -10,9 +10,9 @@ from pathlib import Path
 # Add the parent directory to the path so we can import from app
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from sqlalchemy import text
+from sqlalchemy import text  # noqa: E402, isort:skip
 
-from src.db.session import get_async_engine
+from src.db.session import get_async_engine  # noqa: E402, isort:skip
 
 
 async def check_uuid_columns():
@@ -60,7 +60,7 @@ async def check_uuid_columns():
             print("❌ No UUID columns found")
 
         # Also check the table structure
-        print(f"\n📋 Table Structure Summary:")
+        print("\n📋 Table Structure Summary:")
         result2 = await conn.execute(
             text(
                 """

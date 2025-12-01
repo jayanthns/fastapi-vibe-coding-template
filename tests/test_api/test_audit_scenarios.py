@@ -1,4 +1,3 @@
-import pytest
 from fastapi.testclient import TestClient
 
 from src.core.enums import AuditAction
@@ -7,9 +6,10 @@ from src.core.enums import AuditAction
 class TestAuditScenarios:
     async def test_audit_lifecycle(self, client: TestClient, async_session):
         """Test full lifecycle of audit logs: List -> Get -> Filter"""
-        from src.apps.audit.models import AuditLog
-        from uuid import uuid4
         from datetime import datetime
+        from uuid import uuid4
+
+        from src.apps.audit.models import AuditLog
 
         # 1. Seed Audit Log directly (since POST endpoint is removed)
         audit_id = uuid4()

@@ -4,8 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.apps.background_jobs.schemas import (BackgroundJobResponse, JobFilter,
-                                              JobStatus)
+from src.apps.background_jobs.schemas import BackgroundJobResponse, JobFilter, JobStatus
 from src.apps.background_jobs.service import JobService
 from src.core.schemas import APIResponse
 from src.db.session import get_db
@@ -23,9 +22,7 @@ async def list_jobs(
     offset: int = 0,
     session: AsyncSession = Depends(get_db),
 ):
-    filters = JobFilter(
-        status=status, task_name=task_name, date_from=date_from, date_to=date_to
-    )
+    filters = JobFilter(status=status, task_name=task_name, date_from=date_from, date_to=date_to)
     jobs = await JobService.list_jobs(session, filters, limit, offset)
     return APIResponse(data=jobs)
 
@@ -45,6 +42,4 @@ async def retry_job(job_id: UUID, session: AsyncSession = Depends(get_db)):
     # For now, we'll return 501 Not Implemented or just a placeholder.
     # The requirement was "later we can re trigger a job".
     # I'll implement a basic placeholder or try to dynamically import.
-    raise HTTPException(
-        status_code=501, detail="Retry functionality not yet implemented"
-    )
+    raise HTTPException(status_code=501, detail="Retry functionality not yet implemented")

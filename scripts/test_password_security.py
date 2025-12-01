@@ -11,10 +11,10 @@ from pathlib import Path
 # Add the parent directory to the path so we can import from app
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.apps.users.repository import UserRepository
-from src.apps.users.schemas import UserCreate
-from src.apps.users.service import UserService
-from src.db.session import get_db
+from src.apps.users.repository import UserRepository  # noqa: E402
+from src.apps.users.schemas import UserCreate  # noqa: E402
+from src.apps.users.service import UserService  # noqa: E402
+from src.db.session import get_db  # noqa: E402
 
 
 async def test_password_security():
@@ -95,9 +95,7 @@ async def test_password_security():
             try:
                 # This should work but is discouraged
                 direct_hash = db_user._password_hash
-                print(
-                    f"   ⚠️  Direct access to _password_hash works: {direct_hash[:20]}..."
-                )
+                print(f"   ⚠️  Direct access to _password_hash works: {direct_hash[:20]}...")
                 print(
                     "   ⚠️  Warning: Direct access is discouraged - use set_password() and verify_password() instead"
                 )
@@ -110,9 +108,7 @@ async def test_password_security():
 
             login_data = UserLogin(email=unique_email, password="NewSecurePassword456!")
             auth_user, auth_token = await service.authenticate_user(login_data)
-            print(
-                f"   ✅ Service-level authentication successful: {auth_user.username}"
-            )
+            print(f"   ✅ Service-level authentication successful: {auth_user.username}")
 
             print("\n✅ All password security tests passed!")
             print("\n📋 Security Summary:")

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -17,35 +17,35 @@ class Settings(BaseSettings):
 
     # Database
     # Direct URL takes precedence if provided (env: DATABASE_URL)
-    database_url: Optional[str] = None
-    database_sync_url: Optional[str] = None
+    database_url: str | None = None
+    database_sync_url: str | None = None
 
     # Discrete credentials (envs: DATABASE_DRIVER, DATABASE_HOST, DATABASE_PORT,
     # DATABASE_USERNAME, DATABASE_PASSWORD, DATABASE_NAME)
-    database_driver: Optional[str] = None  # e.g., "postgresql+asyncpg"
-    database_host: Optional[str] = None
-    database_port: Optional[int] = None
-    database_username: Optional[str] = None
-    database_password: Optional[str] = None
-    database_name: Optional[str] = None
+    database_driver: str | None = None  # e.g., "postgresql+asyncpg"
+    database_host: str | None = None
+    database_port: int | None = None
+    database_username: str | None = None
+    database_password: str | None = None
+    database_name: str | None = None
 
     # Alternate/distributed env names commonly used
-    database_user: Optional[str] = None  # alias for username (e.g., DATABASE_USER)
-    database_pass: Optional[str] = None  # alias for password (e.g., DATABASE_PASS)
-    db_host: Optional[str] = None  # alias for host (e.g., DB_HOST)
-    db_port: Optional[int] = None  # alias for port (e.g., DB_PORT)
-    db_name: Optional[str] = None  # alias for name (e.g., DB_NAME)
+    database_user: str | None = None  # alias for username (e.g., DATABASE_USER)
+    database_pass: str | None = None  # alias for password (e.g., DATABASE_PASS)
+    db_host: str | None = None  # alias for host (e.g., DB_HOST)
+    db_port: int | None = None  # alias for port (e.g., DB_PORT)
+    db_name: str | None = None  # alias for name (e.g., DB_NAME)
 
     # CORS
     backend_cors_origins: list[str] | str = "*"
 
     # Redis
     use_redis: bool = False
-    redis_url: Optional[str] = None
-    redis_host: Optional[str] = None
-    redis_port: Optional[int] = None
-    redis_db: Optional[int] = None
-    redis_password: Optional[str] = None
+    redis_url: str | None = None
+    redis_host: str | None = None
+    redis_port: int | None = None
+    redis_db: int | None = None
+    redis_password: str | None = None
 
     # Paths
     temp_dir: Path = Path("tmp")
@@ -67,9 +67,7 @@ class Settings(BaseSettings):
 
         if name and username and password:
             driver = self.database_driver or "postgresql+asyncpg"
-            self.database_url = (
-                f"{driver}://{username}:{password}" f"@{host}:{port}/{name}"
-            )
+            self.database_url = f"{driver}://{username}:{password}" f"@{host}:{port}/{name}"
             return self
 
         # Fallback to local SQLite async database
@@ -88,13 +86,9 @@ class Settings(BaseSettings):
 
         # Convert async → sync automatically
         if self.database_url.startswith("postgresql+asyncpg"):
-            self.database_sync_url = self.database_url.replace(
-                "postgresql+asyncpg", "postgresql"
-            )
+            self.database_sync_url = self.database_url.replace("postgresql+asyncpg", "postgresql")
         elif self.database_url.startswith("sqlite+aiosqlite"):
-            self.database_sync_url = self.database_url.replace(
-                "sqlite+aiosqlite", "sqlite"
-            )
+            self.database_sync_url = self.database_url.replace("sqlite+aiosqlite", "sqlite")
         else:
             # Fallback: assume URL is already sync-compatible
             self.database_sync_url = self.database_url
@@ -127,9 +121,7 @@ class Settings(BaseSettings):
             if value.strip() == "*":
                 self.backend_cors_origins = ["*"]
             else:
-                self.backend_cors_origins = [
-                    v.strip() for v in value.split(",") if v.strip()
-                ]
+                self.backend_cors_origins = [v.strip() for v in value.split(",") if v.strip()]
         return self
 
 

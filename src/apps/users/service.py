@@ -2,15 +2,16 @@
 User service with business logic for user management.
 """
 
-from typing import Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.apps.users.repository import UserRepository
-from src.apps.users.schemas import (Token, UserCreate, UserLogin,
-                                    UserPasswordChange, UserResponse,
-                                    UserUpdate)
+from src.apps.users.schemas import (
+    UserCreate,
+    UserLogin,
+    UserPasswordChange,
+    UserResponse,
+    UserUpdate,
+)
 from src.utils.security import create_access_token, create_refresh_token
 
 
@@ -20,7 +21,7 @@ class UserService:
     def __init__(self, repository: UserRepository):
         self.repository = repository
 
-    async def create_user(self, user_create: UserCreate) -> Tuple[UserResponse, str]:
+    async def create_user(self, user_create: UserCreate) -> tuple[UserResponse, str]:
         """
         Create a new user and return user data with access token.
 
@@ -47,15 +48,11 @@ class UserService:
         user = await self.repository.create(user_create)
 
         # Create access token
-        access_token = create_access_token(
-            data={"sub": str(user.id), "email": user.email}
-        )
+        access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
 
         return UserResponse.model_validate(user), access_token
 
-    async def authenticate_user(
-        self, user_login: UserLogin
-    ) -> Tuple[UserResponse, str]:
+    async def authenticate_user(self, user_login: UserLogin) -> tuple[UserResponse, str]:
         """
         Authenticate a user and return user data with access token.
 
@@ -85,31 +82,25 @@ class UserService:
         await self.repository.update_last_login(user.id)
 
         # Create access token
-        access_token = create_access_token(
-            data={"sub": str(user.id), "email": user.email}
-        )
+        access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
 
         return UserResponse.model_validate(user), access_token
 
-    async def get_user_by_id(self, user_id: UUID) -> Optional[UserResponse]:
+    async def get_user_by_id(self, user_id: UUID) -> UserResponse | None:
         """Get user by ID."""
         user = await self.repository.get_by_id(user_id)
         if not user:
             return None
         return UserResponse.model_validate(user)
 
-    async def update_user(
-        self, user_id: UUID, user_update: UserUpdate
-    ) -> Optional[UserResponse]:
+    async def update_user(self, user_id: UUID, user_update: UserUpdate) -> UserResponse | None:
         """Update user profile."""
         user = await self.repository.update(user_id, user_update)
         if not user:
             return None
         return UserResponse.model_validate(user)
 
-    async def change_password(
-        self, user_id: UUID, password_change: UserPasswordChange
-    ) -> bool:
+    async def change_password(self, user_id: UUID, password_change: UserPasswordChange) -> bool:
         """
         Change user password.
 
@@ -133,33 +124,31 @@ class UserService:
             raise ValueError("Current password is incorrect")
 
         # Update password (will be hashed in the repository)
-        updated_user = await self.repository.update_password(
-            user_id, password_change.new_password
-        )
+        updated_user = await self.repository.update_password(user_id, password_change.new_password)
         return updated_user is not None
 
-    async def verify_user(self, user_id: UUID) -> Optional[UserResponse]:
+    async def verify_user(self, user_id: UUID) -> UserResponse | None:
         """Verify a user account."""
         user = await self.repository.verify_user(user_id)
         if not user:
             return None
         return UserResponse.model_validate(user)
 
-    async def deactivate_user(self, user_id: UUID) -> Optional[UserResponse]:
+    async def deactivate_user(self, user_id: UUID) -> UserResponse | None:
         """Deactivate a user account."""
         user = await self.repository.deactivate_user(user_id)
         if not user:
             return None
         return UserResponse.model_validate(user)
 
-    async def activate_user(self, user_id: UUID) -> Optional[UserResponse]:
+    async def activate_user(self, user_id: UUID) -> UserResponse | None:
         """Activate a user account."""
         user = await self.repository.activate_user(user_id)
         if not user:
             return None
         return UserResponse.model_validate(user)
 
-    async def make_superuser(self, user_id: UUID) -> Optional[UserResponse]:
+    async def make_superuser(self, user_id: UUID) -> UserResponse | None:
         """Make a user a superuser."""
         user = await self.repository.make_superuser(user_id)
         if not user:
@@ -170,9 +159,9 @@ class UserService:
         self,
         skip: int = 0,
         limit: int = 100,
-        search: Optional[str] = None,
-        is_active: Optional[bool] = None,
-    ) -> Tuple[list[UserResponse], int]:
+        search: str | None = None,
+        is_active: bool | None = None,
+    ) -> tuple[list[UserResponse], int]:
         """Get list of users with pagination."""
         users, total = await self.repository.get_all(
             skip=skip, limit=limit, search=search, is_active=is_active
@@ -180,7 +169,7 @@ class UserService:
         user_responses = [UserResponse.model_validate(user) for user in users]
         return user_responses, total
 
-    async def create_token_pair(self, user_id: UUID, email: str) -> Tuple[str, str]:
+    async def create_token_pair(self, user_id: UUID, email: str) -> tuple[str, str]:
         """
         Create both access and refresh tokens for a user.
 
@@ -198,7 +187,7 @@ class UserService:
 
         return access_token, refresh_token
 
-    async def refresh_access_token(self, refresh_token: str) -> Optional[str]:
+    async def refresh_access_token(self, refresh_token: str) -> str | None:
         """
         Create a new access token using a refresh token.
 

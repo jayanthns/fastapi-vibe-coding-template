@@ -5,18 +5,25 @@ Tests all security utility functions including masking, field detection,
 and response helpers.
 """
 
-import pytest
-
-from src.utils.security import (_is_ip_address, _is_sensitive_field,
-                                _mask_domain, _mask_email, _mask_host,
-                                _mask_ip_address, _mask_string, _mask_url,
-                                create_masked_response, mask_credentials,
-                                mask_sensitive_data, mask_urls,
-                                public_response, secure_response)
+from src.utils.security import (
+    _is_ip_address,
+    _is_sensitive_field,
+    _mask_domain,
+    _mask_email,
+    _mask_host,
+    _mask_ip_address,
+    _mask_string,
+    _mask_url,
+    create_masked_response,
+    mask_credentials,
+    mask_sensitive_data,
+    mask_urls,
+    public_response,
+    secure_response,
+)
 
 # Mark all tests in this module as utility tests (run middle)
 # Test order is managed centrally in conftest.py
-
 
 
 class TestMaskSensitiveData:
@@ -126,9 +133,7 @@ class TestIsSensitiveField:
         ]
 
         for field in sensitive_fields:
-            assert (
-                _is_sensitive_field(field) is True
-            ), f"Field '{field}' should be sensitive"
+            assert _is_sensitive_field(field) is True, f"Field '{field}' should be sensitive"
 
     def test_non_sensitive_field_patterns(self):
         """Test that non-sensitive field patterns are not detected."""
@@ -159,9 +164,7 @@ class TestIsSensitiveField:
         ]
 
         for field in non_sensitive_fields:
-            assert (
-                _is_sensitive_field(field) is False
-            ), f"Field '{field}' should not be sensitive"
+            assert _is_sensitive_field(field) is False, f"Field '{field}' should not be sensitive"
 
     def test_case_insensitive_detection(self):
         """Test that field detection is case insensitive."""
@@ -273,9 +276,7 @@ class TestMaskEmail:
         ]
         for email, expected in test_cases:
             result = _mask_email(email)
-            assert (
-                result == expected
-            ), f"Email '{email}' should be '{expected}', got '{result}'"
+            assert result == expected, f"Email '{email}' should be '{expected}', got '{result}'"
 
 
 class TestMaskIpAddress:
@@ -304,9 +305,7 @@ class TestMaskIpAddress:
         test_cases = [("notanip", "***"), ("1.2.3", "***.***.***.***")]
         for ip, expected in test_cases:
             result = _mask_ip_address(ip)
-            assert (
-                result == expected
-            ), f"IP '{ip}' should be '{expected}', got '{result}'"
+            assert result == expected, f"IP '{ip}' should be '{expected}', got '{result}'"
 
 
 class TestMaskDomain:
@@ -401,9 +400,7 @@ class TestIsIpAddress:
             "192.168.1.1.1",
         ]
         for ip in invalid_ips:
-            assert (
-                _is_ip_address(ip) is False
-            ), f"IP '{ip}' should not be detected as valid IP"
+            assert _is_ip_address(ip) is False, f"IP '{ip}' should not be detected as valid IP"
 
 
 class TestCreateMaskedResponse:
@@ -501,9 +498,7 @@ class TestMaskUrls:
         result = mask_urls(data, mask=True)
 
         assert result["redis_url"] == "redis://***:***@localhost:6379/0"
-        assert (
-            result["api_url"] == "https://***.example.com/endpoint"
-        )  # Domain is masked
+        assert result["api_url"] == "https://***.example.com/endpoint"  # Domain is masked
         assert result["normal_field"] == "safe"
 
     def test_mask_urls_disabled(self):
@@ -528,9 +523,7 @@ class TestMaskUrls:
         }
         result = mask_urls(data, mask=True)
 
-        assert (
-            result["config"]["database_url"] == "postgresql://***:***@localhost:5432/db"
-        )
+        assert result["config"]["database_url"] == "postgresql://***:***@localhost:5432/db"
         assert result["config"]["redis_url"] == "redis://***:***@localhost:6379/0"
         assert result["urls"][0] == "https://***.example.com"
         assert result["urls"][1] == "redis://***:***@localhost:6379/0"

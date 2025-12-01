@@ -8,15 +8,11 @@ Author: FastAPI Vibe Coding
 Created: 2024
 """
 
-import logging
-import re
-from datetime import date, datetime, time, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import pytz
 from dateutil import parser, relativedelta
-from dateutil.tz import gettz
 
 from src.core.logging import get_logger_for_trace_id
 
@@ -40,7 +36,7 @@ class DateTimeUtils:
     - Date validation and manipulation
     """
 
-    def __init__(self, trace_id: Optional[str] = None):
+    def __init__(self, trace_id: str | None = None):
         """
         Initialize DateTimeUtils.
 
@@ -89,12 +85,10 @@ class DateTimeUtils:
                 # Fallback to pytz
                 return pytz.timezone(tz_name)
         except Exception as e:
-            self.logger.error(
-                f"Invalid timezone: {tz_name}", extra={"trace_id": self.trace_id}
-            )
+            self.logger.error(f"Invalid timezone: {tz_name}", extra={"trace_id": self.trace_id})
             raise DateTimeUtilsError(f"Invalid timezone: {tz_name}") from e
 
-    def now(self, tz: Optional[str] = None) -> datetime:
+    def now(self, tz: str | None = None) -> datetime:
         """
         Get current datetime in specified timezone.
 
@@ -109,7 +103,7 @@ class DateTimeUtils:
             return datetime.now(timezone_obj)
         return datetime.now(timezone.utc)
 
-    def today(self, tz: Optional[str] = None) -> date:
+    def today(self, tz: str | None = None) -> date:
         """
         Get current date in specified timezone.
 
@@ -150,16 +144,14 @@ class DateTimeUtils:
             # Convert to target timezone
             return dt.astimezone(to_tz_obj)
         except Exception as e:
-            self.logger.error(
-                f"Timezone conversion failed: {e}", extra={"trace_id": self.trace_id}
-            )
+            self.logger.error(f"Timezone conversion failed: {e}", extra={"trace_id": self.trace_id})
             raise DateTimeUtilsError(f"Timezone conversion failed: {e}") from e
 
     def format_datetime(
         self,
         dt: datetime,
         format_str: str = "%Y-%m-%d %H:%M:%S",
-        tz: Optional[str] = None,
+        tz: str | None = None,
     ) -> str:
         """
         Format datetime with specified format.
@@ -174,19 +166,15 @@ class DateTimeUtils:
         """
         try:
             if tz:
-                dt = self.convert_timezone(
-                    dt, dt.tzinfo.zone if dt.tzinfo else "UTC", tz
-                )
+                dt = self.convert_timezone(dt, dt.tzinfo.zone if dt.tzinfo else "UTC", tz)
 
             return dt.strftime(format_str)
         except Exception as e:
-            self.logger.error(
-                f"Datetime formatting failed: {e}", extra={"trace_id": self.trace_id}
-            )
+            self.logger.error(f"Datetime formatting failed: {e}", extra={"trace_id": self.trace_id})
             raise DateTimeUtilsError(f"Datetime formatting failed: {e}") from e
 
     def parse_datetime(
-        self, date_str: str, format_str: Optional[str] = None, tz: Optional[str] = None
+        self, date_str: str, format_str: str | None = None, tz: str | None = None
     ) -> datetime:
         """
         Parse datetime string.
@@ -219,9 +207,7 @@ class DateTimeUtils:
 
             return dt
         except Exception as e:
-            self.logger.error(
-                f"Datetime parsing failed: {e}", extra={"trace_id": self.trace_id}
-            )
+            self.logger.error(f"Datetime parsing failed: {e}", extra={"trace_id": self.trace_id})
             raise DateTimeUtilsError(f"Datetime parsing failed: {e}") from e
 
     def add_days(self, dt: datetime, days: int) -> datetime:
@@ -294,7 +280,7 @@ class DateTimeUtils:
         start_date: date,
         end_date: date,
         exclude_weekends: bool = True,
-        exclude_holidays: Optional[List[date]] = None,
+        exclude_holidays: list[date] | None = None,
     ) -> int:
         """
         Calculate business days between two dates.
@@ -334,7 +320,7 @@ class DateTimeUtils:
         self,
         dt: date,
         exclude_weekends: bool = True,
-        exclude_holidays: Optional[List[date]] = None,
+        exclude_holidays: list[date] | None = None,
     ) -> date:
         """
         Get next business day.
@@ -369,7 +355,7 @@ class DateTimeUtils:
         self,
         dt: date,
         exclude_weekends: bool = True,
-        exclude_holidays: Optional[List[date]] = None,
+        exclude_holidays: list[date] | None = None,
     ) -> date:
         """
         Get previous business day.
@@ -400,9 +386,7 @@ class DateTimeUtils:
 
             return prev_day
 
-    def get_duration_between(
-        self, start_dt: datetime, end_dt: datetime
-    ) -> Dict[str, int]:
+    def get_duration_between(self, start_dt: datetime, end_dt: datetime) -> dict[str, int]:
         """
         Get duration between two datetimes.
 
@@ -440,31 +424,23 @@ class DateTimeUtils:
         parts = []
 
         if duration["days"] > 0:
-            parts.append(
-                f"{duration['days']} day{'s' if duration['days'] != 1 else ''}"
-            )
+            parts.append(f"{duration['days']} day{'s' if duration['days'] != 1 else ''}")
 
         if duration["hours"] > 0:
-            parts.append(
-                f"{duration['hours']} hour{'s' if duration['hours'] != 1 else ''}"
-            )
+            parts.append(f"{duration['hours']} hour{'s' if duration['hours'] != 1 else ''}")
 
         if duration["minutes"] > 0:
-            parts.append(
-                f"{duration['minutes']} minute{'s' if duration['minutes'] != 1 else ''}"
-            )
+            parts.append(f"{duration['minutes']} minute{'s' if duration['minutes'] != 1 else ''}")
 
         if duration["seconds"] > 0:
-            parts.append(
-                f"{duration['seconds']} second{'s' if duration['seconds'] != 1 else ''}"
-            )
+            parts.append(f"{duration['seconds']} second{'s' if duration['seconds'] != 1 else ''}")
 
         if not parts:
             return "0 seconds"
 
         return ", ".join(parts)
 
-    def get_timestamp(self, dt: Optional[datetime] = None) -> int:
+    def get_timestamp(self, dt: datetime | None = None) -> int:
         """
         Get Unix timestamp.
 
@@ -479,9 +455,7 @@ class DateTimeUtils:
 
         return int(dt.timestamp())
 
-    def from_timestamp(
-        self, timestamp: Union[int, float], tz: Optional[str] = None
-    ) -> datetime:
+    def from_timestamp(self, timestamp: int | float, tz: str | None = None) -> datetime:
         """
         Convert Unix timestamp to datetime.
 
@@ -612,7 +586,7 @@ class DateTimeUtils:
         """
         return dt.weekday() >= 5
 
-    def is_holiday(self, dt: date, holidays: List[date]) -> bool:
+    def is_holiday(self, dt: date, holidays: list[date]) -> bool:
         """
         Check if date is holiday.
 
@@ -625,7 +599,7 @@ class DateTimeUtils:
         """
         return dt in holidays
 
-    def get_age(self, birth_date: date, reference_date: Optional[date] = None) -> int:
+    def get_age(self, birth_date: date, reference_date: date | None = None) -> int:
         """
         Calculate age in years.
 
@@ -682,7 +656,7 @@ class DateTimeUtils:
         return self.get_month_end(dt.replace(month=month))
 
     def validate_date_range(
-        self, start_date: date, end_date: date, max_days: Optional[int] = None
+        self, start_date: date, end_date: date, max_days: int | None = None
     ) -> bool:
         """
         Validate date range.
@@ -705,7 +679,7 @@ class DateTimeUtils:
 
         return True
 
-    def get_common_formats(self) -> Dict[str, str]:
+    def get_common_formats(self) -> dict[str, str]:
         """
         Get common datetime format strings.
 
@@ -730,20 +704,20 @@ class DateTimeUtils:
 
 
 # Convenience functions for common operations
-def now(tz: Optional[str] = None, trace_id: Optional[str] = None) -> datetime:
+def now(tz: str | None = None, trace_id: str | None = None) -> datetime:
     """Get current datetime in specified timezone."""
     utils = DateTimeUtils(trace_id)
     return utils.now(tz)
 
 
-def today(tz: Optional[str] = None, trace_id: Optional[str] = None) -> date:
+def today(tz: str | None = None, trace_id: str | None = None) -> date:
     """Get current date in specified timezone."""
     utils = DateTimeUtils(trace_id)
     return utils.today(tz)
 
 
 def convert_timezone(
-    dt: datetime, from_tz: str, to_tz: str, trace_id: Optional[str] = None
+    dt: datetime, from_tz: str, to_tz: str, trace_id: str | None = None
 ) -> datetime:
     """Convert datetime from one timezone to another."""
     utils = DateTimeUtils(trace_id)
@@ -753,8 +727,8 @@ def convert_timezone(
 def format_datetime(
     dt: datetime,
     format_str: str = "%Y-%m-%d %H:%M:%S",
-    tz: Optional[str] = None,
-    trace_id: Optional[str] = None,
+    tz: str | None = None,
+    trace_id: str | None = None,
 ) -> str:
     """Format datetime with specified format."""
     utils = DateTimeUtils(trace_id)
@@ -763,9 +737,9 @@ def format_datetime(
 
 def parse_datetime(
     date_str: str,
-    format_str: Optional[str] = None,
-    tz: Optional[str] = None,
-    trace_id: Optional[str] = None,
+    format_str: str | None = None,
+    tz: str | None = None,
+    trace_id: str | None = None,
 ) -> datetime:
     """Parse datetime string."""
     utils = DateTimeUtils(trace_id)
@@ -776,34 +750,32 @@ def get_business_days_between(
     start_date: date,
     end_date: date,
     exclude_weekends: bool = True,
-    exclude_holidays: Optional[List[date]] = None,
-    trace_id: Optional[str] = None,
+    exclude_holidays: list[date] | None = None,
+    trace_id: str | None = None,
 ) -> int:
     """Calculate business days between two dates."""
     utils = DateTimeUtils(trace_id)
-    return utils.get_business_days_between(
-        start_date, end_date, exclude_weekends, exclude_holidays
-    )
+    return utils.get_business_days_between(start_date, end_date, exclude_weekends, exclude_holidays)
 
 
 def get_duration_between(
-    start_dt: datetime, end_dt: datetime, trace_id: Optional[str] = None
-) -> Dict[str, int]:
+    start_dt: datetime, end_dt: datetime, trace_id: str | None = None
+) -> dict[str, int]:
     """Get duration between two datetimes."""
     utils = DateTimeUtils(trace_id)
     return utils.get_duration_between(start_dt, end_dt)
 
 
-def get_timestamp(dt: Optional[datetime] = None, trace_id: Optional[str] = None) -> int:
+def get_timestamp(dt: datetime | None = None, trace_id: str | None = None) -> int:
     """Get Unix timestamp."""
     utils = DateTimeUtils(trace_id)
     return utils.get_timestamp(dt)
 
 
 def from_timestamp(
-    timestamp: Union[int, float],
-    tz: Optional[str] = None,
-    trace_id: Optional[str] = None,
+    timestamp: int | float,
+    tz: str | None = None,
+    trace_id: str | None = None,
 ) -> datetime:
     """Convert Unix timestamp to datetime."""
     utils = DateTimeUtils(trace_id)

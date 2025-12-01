@@ -1,5 +1,5 @@
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -38,12 +38,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     dramatiq.set_broker(redis_broker)
 
     # Import audit tasks to register them with the broker
-    from src.apps.audit import tasks as audit_tasks  # noqa: F401
     from src import test_tasks  # noqa: F401  # Test tasks for debugging
+    from src.apps.audit import tasks as audit_tasks  # noqa: F401
 
     # Start background task manager
     # await background_task_manager.start()
-
     # Initialize cache service with fallback support
     try:
         ping_result = await cache.ping()
@@ -57,13 +56,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 )
                 print("   Redis unavailable, using memory cache fallback")
             else:
-                print(
-                    f"✅ {cache_type.title()} cache connection established successfully"
-                )
+                print(f"✅ {cache_type.title()} cache connection established successfully")
         else:
-            print(
-                "⚠️  Cache connection failed - both Redis and memory cache unavailable"
-            )
+            print("⚠️  Cache connection failed - both Redis and memory cache unavailable")
             print("   Cache features will be disabled")
     except Exception as e:
         print(f"⚠️  Cache connection failed: {e}")

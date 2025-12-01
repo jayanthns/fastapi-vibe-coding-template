@@ -65,9 +65,7 @@ class TestDatabasePingEndpoints:
             except Exception as e:
                 # Skip endpoints that fail due to TestClient async limitations
                 if "Task" in str(e) and "attached to a different loop" in str(e):
-                    pytest.skip(
-                        f"Skipping {endpoint} due to TestClient async limitations: {e}"
-                    )
+                    pytest.skip(f"Skipping {endpoint} due to TestClient async limitations: {e}")
                 else:
                     raise
 
@@ -125,9 +123,7 @@ class TestDatabasePingEndpoints:
                 assert "timestamp" in data, f"Missing 'timestamp' field in {endpoint}"
 
                 # Check data structure
-                assert (
-                    "status" in data["data"]
-                ), f"Missing 'status' field in data for {endpoint}"
+                assert "status" in data["data"], f"Missing 'status' field in data for {endpoint}"
                 assert data["data"]["status"] in [
                     "healthy",
                     "unhealthy",
@@ -135,9 +131,7 @@ class TestDatabasePingEndpoints:
 
             # Check response structure for error responses
             elif response.status_code == 503:
-                assert (
-                    "error" in data
-                ), f"Missing 'error' field in error response for {endpoint}"
+                assert "error" in data, f"Missing 'error' field in error response for {endpoint}"
                 assert (
                     "message" in data
                 ), f"Missing 'message' field in error response for {endpoint}"
@@ -281,12 +275,8 @@ class TestDatabasePingEndpoints:
             # Trace ID should be present in successful responses
             if response.status_code == 200:
                 assert "trace_id" in data, f"Missing trace_id in {endpoint}"
-                assert isinstance(
-                    data["trace_id"], str
-                ), f"trace_id should be string in {endpoint}"
-                assert (
-                    len(data["trace_id"]) > 0
-                ), f"trace_id should not be empty in {endpoint}"
+                assert isinstance(data["trace_id"], str), f"trace_id should be string in {endpoint}"
+                assert len(data["trace_id"]) > 0, f"trace_id should not be empty in {endpoint}"
 
     def test_timestamp_presence(self, client: TestClient):
         """Test that timestamp is present in all responses."""
@@ -309,9 +299,7 @@ class TestDatabasePingEndpoints:
                 assert isinstance(
                     data["timestamp"], str
                 ), f"timestamp should be string in {endpoint}"
-                assert (
-                    len(data["timestamp"]) > 0
-                ), f"timestamp should not be empty in {endpoint}"
+                assert len(data["timestamp"]) > 0, f"timestamp should not be empty in {endpoint}"
 
     def test_response_time_metrics(self, client: TestClient):
         """Test that response time metrics are present."""
@@ -330,9 +318,7 @@ class TestDatabasePingEndpoints:
 
             # Response time should be present in successful responses
             if response.status_code == 200:
-                assert (
-                    "response_time_ms" in data["data"]
-                ), f"Missing response_time_ms in {endpoint}"
+                assert "response_time_ms" in data["data"], f"Missing response_time_ms in {endpoint}"
                 assert isinstance(
                     data["data"]["response_time_ms"], (int, float)
                 ), f"response_time_ms should be numeric in {endpoint}"
@@ -376,9 +362,7 @@ class TestDatabasePingEndpoints:
             data = response.json()
 
             if response.status_code == 200:
-                assert (
-                    "operation" in data["data"]
-                ), f"Missing operation field in {endpoint}"
+                assert "operation" in data["data"], f"Missing operation field in {endpoint}"
                 assert (
                     data["data"]["operation"] == expected_operation
                 ), f"Wrong operation value in {endpoint}"
@@ -400,9 +384,7 @@ class TestDatabasePingEndpoints:
             # If we get an error response, it should be properly structured
             if response.status_code == 503:
                 data = response.json()
-                assert (
-                    "error" in data
-                ), f"Missing 'error' field in error response for {endpoint}"
+                assert "error" in data, f"Missing 'error' field in error response for {endpoint}"
                 assert (
                     "message" in data
                 ), f"Missing 'message' field in error response for {endpoint}"

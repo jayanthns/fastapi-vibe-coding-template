@@ -4,8 +4,6 @@ Configures SQLAlchemy to use our trace_id-aware logging.
 """
 
 import logging
-import os
-from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy import event
@@ -97,9 +95,7 @@ def setup_sqlalchemy_event_logging(engine: Engine, trace_id: str) -> None:
         return
 
     @event.listens_for(engine, "before_cursor_execute")
-    def receive_before_cursor_execute(
-        conn, cursor, statement, parameters, context, executemany
-    ):
+    def receive_before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
         """Log SQL statements before execution."""
         logger = logging.getLogger("src.sqlalchemy")
         # Create a custom log record with trace_id
@@ -116,9 +112,7 @@ def setup_sqlalchemy_event_logging(engine: Engine, trace_id: str) -> None:
         logger.handle(record)
 
     @event.listens_for(engine, "after_cursor_execute")
-    def receive_after_cursor_execute(
-        conn, cursor, statement, parameters, context, executemany
-    ):
+    def receive_after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
         """Log SQL execution completion."""
         logger = logging.getLogger("src.sqlalchemy")
         record = logging.LogRecord(

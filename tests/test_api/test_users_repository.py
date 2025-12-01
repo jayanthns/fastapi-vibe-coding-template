@@ -1,8 +1,9 @@
-import pytest
 from uuid import uuid4
+
+import pytest
+
 from src.apps.users.repository import UserRepository
 from src.apps.users.schemas import UserCreate, UserUpdate
-from src.apps.users.models import User
 
 
 @pytest.mark.asyncio

@@ -1,7 +1,5 @@
 import sys
-import pytest
-from unittest.mock import MagicMock, patch
-import importlib
+from unittest.mock import patch
 
 
 def test_worker_configuration():
@@ -12,9 +10,7 @@ def test_worker_configuration():
     with (
         patch("dramatiq.brokers.redis.RedisBroker") as MockBroker,
         patch("src.core.logging.setup_logging") as mock_logging,
-        patch(
-            "src.apps.background_jobs.middleware.JobTrackingMiddleware"
-        ) as MockMiddleware,
+        patch("src.apps.background_jobs.middleware.JobTrackingMiddleware") as MockMiddleware,
         patch("dramatiq.set_broker") as mock_set_broker,
     ):
         # Remove src.worker from sys.modules if it exists to force re-import
@@ -22,7 +18,6 @@ def test_worker_configuration():
             del sys.modules["src.worker"]
 
         # Import the module
-        import src.worker
 
         # Verify logging setup
         mock_logging.assert_called()

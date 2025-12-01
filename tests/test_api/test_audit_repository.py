@@ -1,9 +1,10 @@
-import pytest
-from uuid import uuid4
 from datetime import datetime, timedelta
+from uuid import uuid4
+
+import pytest
+
 from src.apps.audit.repository import AuditLogRepository
 from src.apps.audit.schemas import AuditLogCreate, AuditLogFilter
-from src.apps.audit.models import AuditLog
 
 
 @pytest.mark.asyncio
@@ -71,16 +72,14 @@ class TestAuditLogRepository:
         assert logs[0].id == log1.id
 
         # Test filter by actor_email
-        logs, total = await repo.list(
-            filters=AuditLogFilter(actor_email="user2@example.com")
-        )
+        logs, total = await repo.list(filters=AuditLogFilter(actor_email="user2@example.com"))
         assert total == 1
         assert logs[0].id == log2.id
 
         # Test filter by action
         logs, total = await repo.list(filters=AuditLogFilter(action="CREATE"))
         assert len(logs) >= 1
-        assert any(l.id == log1.id for l in logs)
+        assert any(log.id == log1.id for log in logs)
 
         # Test filter by target_model
         logs, total = await repo.list(filters=AuditLogFilter(target_model="ModelB"))
@@ -88,9 +87,7 @@ class TestAuditLogRepository:
         assert logs[0].id == log2.id
 
         # Test filter by target_object_id
-        logs, total = await repo.list(
-            filters=AuditLogFilter(target_object_id=target_id)
-        )
+        logs, total = await repo.list(filters=AuditLogFilter(target_object_id=target_id))
         assert total == 1
         assert logs[0].id == log1.id
 
@@ -121,7 +118,7 @@ class TestAuditLogRepository:
             filters=AuditLogFilter(start_date=datetime.utcnow() - timedelta(hours=1))
         )
         # Should include log2 but not log1
-        ids = [l.id for l in logs]
+        ids = [log.id for log in logs]
         assert log2.id in ids
         assert log1.id not in ids
 
@@ -130,23 +127,17 @@ class TestAuditLogRepository:
             filters=AuditLogFilter(end_date=datetime.utcnow() - timedelta(hours=1))
         )
         # Should include log1 but not log2
-        ids = [l.id for l in logs]
+        ids = [log.id for log in logs]
         assert log1.id in ids
         assert log2.id not in ids
 
     async def test_get_by_target(self, async_session):
         repo = AuditLogRepository(async_session)
         target_id = str(uuid4())
+        await repo.create(AuditLogCreate(action="A", target_model="M", target_object_id=target_id))
+        await repo.create(AuditLogCreate(action="B", target_model="M", target_object_id=target_id))
         await repo.create(
-            AuditLogCreate(action="A", target_model="M", target_object_id=target_id)
-        )
-        await repo.create(
-            AuditLogCreate(action="B", target_model="M", target_object_id=target_id)
-        )
-        await repo.create(
-            AuditLogCreate(
-                action="C", target_model="Other", target_object_id=str(uuid4())
-            )
+            AuditLogCreate(action="C", target_model="Other", target_object_id=str(uuid4()))
         )
 
         logs = await repo.get_by_target("M", target_id)
@@ -158,14 +149,10 @@ class TestAuditLogRepository:
         email = "actor@example.com"
 
         await repo.create(
-            AuditLogCreate(
-                action="A", target_model="M", target_object_id="1", actor_id=actor_id
-            )
+            AuditLogCreate(action="A", target_model="M", target_object_id="1", actor_id=actor_id)
         )
         await repo.create(
-            AuditLogCreate(
-                action="B", target_model="M", target_object_id="2", actor_email=email
-            )
+            AuditLogCreate(action="B", target_model="M", target_object_id="2", actor_email=email)
         )
 
         # By ID

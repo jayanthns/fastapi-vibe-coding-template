@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock
-from sqlalchemy.exc import SQLAlchemyError
 from fastapi import status
+from sqlalchemy.exc import SQLAlchemyError
+
 from src.db.session import get_db
 
 

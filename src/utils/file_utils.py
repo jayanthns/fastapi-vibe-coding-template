@@ -10,7 +10,7 @@ import csv
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 from uuid import uuid4
 
 from src.core.logging import get_logger_for_trace_id
@@ -40,12 +40,12 @@ class FileUtils:
         self.trace_id = trace_id or str(uuid4())
         self.logger = get_logger_for_trace_id(self.trace_id, "src.file_utils")
 
-    def _ensure_directory(self, file_path: Union[str, Path]) -> None:
+    def _ensure_directory(self, file_path: str | Path) -> None:
         """Ensure the directory for the file path exists."""
         path = Path(file_path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-    def _validate_file_path(self, file_path: Union[str, Path]) -> Path:
+    def _validate_file_path(self, file_path: str | Path) -> Path:
         """Validate and convert file path to Path object."""
         if not file_path:
             raise FileUtilsError("File path cannot be empty")
@@ -63,7 +63,7 @@ class FileUtils:
 
     def read_text_file(
         self,
-        file_path: Union[str, Path],
+        file_path: str | Path,
         encoding: str = "utf-8",
         strip_whitespace: bool = True,
     ) -> str:
@@ -92,15 +92,13 @@ class FileUtils:
             if not path.is_file():
                 raise FileUtilsError(f"Path is not a file: {path}")
 
-            with open(path, "r", encoding=encoding) as file:
+            with open(path, encoding=encoding) as file:
                 content = file.read()
 
             if strip_whitespace:
                 content = content.strip()
 
-            self.logger.info(
-                f"Successfully read text file: {path} ({len(content)} characters)"
-            )
+            self.logger.info(f"Successfully read text file: {path} ({len(content)} characters)")
             return content
 
         except UnicodeDecodeError as e:
@@ -114,7 +112,7 @@ class FileUtils:
 
     def write_text_file(
         self,
-        file_path: Union[str, Path],
+        file_path: str | Path,
         content: str,
         encoding: str = "utf-8",
         create_dirs: bool = True,
@@ -150,9 +148,7 @@ class FileUtils:
             with open(path, mode, encoding=encoding) as file:
                 file.write(content)
 
-            self.logger.info(
-                f"Successfully wrote text file: {path} ({len(content)} characters)"
-            )
+            self.logger.info(f"Successfully wrote text file: {path} ({len(content)} characters)")
             return True
 
         except Exception as e:
@@ -162,11 +158,11 @@ class FileUtils:
 
     def read_lines(
         self,
-        file_path: Union[str, Path],
+        file_path: str | Path,
         encoding: str = "utf-8",
         strip_whitespace: bool = True,
         skip_empty: bool = False,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Read a text file and return its lines as a list.
 
@@ -187,7 +183,7 @@ class FileUtils:
         try:
             self.logger.info(f"Reading lines from file: {path}")
 
-            with open(path, "r", encoding=encoding) as file:
+            with open(path, encoding=encoding) as file:
                 lines = file.readlines()
 
             if strip_whitespace:
@@ -206,9 +202,7 @@ class FileUtils:
 
     # ==================== JSON FILE OPERATIONS ====================
 
-    def read_json_file(
-        self, file_path: Union[str, Path], encoding: str = "utf-8"
-    ) -> Union[Dict, List, Any]:
+    def read_json_file(self, file_path: str | Path, encoding: str = "utf-8") -> dict | list | Any:
         """
         Read a JSON file and return its contents.
 
@@ -230,7 +224,7 @@ class FileUtils:
             if not path.exists():
                 raise FileUtilsError(f"JSON file does not exist: {path}")
 
-            with open(path, "r", encoding=encoding) as file:
+            with open(path, encoding=encoding) as file:
                 data = json.load(file)
 
             self.logger.info(f"Successfully read JSON file: {path}")
@@ -247,8 +241,8 @@ class FileUtils:
 
     def write_json_file(
         self,
-        file_path: Union[str, Path],
-        data: Union[Dict, List, Any],
+        file_path: str | Path,
+        data: dict | list | Any,
         encoding: str = "utf-8",
         indent: int = 2,
         ensure_ascii: bool = False,
@@ -304,7 +298,9 @@ class FileUtils:
         """Custom JSON serializer for common types."""
         if isinstance(obj, datetime):
             return obj.isoformat()
-        elif hasattr(obj, "__dict__") and not isinstance(obj, (str, int, float, bool, list, dict, type(None))):
+        elif hasattr(obj, "__dict__") and not isinstance(
+            obj, (str, int, float, bool, list, dict, type(None))
+        ):
             # Only convert objects with __dict__ to dictionary if they have actual attributes
             if obj.__dict__:
                 return obj.__dict__
@@ -317,12 +313,12 @@ class FileUtils:
 
     def read_csv_file(
         self,
-        file_path: Union[str, Path],
+        file_path: str | Path,
         encoding: str = "utf-8",
         delimiter: str = ",",
         has_header: bool = True,
         skip_empty_rows: bool = True,
-    ) -> List[Dict[str, str]]:
+    ) -> list[dict[str, str]]:
         """
         Read a CSV file and return its contents as a list of dictionaries.
 
@@ -348,7 +344,7 @@ class FileUtils:
                 raise FileUtilsError(f"CSV file does not exist: {path}")
 
             rows = []
-            with open(path, "r", encoding=encoding, newline="") as file:
+            with open(path, encoding=encoding, newline="") as file:
                 if has_header:
                     reader = csv.DictReader(file, delimiter=delimiter)
                     for row in reader:
@@ -374,8 +370,8 @@ class FileUtils:
 
     def write_csv_file(
         self,
-        file_path: Union[str, Path],
-        data: List[Dict[str, Any]],
+        file_path: str | Path,
+        data: list[dict[str, Any]],
         encoding: str = "utf-8",
         delimiter: str = ",",
         write_header: bool = True,
@@ -419,9 +415,7 @@ class FileUtils:
             fieldnames = sorted(fieldnames)  # Sort for consistent column order
 
             with open(path, "w", encoding=encoding, newline="") as file:
-                writer = csv.DictWriter(
-                    file, fieldnames=fieldnames, delimiter=delimiter
-                )
+                writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter=delimiter)
 
                 if write_header:
                     writer.writeheader()
@@ -438,11 +432,11 @@ class FileUtils:
 
     def read_csv_as_list(
         self,
-        file_path: Union[str, Path],
+        file_path: str | Path,
         encoding: str = "utf-8",
         delimiter: str = ",",
         skip_empty_rows: bool = True,
-    ) -> List[List[str]]:
+    ) -> list[list[str]]:
         """
         Read a CSV file and return its contents as a list of lists.
 
@@ -467,16 +461,14 @@ class FileUtils:
                 raise FileUtilsError(f"CSV file does not exist: {path}")
 
             rows = []
-            with open(path, "r", encoding=encoding, newline="") as file:
+            with open(path, encoding=encoding, newline="") as file:
                 reader = csv.reader(file, delimiter=delimiter)
                 for row in reader:
                     if skip_empty_rows and not any(row):
                         continue
                     rows.append(row)
 
-            self.logger.info(
-                f"Successfully read CSV file as list: {path} ({len(rows)} rows)"
-            )
+            self.logger.info(f"Successfully read CSV file as list: {path} ({len(rows)} rows)")
             return rows
 
         except Exception as e:
@@ -486,7 +478,7 @@ class FileUtils:
 
     # ==================== FILE INFORMATION & UTILITIES ====================
 
-    def file_exists(self, file_path: Union[str, Path]) -> bool:
+    def file_exists(self, file_path: str | Path) -> bool:
         """
         Check if a file exists.
 
@@ -502,7 +494,7 @@ class FileUtils:
         except FileUtilsError:
             return False
 
-    def directory_exists(self, dir_path: Union[str, Path]) -> bool:
+    def directory_exists(self, dir_path: str | Path) -> bool:
         """
         Check if a directory exists.
 
@@ -518,7 +510,7 @@ class FileUtils:
         except Exception:
             return False
 
-    def get_file_info(self, file_path: Union[str, Path]) -> Dict[str, Any]:
+    def get_file_info(self, file_path: str | Path) -> dict[str, Any]:
         """
         Get information about a file.
 
@@ -571,7 +563,7 @@ class FileUtils:
         s = round(size_bytes / p, 2)
         return f"{s} {size_names[i]}"
 
-    def delete_file(self, file_path: Union[str, Path]) -> bool:
+    def delete_file(self, file_path: str | Path) -> bool:
         """
         Delete a file.
 
@@ -607,8 +599,8 @@ class FileUtils:
 
     def copy_file(
         self,
-        source_path: Union[str, Path],
-        destination_path: Union[str, Path],
+        source_path: str | Path,
+        destination_path: str | Path,
         create_dirs: bool = True,
     ) -> bool:
         """
@@ -653,11 +645,11 @@ class FileUtils:
 
     def list_files(
         self,
-        directory_path: Union[str, Path],
+        directory_path: str | Path,
         pattern: str = "*",
         recursive: bool = False,
         files_only: bool = True,
-    ) -> List[Path]:
+    ) -> list[Path]:
         """
         List files in a directory.
 
@@ -706,45 +698,39 @@ class FileUtils:
 # ==================== CONVENIENCE FUNCTIONS ====================
 
 
-def read_text(file_path: Union[str, Path], trace_id: str = None, **kwargs) -> str:
+def read_text(file_path: str | Path, trace_id: str = None, **kwargs) -> str:
     """Convenience function to read a text file."""
     file_utils = FileUtils(trace_id=trace_id)
     return file_utils.read_text_file(file_path, **kwargs)
 
 
-def write_text(
-    file_path: Union[str, Path], content: str, trace_id: str = None, **kwargs
-) -> bool:
+def write_text(file_path: str | Path, content: str, trace_id: str = None, **kwargs) -> bool:
     """Convenience function to write a text file."""
     file_utils = FileUtils(trace_id=trace_id)
     return file_utils.write_text_file(file_path, content, **kwargs)
 
 
-def read_json(file_path: Union[str, Path], trace_id: str = None, **kwargs) -> Any:
+def read_json(file_path: str | Path, trace_id: str = None, **kwargs) -> Any:
     """Convenience function to read a JSON file."""
     file_utils = FileUtils(trace_id=trace_id)
     return file_utils.read_json_file(file_path, **kwargs)
 
 
-def write_json(
-    file_path: Union[str, Path], data: Any, trace_id: str = None, **kwargs
-) -> bool:
+def write_json(file_path: str | Path, data: Any, trace_id: str = None, **kwargs) -> bool:
     """Convenience function to write a JSON file."""
     file_utils = FileUtils(trace_id=trace_id)
     return file_utils.write_json_file(file_path, data, **kwargs)
 
 
-def read_csv(
-    file_path: Union[str, Path], trace_id: str = None, **kwargs
-) -> List[Dict[str, str]]:
+def read_csv(file_path: str | Path, trace_id: str = None, **kwargs) -> list[dict[str, str]]:
     """Convenience function to read a CSV file."""
     file_utils = FileUtils(trace_id=trace_id)
     return file_utils.read_csv_file(file_path, **kwargs)
 
 
 def write_csv(
-    file_path: Union[str, Path],
-    data: List[Dict[str, Any]],
+    file_path: str | Path,
+    data: list[dict[str, Any]],
     trace_id: str = None,
     **kwargs,
 ) -> bool:
@@ -753,13 +739,13 @@ def write_csv(
     return file_utils.write_csv_file(file_path, data, **kwargs)
 
 
-def file_exists(file_path: Union[str, Path]) -> bool:
+def file_exists(file_path: str | Path) -> bool:
     """Convenience function to check if a file exists."""
     file_utils = FileUtils()
     return file_utils.file_exists(file_path)
 
 
-def get_file_info(file_path: Union[str, Path], trace_id: str = None) -> Dict[str, Any]:
+def get_file_info(file_path: str | Path, trace_id: str = None) -> dict[str, Any]:
     """Convenience function to get file information."""
     file_utils = FileUtils(trace_id=trace_id)
     return file_utils.get_file_info(file_path)

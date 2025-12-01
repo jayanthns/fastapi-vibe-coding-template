@@ -2,7 +2,7 @@
 Repository layer for Animal database operations.
 """
 
-from typing import Optional, Sequence
+from collections.abc import Sequence
 from uuid import UUID
 
 from sqlalchemy import select
@@ -26,14 +26,12 @@ class AnimalRepository:
         await self.db.refresh(animal)
         return animal
 
-    async def get_by_id(self, animal_id: UUID) -> Optional[Animal]:
+    async def get_by_id(self, animal_id: UUID) -> Animal | None:
         """Get an animal by ID."""
         result = await self.db.execute(select(Animal).where(Animal.id == animal_id))
         return result.scalar_one_or_none()
 
-    async def list(
-        self, skip: int = 0, limit: int = 100
-    ) -> tuple[Sequence[Animal], int]:
+    async def list(self, skip: int = 0, limit: int = 100) -> tuple[Sequence[Animal], int]:
         """List all animals with pagination."""
         # Get total count
         from sqlalchemy import func
@@ -47,9 +45,7 @@ class AnimalRepository:
 
         return animals, total
 
-    async def update(
-        self, animal_id: UUID, animal_data: AnimalUpdate
-    ) -> Optional[Animal]:
+    async def update(self, animal_id: UUID, animal_data: AnimalUpdate) -> Animal | None:
         """Update an animal."""
         animal = await self.get_by_id(animal_id)
         if not animal:

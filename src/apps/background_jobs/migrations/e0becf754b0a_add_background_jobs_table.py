@@ -59,9 +59,7 @@ def upgrade() -> None:
         batch_op.create_index(
             batch_op.f("ix_background_jobs_message_id"), ["message_id"], unique=False
         )
-        batch_op.create_index(
-            batch_op.f("ix_background_jobs_status"), ["status"], unique=False
-        )
+        batch_op.create_index(batch_op.f("ix_background_jobs_status"), ["status"], unique=False)
         batch_op.create_index(
             batch_op.f("ix_background_jobs_task_name"), ["task_name"], unique=False
         )

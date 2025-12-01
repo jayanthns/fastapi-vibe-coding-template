@@ -1,8 +1,9 @@
-import pytest
-from uuid import uuid4
 from datetime import datetime, timedelta
-from src.apps.background_jobs.repository import JobRepository
+
+import pytest
+
 from src.apps.background_jobs.models import JobStatus
+from src.apps.background_jobs.repository import JobRepository
 from src.apps.background_jobs.schemas import JobFilter
 
 
@@ -60,9 +61,7 @@ class TestJobRepository:
             task_name="test_task", status=JobStatus.RUNNING, message_id="msg_failed"
         )
 
-        updated = await repo.update(
-            job.id, status=JobStatus.FAILED, error="Something went wrong"
-        )
+        updated = await repo.update(job.id, status=JobStatus.FAILED, error="Something went wrong")
         assert updated.status == JobStatus.FAILED
         assert updated.completed_at is not None
         assert updated.error == "Something went wrong"
@@ -71,12 +70,8 @@ class TestJobRepository:
         repo = JobRepository(async_session)
 
         # Create jobs
-        job1 = await repo.create(
-            task_name="task_a", status=JobStatus.COMPLETED, message_id="1"
-        )
-        job2 = await repo.create(
-            task_name="task_b", status=JobStatus.FAILED, message_id="2"
-        )
+        job1 = await repo.create(task_name="task_a", status=JobStatus.COMPLETED, message_id="1")
+        job2 = await repo.create(task_name="task_b", status=JobStatus.FAILED, message_id="2")
 
         # Filter by status
         jobs = await repo.list_jobs(filters=JobFilter(status=JobStatus.COMPLETED))
@@ -92,14 +87,10 @@ class TestJobRepository:
         # Filter by date
         # Since created_at is auto-set, we can filter by current time range
         now = datetime.utcnow()
-        jobs = await repo.list_jobs(
-            filters=JobFilter(date_from=now - timedelta(minutes=1))
-        )
+        jobs = await repo.list_jobs(filters=JobFilter(date_from=now - timedelta(minutes=1)))
         assert len(jobs) >= 2
 
-        jobs = await repo.list_jobs(
-            filters=JobFilter(date_to=now - timedelta(minutes=1))
-        )
+        jobs = await repo.list_jobs(filters=JobFilter(date_to=now - timedelta(minutes=1)))
         # Should be empty if we just created them
         # (Assuming tests run fast enough and db time is synced)
 

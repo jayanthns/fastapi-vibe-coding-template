@@ -7,7 +7,7 @@ all API endpoints to protect sensitive data based on configuration flags.
 
 import re
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import jwt
 from passlib.context import CryptContext  # type: ignore
@@ -25,19 +25,16 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
-# async def get_sensitive_patterns() -> List[Dict[str, Any]]:
-#     """Get sensitive field patterns from database cache."""
-#     try:
-#         return await SensitiveFieldCacheService.get_sensitive_patterns()
-#     except Exception:
-#         # If database access fails, return empty list to use fallback
-#         return []
+async def get_sensitive_patterns() -> list[dict[str, Any]]:
+    """Get sensitive field patterns from database cache."""
+    # Placeholder implementation since sensitive_fields app is missing
+    return []
 
 
 def mask_sensitive_data(
     data: Any,
     mask: bool = False,
-    sensitive_patterns: Optional[List[Dict[str, Any]]] = None,
+    sensitive_patterns: list[dict[str, Any]] | None = None,
 ) -> Any:
     """
     Recursively mask sensitive data in response objects.
@@ -82,8 +79,8 @@ async def mask_sensitive_data_async(data: Any, mask: bool = False) -> Any:
 
 
 def _mask_dict(
-    data: Dict[str, Any], sensitive_patterns: Optional[List[Dict[str, Any]]] = None
-) -> Dict[str, Any]:
+    data: dict[str, Any], sensitive_patterns: list[dict[str, Any]] | None = None
+) -> dict[str, Any]:
     """Mask sensitive fields in a dictionary."""
     masked_data = {}
 
@@ -102,7 +99,7 @@ def _mask_dict(
 
 
 def _is_sensitive_field(
-    field_name: str, sensitive_patterns: Optional[List[Dict[str, Any]]] = None
+    field_name: str, sensitive_patterns: list[dict[str, Any]] | None = None
 ) -> bool:
     """
     Check if a field name indicates sensitive data that should be masked.
@@ -387,7 +384,7 @@ def _is_ip_address(host: str) -> bool:
     return False
 
 
-def create_masked_response(data: Any, mask: bool = False, **kwargs) -> Dict[str, Any]:
+def create_masked_response(data: Any, mask: bool = False, **kwargs) -> dict[str, Any]:
     """
     Create a response with optional data masking.
 
@@ -410,7 +407,7 @@ def create_masked_response(data: Any, mask: bool = False, **kwargs) -> Dict[str,
     return response
 
 
-def secure_response(data: Any, **kwargs) -> Dict[str, Any]:
+def secure_response(data: Any, **kwargs) -> dict[str, Any]:
     """
     Create a secure response with automatic data masking.
 
@@ -427,7 +424,7 @@ def secure_response(data: Any, **kwargs) -> Dict[str, Any]:
     return create_masked_response(data, mask=True, **kwargs)
 
 
-def public_response(data: Any, **kwargs) -> Dict[str, Any]:
+def public_response(data: Any, **kwargs) -> dict[str, Any]:
     """
     Create a public response without data masking.
 
@@ -444,9 +441,7 @@ def public_response(data: Any, **kwargs) -> Dict[str, Any]:
     return create_masked_response(data, mask=False, **kwargs)
 
 
-async def create_masked_response_async(
-    data: Any, mask: bool = False, **kwargs
-) -> Dict[str, Any]:
+async def create_masked_response_async(data: Any, mask: bool = False, **kwargs) -> dict[str, Any]:
     """
     Create a response with optional data masking using database patterns.
 
@@ -473,7 +468,7 @@ async def create_masked_response_async(
     return response
 
 
-async def secure_response_async(data: Any, **kwargs) -> Dict[str, Any]:
+async def secure_response_async(data: Any, **kwargs) -> dict[str, Any]:
     """
     Create a secure response with automatic data masking using database patterns.
 
@@ -529,9 +524,7 @@ def mask_credentials(data: Any, mask: bool = False) -> Any:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash."""
     # Truncate password to 72 bytes to avoid bcrypt limitation
-    truncated_password = (
-        plain_password[:72] if len(plain_password) > 72 else plain_password
-    )
+    truncated_password = plain_password[:72] if len(plain_password) > 72 else plain_password
     return pwd_context.verify(truncated_password, hashed_password)
 
 
@@ -543,7 +536,7 @@ def get_password_hash(password: str) -> str:
 
 
 # JWT functions
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """Create a JWT access token."""
     to_encode = data.copy()
     if expires_delta:
@@ -556,7 +549,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     return encoded_jwt
 
 
-def verify_token(token: str) -> Optional[dict]:
+def verify_token(token: str) -> dict | None:
     """Verify and decode a JWT token."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])

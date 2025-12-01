@@ -11,12 +11,10 @@ from pathlib import Path
 # Add the parent directory to the path so we can import from app
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.apps.sensitive_fields.repository import SensitiveFieldRepository
-from src.apps.sensitive_fields.schemas import SensitiveFieldCreate
-from src.core.config import settings
-from src.db.session import get_db
+from src.apps.sensitive_fields.repository import SensitiveFieldRepository  # noqa: E402
+from src.apps.sensitive_fields.schemas import SensitiveFieldCreate  # noqa: E402
+from src.core.config import settings  # noqa: E402
+from src.db.session import get_db  # noqa: E402
 
 
 async def load_sensitive_fields_from_json(json_file_path: str) -> None:
@@ -24,7 +22,7 @@ async def load_sensitive_fields_from_json(json_file_path: str) -> None:
 
     # Read the JSON file
     try:
-        with open(json_file_path, "r") as f:
+        with open(json_file_path) as f:
             sensitive_fields_data = json.load(f)
     except FileNotFoundError:
         print(f"Error: JSON file not found at {json_file_path}")
@@ -45,9 +43,7 @@ async def load_sensitive_fields_from_json(json_file_path: str) -> None:
         for field_data in sensitive_fields_data:
             try:
                 # Check if field already exists
-                existing_field = await repository.get_by_field_name(
-                    field_data["field_name"]
-                )
+                existing_field = await repository.get_by_field_name(field_data["field_name"])
 
                 if existing_field:
                     print(f"⚠️  Skipping '{field_data['field_name']}' - already exists")
@@ -62,11 +58,9 @@ async def load_sensitive_fields_from_json(json_file_path: str) -> None:
                 loaded_count += 1
 
             except Exception as e:
-                print(
-                    f"❌ Error loading '{field_data.get('field_name', 'unknown')}': {e}"
-                )
+                print(f"❌ Error loading '{field_data.get('field_name', 'unknown')}': {e}")
 
-        print(f"\n📊 Summary:")
+        print("\n📊 Summary:")
         print(f"   Loaded: {loaded_count}")
         print(f"   Skipped: {skipped_count}")
         print(f"   Total: {len(sensitive_fields_data)}")

@@ -29,9 +29,7 @@ class BackgroundJob(Base, UUIDModel):
     error = Column(String, nullable=True)
     traceback = Column(Text, nullable=True)
 
-    parent_job_id = Column(
-        UUID(as_uuid=True), ForeignKey("background_jobs.id"), nullable=True
-    )
+    parent_job_id = Column(UUID(as_uuid=True), ForeignKey("background_jobs.id"), nullable=True)
     attempt_count = Column(Integer, default=1)
 
     started_at = Column(DateTime, nullable=True)

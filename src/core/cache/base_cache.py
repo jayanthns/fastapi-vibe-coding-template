@@ -5,7 +5,6 @@ Base cache service that provides common functionality for both Redis and memory 
 import asyncio
 import time
 from abc import ABC, abstractmethod
-from typing import Optional
 
 
 class BaseCacheService(ABC):
@@ -28,22 +27,22 @@ class BaseCacheService(ABC):
         pass
 
     @abstractmethod
-    async def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> str | None:
         """Get value from cache."""
         pass
 
     @abstractmethod
-    def get_sync(self, key: str) -> Optional[str]:
+    def get_sync(self, key: str) -> str | None:
         """Get value from cache (sync)."""
         pass
 
     @abstractmethod
-    async def set(self, key: str, value: str, expire: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: str, expire: int | None = None) -> bool:
         """Set value in cache with optional expiration."""
         pass
 
     @abstractmethod
-    def set_sync(self, key: str, value: str, expire: Optional[int] = None) -> bool:
+    def set_sync(self, key: str, value: str, expire: int | None = None) -> bool:
         """Set value in cache with optional expiration (sync)."""
         pass
 
@@ -108,13 +107,13 @@ class BaseCacheService(ABC):
         pass
 
     # Common utility methods
-    def _is_expired(self, expires_at: Optional[float]) -> bool:
+    def _is_expired(self, expires_at: float | None) -> bool:
         """Check if a timestamp has expired."""
         if expires_at is None:
             return False
         return time.time() > expires_at
 
-    def _calculate_ttl(self, expires_at: Optional[float]) -> int:
+    def _calculate_ttl(self, expires_at: float | None) -> int:
         """Calculate TTL from expiration timestamp."""
         if expires_at is None:
             return -1

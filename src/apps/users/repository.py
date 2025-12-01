@@ -2,7 +2,6 @@
 Repository for user management operations.
 """
 
-from typing import List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy import and_, func, or_
@@ -36,27 +35,25 @@ class UserRepository:
         await self.db.refresh(db_user)
         return db_user
 
-    async def get_by_id(self, user_id: UUID) -> Optional[User]:
+    async def get_by_id(self, user_id: UUID) -> User | None:
         """Get a user by ID."""
         result = await self.db.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
 
-    async def get_by_email(self, email: str) -> Optional[User]:
+    async def get_by_email(self, email: str) -> User | None:
         """Get a user by email."""
         result = await self.db.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
-    async def get_by_username(self, username: str) -> Optional[User]:
+    async def get_by_username(self, username: str) -> User | None:
         """Get a user by username."""
         result = await self.db.execute(select(User).where(User.username == username))
         return result.scalar_one_or_none()
 
-    async def get_by_email_or_username(self, identifier: str) -> Optional[User]:
+    async def get_by_email_or_username(self, identifier: str) -> User | None:
         """Get a user by email or username."""
         result = await self.db.execute(
-            select(User).where(
-                or_(User.email == identifier, User.username == identifier)
-            )
+            select(User).where(or_(User.email == identifier, User.username == identifier))
         )
         return result.scalar_one_or_none()
 
@@ -64,9 +61,9 @@ class UserRepository:
         self,
         skip: int = 0,
         limit: int = 100,
-        search: Optional[str] = None,
-        is_active: Optional[bool] = None,
-    ) -> Tuple[List[User], int]:
+        search: str | None = None,
+        is_active: bool | None = None,
+    ) -> tuple[list[User], int]:
         """Get all users with pagination and filtering."""
         query = select(User)
         count_query = select(func.count(User.id))
@@ -101,7 +98,7 @@ class UserRepository:
 
         return items, total
 
-    async def update(self, user_id: UUID, user_update: UserUpdate) -> Optional[User]:
+    async def update(self, user_id: UUID, user_update: UserUpdate) -> User | None:
         """Update a user."""
         db_user = await self.get_by_id(user_id)
         if not db_user:
@@ -116,7 +113,7 @@ class UserRepository:
         await self.db.refresh(db_user)
         return db_user
 
-    async def update_password(self, user_id: UUID, new_password: str) -> Optional[User]:
+    async def update_password(self, user_id: UUID, new_password: str) -> User | None:
         """Update user password."""
         db_user = await self.get_by_id(user_id)
         if not db_user:
@@ -128,7 +125,7 @@ class UserRepository:
         await self.db.refresh(db_user)
         return db_user
 
-    async def update_last_login(self, user_id: UUID) -> Optional[User]:
+    async def update_last_login(self, user_id: UUID) -> User | None:
         """Update user's last login time."""
         db_user = await self.get_by_id(user_id)
         if not db_user:
@@ -139,7 +136,7 @@ class UserRepository:
         await self.db.refresh(db_user)
         return db_user
 
-    async def verify_user(self, user_id: UUID) -> Optional[User]:
+    async def verify_user(self, user_id: UUID) -> User | None:
         """Mark user as verified."""
         db_user = await self.get_by_id(user_id)
         if not db_user:
@@ -150,7 +147,7 @@ class UserRepository:
         await self.db.refresh(db_user)
         return db_user
 
-    async def deactivate_user(self, user_id: UUID) -> Optional[User]:
+    async def deactivate_user(self, user_id: UUID) -> User | None:
         """Deactivate a user."""
         db_user = await self.get_by_id(user_id)
         if not db_user:
@@ -161,7 +158,7 @@ class UserRepository:
         await self.db.refresh(db_user)
         return db_user
 
-    async def activate_user(self, user_id: UUID) -> Optional[User]:
+    async def activate_user(self, user_id: UUID) -> User | None:
         """Activate a user."""
         db_user = await self.get_by_id(user_id)
         if not db_user:
@@ -183,7 +180,7 @@ class UserRepository:
         await self.db.commit()
         return True
 
-    async def make_superuser(self, user_id: UUID) -> Optional[User]:
+    async def make_superuser(self, user_id: UUID) -> User | None:
         """Make a user a superuser."""
         db_user = await self.get_by_id(user_id)
         if not db_user:

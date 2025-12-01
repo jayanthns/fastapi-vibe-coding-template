@@ -3,7 +3,6 @@ Pydantic schemas for user management.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, validator
@@ -16,7 +15,7 @@ class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="Username")
     first_name: str = Field(..., min_length=1, max_length=100, description="First name")
     last_name: str = Field(..., min_length=1, max_length=100, description="Last name")
-    age: Optional[int] = Field(None, ge=0, le=150, description="User age")
+    age: int | None = Field(None, ge=0, le=150, description="User age")
 
 
 class UserCreate(UserBase):
@@ -55,10 +54,10 @@ class UserLogin(BaseModel):
 class UserUpdate(BaseModel):
     """Schema for updating user profile."""
 
-    first_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    last_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    age: Optional[int] = Field(None, ge=0, le=150)
-    is_active: Optional[bool] = None
+    first_name: str | None = Field(None, min_length=1, max_length=100)
+    last_name: str | None = Field(None, min_length=1, max_length=100)
+    age: int | None = Field(None, ge=0, le=150)
+    is_active: bool | None = None
 
 
 class UserPasswordChange(BaseModel):
@@ -88,7 +87,7 @@ class UserResponse(UserBase):
     is_active: bool
     is_verified: bool
     is_superuser: bool
-    last_login: Optional[datetime]
+    last_login: datetime | None
     created_at: datetime
     updated_at: datetime
 
@@ -123,5 +122,5 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     """Schema for token data."""
 
-    user_id: Optional[UUID] = None
-    email: Optional[str] = None
+    user_id: UUID | None = None
+    email: str | None = None

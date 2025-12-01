@@ -2,8 +2,6 @@
 External endpoint pinging and monitoring endpoints.
 """
 
-from typing import Dict
-
 from fastapi import APIRouter, Request
 
 from src.core.logging import get_logger
@@ -13,7 +11,7 @@ from src.middleware.trace import get_trace_id
 router = APIRouter()
 
 
-@router.get("/", response_model=APIResponse[Dict[str, str]])
+@router.get("/", response_model=APIResponse[dict[str, str]])
 async def ping_external(request: Request):
     """Basic ping endpoint to test external ping service connectivity."""
     logger = get_logger(request)
@@ -27,7 +25,7 @@ async def ping_external(request: Request):
     )
 
 
-@router.post("/endpoint/", response_model=APIResponse[Dict[str, str]])
+@router.post("/endpoint/", response_model=APIResponse[dict[str, str]])
 async def ping_endpoint(request: Request):
     """Ping an external endpoint and log the result."""
     logger = get_logger(request)
@@ -52,7 +50,7 @@ async def ping_endpoint(request: Request):
     )
 
 
-@router.get("/stats/", response_model=APIResponse[Dict[str, str]])
+@router.get("/stats/", response_model=APIResponse[dict[str, str]])
 async def get_ping_stats(request: Request):
     """Get ping statistics for monitored endpoints."""
     logger = get_logger(request)
@@ -72,7 +70,7 @@ async def get_ping_stats(request: Request):
     )
 
 
-@router.get("/history/", response_model=APIResponse[Dict[str, str]])
+@router.get("/history/", response_model=APIResponse[dict[str, str]])
 async def get_ping_history(request: Request):
     """Get ping history for monitored endpoints."""
     logger = get_logger(request)

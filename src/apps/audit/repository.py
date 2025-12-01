@@ -2,8 +2,7 @@
 Repository layer for AuditLog database operations.
 """
 
-from datetime import datetime
-from typing import Optional, Sequence
+from collections.abc import Sequence
 from uuid import UUID
 
 from sqlalchemy import and_, select
@@ -27,7 +26,7 @@ class AuditLogRepository:
         await self.db.refresh(audit_log)
         return audit_log
 
-    async def get_by_id(self, audit_id: UUID) -> Optional[AuditLog]:
+    async def get_by_id(self, audit_id: UUID) -> AuditLog | None:
         """Get an audit log by ID."""
         result = await self.db.execute(select(AuditLog).where(AuditLog.id == audit_id))
         return result.scalar_one_or_none()
@@ -36,7 +35,7 @@ class AuditLogRepository:
         self,
         skip: int = 0,
         limit: int = 100,
-        filters: Optional[AuditLogFilter] = None,
+        filters: AuditLogFilter | None = None,
     ) -> tuple[Sequence[AuditLog], int]:
         """List audit logs with optional filtering and pagination."""
         from sqlalchemy import func
@@ -79,9 +78,7 @@ class AuditLogRepository:
 
         return audit_logs, total
 
-    async def get_by_target(
-        self, target_model: str, target_object_id: str
-    ) -> Sequence[AuditLog]:
+    async def get_by_target(self, target_model: str, target_object_id: str) -> Sequence[AuditLog]:
         """Get all audit logs for a specific target object."""
         result = await self.db.execute(
             select(AuditLog)
@@ -96,7 +93,7 @@ class AuditLogRepository:
         return result.scalars().all()
 
     async def get_by_actor(
-        self, actor_id: Optional[str] = None, actor_email: Optional[str] = None
+        self, actor_id: str | None = None, actor_email: str | None = None
     ) -> Sequence[AuditLog]:
         """Get all audit logs for a specific actor."""
         conditions = []
@@ -109,8 +106,6 @@ class AuditLogRepository:
             return []
 
         result = await self.db.execute(
-            select(AuditLog)
-            .where(and_(*conditions))
-            .order_by(AuditLog.created_at.desc())
+            select(AuditLog).where(and_(*conditions)).order_by(AuditLog.created_at.desc())
         )
         return result.scalars().all()

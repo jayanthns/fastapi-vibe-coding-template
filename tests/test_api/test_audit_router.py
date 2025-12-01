@@ -1,13 +1,14 @@
-import pytest
 from uuid import uuid4
-from src.apps.audit.repository import AuditLogRepository
+
+import pytest
+
 from src.apps.audit.models import AuditLog
 
 
 @pytest.mark.asyncio
 class TestAuditRouter:
     async def test_list_audit_logs(self, async_client, async_session):
-        repo = AuditLogRepository(async_session)
+
         audit1 = AuditLog(
             action="create",
             target_model="user",
@@ -41,7 +42,7 @@ class TestAuditRouter:
         assert data["items"][0]["action"] == "create"
 
     async def test_get_audit_log(self, async_client, async_session):
-        repo = AuditLogRepository(async_session)
+
         audit = AuditLog(
             action="delete",
             target_model="post",
@@ -64,7 +65,7 @@ class TestAuditRouter:
         assert response.status_code == 404
 
     async def test_get_target_history(self, async_client, async_session):
-        repo = AuditLogRepository(async_session)
+
         audit1 = AuditLog(
             action="create",
             target_model="comment",
@@ -91,7 +92,7 @@ class TestAuditRouter:
         assert len(data) == 2
 
     async def test_get_actor_history(self, async_client, async_session):
-        repo = AuditLogRepository(async_session)
+
         audit = AuditLog(
             action="login",
             target_model="session",

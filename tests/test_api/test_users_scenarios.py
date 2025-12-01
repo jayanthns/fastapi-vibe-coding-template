@@ -1,4 +1,3 @@
-import pytest
 from fastapi.testclient import TestClient
 
 from src.core.auth import get_current_superuser
@@ -23,7 +22,6 @@ class TestUserScenarios:
         data = response.json()
         assert data["success"] is True
         user_id = data["data"]["user"]["id"]
-        access_token = data["data"]["access_token"]
 
         # 2. Login
         login_payload = {"email": "test@example.com", "password": "Password123!"}
@@ -46,9 +44,7 @@ class TestUserScenarios:
 
         # 4. Update Profile
         update_payload = {"first_name": "Updated Name"}
-        response = client.patch(
-            "/api/v1/users/me", json=update_payload, headers=headers
-        )
+        response = client.patch("/api/v1/users/me", json=update_payload, headers=headers)
         assert response.status_code == 200
         data = response.json()
         assert data["success"] is True

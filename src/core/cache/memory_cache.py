@@ -4,7 +4,7 @@ Provides the same interface as Redis service but uses local memory.
 """
 
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 from src.core.cache.base_cache import BaseCacheService
 
@@ -17,7 +17,7 @@ class MemoryCacheService(BaseCacheService):
 
     def __init__(self):
         super().__init__()
-        self._cache: Dict[str, Dict[str, Any]] = {}  # type: ignore
+        self._cache: dict[str, dict[str, Any]] = {}  # type: ignore
 
     async def ping(self) -> bool:
         """Ping the memory cache (always returns True)."""
@@ -27,7 +27,7 @@ class MemoryCacheService(BaseCacheService):
         """Ping the memory cache (always returns True)."""
         return True
 
-    async def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> str | None:
         """Get value from memory cache."""
         async with self._lock:
             if key not in self._cache:
@@ -42,7 +42,7 @@ class MemoryCacheService(BaseCacheService):
 
             return item["value"]
 
-    def get_sync(self, key: str) -> Optional[str]:
+    def get_sync(self, key: str) -> str | None:
         """Get value from memory cache (sync)."""
         if key not in self._cache:
             return None
@@ -56,7 +56,7 @@ class MemoryCacheService(BaseCacheService):
 
         return item["value"]
 
-    async def set(self, key: str, value: str, expire: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: str, expire: int | None = None) -> bool:
         """Set value in memory cache with optional expiration."""
         async with self._lock:
             expires_at = None
@@ -70,7 +70,7 @@ class MemoryCacheService(BaseCacheService):
             }
             return True
 
-    def set_sync(self, key: str, value: str, expire: Optional[int] = None) -> bool:
+    def set_sync(self, key: str, value: str, expire: int | None = None) -> bool:
         """Set value in memory cache with optional expiration (sync)."""
         expires_at = None
         if expire:
@@ -234,9 +234,7 @@ class MemoryCacheService(BaseCacheService):
     async def _cleanup_expired(self) -> None:
         """Remove expired keys from cache."""
         expired_keys = [
-            key
-            for key, item in self._cache.items()
-            if self._is_expired(item.get("expires_at"))
+            key for key, item in self._cache.items() if self._is_expired(item.get("expires_at"))
         ]
         for key in expired_keys:
             del self._cache[key]
@@ -244,9 +242,7 @@ class MemoryCacheService(BaseCacheService):
     def _cleanup_expired_sync(self) -> None:
         """Remove expired keys from cache (sync)."""
         expired_keys = [
-            key
-            for key, item in self._cache.items()
-            if self._is_expired(item.get("expires_at"))
+            key for key, item in self._cache.items() if self._is_expired(item.get("expires_at"))
         ]
         for key in expired_keys:
             del self._cache[key]

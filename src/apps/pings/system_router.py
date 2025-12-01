@@ -2,8 +2,6 @@
 System health check endpoints.
 """
 
-from typing import Dict
-
 from fastapi import APIRouter, Request
 
 from src.core.logging import get_logger
@@ -13,7 +11,7 @@ from src.middleware.trace import get_trace_id
 router = APIRouter()
 
 
-@router.get("/", response_model=APIResponse[Dict[str, str]])
+@router.get("/", response_model=APIResponse[dict[str, str]])
 async def ping(request: Request):
     """Basic ping endpoint to test API connectivity."""
     logger = get_logger(request)
@@ -27,7 +25,7 @@ async def ping(request: Request):
     )
 
 
-@router.get("/health/", response_model=APIResponse[Dict[str, str]])
+@router.get("/health/", response_model=APIResponse[dict[str, str]])
 async def get_system_health(request: Request):
     """Get overall system health status."""
     logger = get_logger(request)
@@ -41,9 +39,7 @@ async def get_system_health(request: Request):
         "message": "All systems operational",
     }
 
-    logger.info(
-        f"System health check completed - Status: {health_data['overall_status']}"
-    )
+    logger.info(f"System health check completed - Status: {health_data['overall_status']}")
 
     return APIResponse.create_with_trace_id(
         data=health_data,

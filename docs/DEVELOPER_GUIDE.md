@@ -1,10 +1,26 @@
 # Developer Guide
 
+## Welcome to the Team! 👋
+
+If you are a new developer (fresher or junior) joining this project, this guide is specifically designed for you. Our goal is to help you understand not just _how_ to write code here, but _why_ we do things the way we do.
+
+This project is built on **FastAPI**, a modern, fast (high-performance), web framework for building APIs with Python 3.8+ based on standard Python type hints.
+
+### A Brief History of FastAPI
+
+FastAPI was created by **Sebastián Ramírez** (tiangolo) and first released in **December 2018**. It was designed to solve common pain points in Python web development:
+
+- **Speed**: It is one of the fastest Python frameworks available, on par with NodeJS and Go (thanks to Starlette and Pydantic).
+- **Developer Experience**: It heavily utilizes Python type hints to provide great editor support (autocompletion, error checks).
+- **Standards-based**: It is based on (and fully compatible with) open standards for APIs: OpenAPI (formerly Swagger) and JSON Schema.
+
+Since its release, it has gained massive popularity due to its ease of use, performance, and robust documentation.
+
 ## Project Structure
 
 The project follows a modular "Vertical Slice" architecture within `src/apps/`. Each app contains its own models, schemas, services, and routers.
 
-```
+```text
 src/
 ├── apps/               # Domain-specific applications
 │   ├── animals/        # Example app
@@ -33,7 +49,7 @@ from sqlalchemy import Column, String
 
 class Animal(UUIDModel):
     __tablename__ = "animals"
-    
+
     name = Column(String, nullable=False)
     species = Column(String, nullable=False)
 ```
@@ -55,7 +71,7 @@ class AnimalCreate(AnimalBase):
 
 class AnimalResponse(AnimalBase):
     id: UUID
-    
+
     model_config = ConfigDict(from_attributes=True)
 ```
 
@@ -119,6 +135,7 @@ alembic upgrade head
 ## Dependency Injection
 
 FastAPI's dependency injection system is used for:
+
 - **Database Sessions**: `session: AsyncSession = Depends(get_db)`
 - **Authentication**: `user: User = Depends(get_current_user)`
 - **Services**: Can be injected if they have dependencies.
@@ -156,7 +173,8 @@ We use **Dramatiq** with **Redis** for reliable background task processing.
 
 ### Quick Start
 
-1.  **Define a Task**: Create a `tasks.py` in your app.
+1. **Define a Task**: Create a `tasks.py` in your app.
+
     ```python
     import dramatiq
     import asyncio
@@ -167,14 +185,53 @@ We use **Dramatiq** with **Redis** for reliable background task processing.
         asyncio.run(MyService.do_work(arg1, arg2))
     ```
 
-2.  **Enqueue a Task**: Call `.send()` on the actor.
+2. **Enqueue a Task**: Call `.send()` on the actor.
+
     ```python
     my_background_task.send("value1", "value2")
     ```
 
-3.  **Run the Worker**:
+3. **Run the Worker**:
+
     ```bash
     dramatiq src.worker --processes 1 --threads 1
     ```
 
 For detailed architecture, monitoring, and best practices, see the [Background Jobs Guide](BACKGROUND_JOBS_GUIDE.md).
+
+## Contributing
+
+We welcome contributions from everyone! Here is how you can contribute effectively:
+
+### 1. Getting Started
+
+- **Fork the repository**: Create your own copy of the project.
+- **Clone the repository**: Download it to your local machine.
+- **Set up the environment**: Follow the [Setup Guide](SETUP.md).
+
+### 2. Development Workflow
+
+1. **Create a Branch**: Always create a new branch for your feature or bugfix.
+
+    ```bash
+    git checkout -b feature/my-new-feature
+    ```
+
+2. **Write Code**: Follow the patterns described in this guide.
+3. **Write Tests**: Ensure your code is covered by tests. Run `make pytest` to verify.
+4. **Lint & Format**: Run `make static-tests` to ensure code quality.
+
+### 3. Submitting Changes
+
+1. **Commit**: Write clear, descriptive commit messages.
+2. **Push**: Push your branch to your fork.
+3. **Pull Request (PR)**: Open a PR against the `main` branch.
+    - Describe your changes in detail.
+    - Link to any relevant issues.
+    - Wait for code review and address feedback.
+
+### Code Review Process
+
+- A senior developer will review your code.
+- Be open to feedback and suggestions.
+- Once approved, your code will be merged!

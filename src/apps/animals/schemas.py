@@ -3,7 +3,6 @@ Pydantic schemas for Animal API.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -26,16 +25,16 @@ class AnimalCreate(AnimalBase):
 class AnimalUpdate(BaseModel):
     """Schema for updating an animal."""
 
-    name: Optional[str] = Field(None, max_length=100)
-    species: Optional[str] = Field(None, max_length=50)
-    age: Optional[int] = Field(None, ge=0)
+    name: str | None = Field(None, max_length=100)
+    species: str | None = Field(None, max_length=50)
+    age: int | None = Field(None, ge=0)
 
 
 class Animal(AnimalBase):
     """Schema for Animal response."""
 
     id: UUID
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)

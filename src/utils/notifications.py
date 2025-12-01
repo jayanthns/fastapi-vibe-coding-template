@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 from uuid import uuid4
 
 from src.core.config import settings
@@ -46,9 +46,9 @@ class NotificationResult:
     message: str
     notification_id: str
     status: NotificationStatus
-    sent_at: Optional[datetime] = None
-    error_details: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    sent_at: datetime | None = None
+    error_details: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 @dataclass
@@ -56,10 +56,10 @@ class NotificationRecipient:
     """Notification recipient information."""
 
     id: str
-    name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class BaseNotification(ABC):
@@ -92,11 +92,11 @@ class BaseNotification(ABC):
     @abstractmethod
     async def send(
         self,
-        recipients: Union[NotificationRecipient, List[NotificationRecipient]],
+        recipients: NotificationRecipient | list[NotificationRecipient],
         subject: str,
         content: str,
         **kwargs,
-    ) -> Union[NotificationResult, List[NotificationResult]]:
+    ) -> NotificationResult | list[NotificationResult]:
         """
         Send notification to recipients.
 
@@ -130,7 +130,7 @@ class BaseNotification(ABC):
         message: str,
         status: NotificationStatus,
         error_details: str = None,
-        metadata: Dict[str, Any] = None,
+        metadata: dict[str, Any] = None,
     ) -> NotificationResult:
         """Create a notification result."""
         return NotificationResult(
@@ -206,9 +206,7 @@ class EmailNotification(BaseNotification):
         self.username = username or getattr(settings, "smtp_username", None)
         self.password = password or getattr(settings, "smtp_password", None)
         self.use_tls = use_tls
-        self.from_email = from_email or getattr(
-            settings, "from_email", "noreply@example.com"
-        )
+        self.from_email = from_email or getattr(settings, "from_email", "noreply@example.com")
         self.from_name = from_name or getattr(settings, "from_name", "FastAPI App")
 
     @property
@@ -237,13 +235,13 @@ class EmailNotification(BaseNotification):
 
     async def send(
         self,
-        recipients: Union[NotificationRecipient, List[NotificationRecipient]],
+        recipients: NotificationRecipient | list[NotificationRecipient],
         subject: str,
         content: str,
         html_content: str = None,
-        attachments: List[str] = None,
+        attachments: list[str] = None,
         **kwargs,
-    ) -> Union[NotificationResult, List[NotificationResult]]:
+    ) -> NotificationResult | list[NotificationResult]:
         """
         Send email notification.
 
@@ -280,7 +278,7 @@ class EmailNotification(BaseNotification):
         subject: str,
         content: str,
         html_content: str = None,
-        attachments: List[str] = None,
+        attachments: list[str] = None,
         **kwargs,
     ) -> NotificationResult:
         """Send email to a single recipient."""
@@ -403,17 +401,15 @@ class SMSNotification(BaseNotification):
         import re
 
         phone_pattern = r"^\+?[\d\s\-\(\)]{10,}$"
-        return bool(
-            re.match(phone_pattern, recipient.phone.replace(" ", "").replace("-", ""))
-        )
+        return bool(re.match(phone_pattern, recipient.phone.replace(" ", "").replace("-", "")))
 
     async def send(
         self,
-        recipients: Union[NotificationRecipient, List[NotificationRecipient]],
+        recipients: NotificationRecipient | list[NotificationRecipient],
         subject: str,
         content: str,
         **kwargs,
-    ) -> Union[NotificationResult, List[NotificationResult]]:
+    ) -> NotificationResult | list[NotificationResult]:
         """
         Send SMS notification (placeholder implementation).
 
@@ -456,9 +452,7 @@ class SMSNotification(BaseNotification):
             )
 
         # TODO: Implement actual SMS sending logic based on provider
-        self.logger.info(
-            f"SMS sending not yet implemented for provider: {self.provider}"
-        )
+        self.logger.info(f"SMS sending not yet implemented for provider: {self.provider}")
 
         return self._create_result(
             success=False,
@@ -532,13 +526,13 @@ async def send_email(
 
 
 async def send_bulk_email(
-    recipients: List[Dict[str, str]],
+    recipients: list[dict[str, str]],
     subject: str,
     content: str,
     html_content: str = None,
     trace_id: str = None,
     **email_config,
-) -> List[NotificationResult]:
+) -> list[NotificationResult]:
     """
     Convenience function to send bulk emails.
 

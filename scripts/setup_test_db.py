@@ -6,12 +6,13 @@ This script creates a test database for running tests.
 """
 
 import asyncio
+
 # Test database configuration - read from environment
 import os
 import sys
 from urllib.parse import quote_plus
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 
@@ -34,7 +35,9 @@ def get_database_urls():
     admin_url = f"postgresql+asyncpg://{db_user}:{encoded_password}@{db_host}:{db_port}/postgres"
 
     # Test database URL
-    test_url = f"postgresql+asyncpg://{db_user}:{encoded_password}@{db_host}:{db_port}/{test_db_name}"
+    test_url = (
+        f"postgresql+asyncpg://{db_user}:{encoded_password}@{db_host}:{db_port}/{test_db_name}"
+    )
 
     return admin_url, test_url, test_db_name
 

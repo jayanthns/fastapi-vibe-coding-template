@@ -7,8 +7,7 @@ import time
 from uuid import uuid4
 
 from fastapi import Request, Response
-from starlette.middleware.base import (BaseHTTPMiddleware,
-                                       RequestResponseEndpoint)
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from src.core.logging import RequestLogger, log_error, log_request_access
 
@@ -23,9 +22,7 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.trace_id_header = trace_id_header
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         # Generate unique trace_id for this request
         trace_id = str(uuid4())
 

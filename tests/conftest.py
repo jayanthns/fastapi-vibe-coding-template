@@ -6,28 +6,23 @@ import asyncio
 from pathlib import Path
 from uuid import uuid4
 
+# ============================================================================
+# GLOBAL DRAMATIQ CONFIGURATION (Must run before test collection)
+# ============================================================================
+import dramatiq
 import pytest
+from dramatiq.brokers.stub import StubBroker
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 # Import all models to ensure they are registered with SQLAlchemy
 # Import all models to ensure they are registered with SQLAlchemy
 from src.apps.animals.models import Animal  # noqa: F401
 from src.apps.audit.models import AuditLog  # noqa: F401
+from src.apps.background_jobs.middleware import JobTrackingMiddleware
 from src.apps.users.models import User  # noqa: F401
 from src.db.session import Base
-
-# ============================================================================
-# GLOBAL DRAMATIQ CONFIGURATION (Must run before test collection)
-# ============================================================================
-import dramatiq
-from dramatiq.brokers.stub import StubBroker
-from src.apps.background_jobs.middleware import JobTrackingMiddleware
 
 # Configure Dramatiq to use StubBroker globally for all tests
 # This ensures that when tasks are imported during test collection,
@@ -166,7 +161,7 @@ def client_fixture(async_session: AsyncSession, app_fixture):
     app.dependency_overrides[get_db_with_trace_id] = get_session_override
     app.dependency_overrides[get_db] = get_session_override
 
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
 
     # Patch RedisBroker to prevent connection attempts during lifespan
     # This is redundant with session fixture but ensures safety at function level
@@ -208,8 +203,9 @@ def configure_dramatiq_broker():
 async def async_client_fixture(async_session: AsyncSession, app_fixture):
     """Create an async test client with database dependency override."""
     app = app_fixture
-    from src.db.session import get_db, get_db_with_trace_id
     from httpx import ASGITransport, AsyncClient
+
+    from src.db.session import get_db, get_db_with_trace_id
 
     async def get_session_override():
         return async_session
@@ -217,9 +213,7 @@ async def async_client_fixture(async_session: AsyncSession, app_fixture):
     app.dependency_overrides[get_db_with_trace_id] = get_session_override
     app.dependency_overrides[get_db] = get_session_override
 
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
 
     app.dependency_overrides.clear()

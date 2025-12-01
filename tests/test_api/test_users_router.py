@@ -1,6 +1,7 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
+
+import pytest
 from fastapi import status
 
 from src.apps.users.router import get_user_service
@@ -59,9 +60,7 @@ def create_mock_user(user_id=None, email="test@example.com", **kwargs):
 
 
 @pytest.mark.asyncio
-async def test_register_user_success(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_register_user_success(async_client, mock_user_service, override_dependencies):
     mock_user = create_mock_user(email="new@example.com")
     mock_user_service.create_user.return_value = (mock_user, "access_token")
 
@@ -81,9 +80,7 @@ async def test_register_user_success(
 
 
 @pytest.mark.asyncio
-async def test_register_user_failure(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_register_user_failure(async_client, mock_user_service, override_dependencies):
     mock_user_service.create_user.side_effect = ValueError("Email already registered")
 
     response = await async_client.post(
@@ -102,9 +99,7 @@ async def test_register_user_failure(
 
 
 @pytest.mark.asyncio
-async def test_login_user_success(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_login_user_success(async_client, mock_user_service, override_dependencies):
     mock_user = create_mock_user(email="test@example.com")
     mock_user_service.authenticate_user.return_value = (mock_user, "access_token")
 
@@ -118,9 +113,7 @@ async def test_login_user_success(
 
 
 @pytest.mark.asyncio
-async def test_login_user_failure(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_login_user_failure(async_client, mock_user_service, override_dependencies):
     mock_user_service.authenticate_user.side_effect = ValueError("Invalid credentials")
 
     response = await async_client.post(
@@ -152,24 +145,18 @@ async def test_get_me_not_found(async_client, mock_user_service, override_depend
 
 
 @pytest.mark.asyncio
-async def test_update_me_success(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_update_me_success(async_client, mock_user_service, override_dependencies):
     mock_user = create_mock_user(email="updated@example.com")
     mock_user_service.update_user.return_value = mock_user
 
-    response = await async_client.patch(
-        "/api/v1/users/me", json={"first_name": "Updated"}
-    )
+    response = await async_client.patch("/api/v1/users/me", json={"first_name": "Updated"})
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["data"]["email"] == "updated@example.com"
 
 
 @pytest.mark.asyncio
-async def test_change_password_success(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_change_password_success(async_client, mock_user_service, override_dependencies):
     mock_user_service.change_password.return_value = True
 
     response = await async_client.post(
@@ -181,9 +168,7 @@ async def test_change_password_success(
 
 
 @pytest.mark.asyncio
-async def test_change_password_failure(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_change_password_failure(async_client, mock_user_service, override_dependencies):
     mock_user_service.change_password.side_effect = ValueError("Incorrect password")
 
     response = await async_client.post(
@@ -205,9 +190,7 @@ async def test_list_users_admin(async_client, mock_user_service, override_depend
 
 
 @pytest.mark.asyncio
-async def test_get_user_by_id_admin(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_get_user_by_id_admin(async_client, mock_user_service, override_dependencies):
     user_id = uuid4()
     mock_user = create_mock_user(user_id=user_id)
     mock_user_service.get_user_by_id.return_value = mock_user
@@ -219,25 +202,19 @@ async def test_get_user_by_id_admin(
 
 
 @pytest.mark.asyncio
-async def test_update_user_admin(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_update_user_admin(async_client, mock_user_service, override_dependencies):
     user_id = uuid4()
     mock_user = create_mock_user(user_id=user_id, is_active=False)
     mock_user_service.update_user.return_value = mock_user
 
-    response = await async_client.patch(
-        f"/api/v1/users/{user_id}", json={"is_active": False}
-    )
+    response = await async_client.patch(f"/api/v1/users/{user_id}", json={"is_active": False})
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["data"]["is_active"] is False
 
 
 @pytest.mark.asyncio
-async def test_verify_user_admin(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_verify_user_admin(async_client, mock_user_service, override_dependencies):
     user_id = uuid4()
     mock_user = create_mock_user(user_id=user_id, is_verified=True)
     mock_user_service.verify_user.return_value = mock_user
@@ -249,9 +226,7 @@ async def test_verify_user_admin(
 
 
 @pytest.mark.asyncio
-async def test_deactivate_user_admin(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_deactivate_user_admin(async_client, mock_user_service, override_dependencies):
     user_id = uuid4()
     mock_user = create_mock_user(user_id=user_id, is_active=False)
     mock_user_service.deactivate_user.return_value = mock_user
@@ -263,9 +238,7 @@ async def test_deactivate_user_admin(
 
 
 @pytest.mark.asyncio
-async def test_activate_user_admin(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_activate_user_admin(async_client, mock_user_service, override_dependencies):
     user_id = uuid4()
     mock_user = create_mock_user(user_id=user_id, is_active=True)
     mock_user_service.activate_user.return_value = mock_user
@@ -277,9 +250,7 @@ async def test_activate_user_admin(
 
 
 @pytest.mark.asyncio
-async def test_make_superuser_admin(
-    async_client, mock_user_service, override_dependencies
-):
+async def test_make_superuser_admin(async_client, mock_user_service, override_dependencies):
     user_id = uuid4()
     mock_user = create_mock_user(user_id=user_id, is_superuser=True)
     mock_user_service.make_superuser.return_value = mock_user

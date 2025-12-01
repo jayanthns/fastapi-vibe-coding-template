@@ -15,6 +15,7 @@ def test_audit_task_directly():
     # Configure broker
     import dramatiq
     from dramatiq.brokers.redis import RedisBroker
+
     from src.core.config import settings
 
     redis_broker = RedisBroker(url=settings.redis_url)

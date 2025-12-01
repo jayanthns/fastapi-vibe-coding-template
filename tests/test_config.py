@@ -125,6 +125,6 @@ def validate_config():
 if __name__ == "__main__":
     # Run validation when this file is executed directly
     validate_config()
-    print(f"📋 Test order configuration:")
+    print("📋 Test order configuration:")
     for pattern, order in sorted(TEST_ORDER_CONFIG.items(), key=lambda x: x[1]):
         print(f"  Order {order}: {pattern}")

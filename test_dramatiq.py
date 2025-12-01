@@ -3,9 +3,10 @@
 Test script for Dramatiq audit logging.
 Run this after starting FastAPI and Dramatiq worker locally.
 """
-import requests
-import time
 import json
+import time
+
+import requests
 
 
 def test_hello_world():
@@ -15,6 +16,7 @@ def test_hello_world():
     # Configure Dramatiq broker before importing tasks
     import dramatiq
     from dramatiq.brokers.redis import RedisBroker
+
     from src.core.config import settings
 
     redis_broker = RedisBroker(url=settings.redis_url)
@@ -57,11 +59,9 @@ def test_audit_logging():
 
         if audit_data["total"] > 0:
             latest_audit = audit_data["items"][0]
-            print(f"✅ Audit log found!")
+            print("✅ Audit log found!")
             print(f"   Action: {latest_audit['action']}")
-            print(
-                f"   Target: {latest_audit['target_model']} ({latest_audit['target_object_id']})"
-            )
+            print(f"   Target: {latest_audit['target_model']} ({latest_audit['target_object_id']})")
             print(f"   Changes: {json.dumps(latest_audit['changes'], indent=2)}")
         else:
             print("❌ No audit logs found - check worker for errors!")

@@ -2,7 +2,6 @@
 FastAPI router for Audit API endpoints.
 """
 
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -36,13 +35,11 @@ def get_audit_query_service(
 async def list_audit_logs(
     request: Request,
     params: PageParams = Depends(),
-    actor_id: Optional[str] = Query(None, description="Filter by actor ID"),
-    actor_email: Optional[str] = Query(None, description="Filter by actor email"),
-    action: Optional[str] = Query(None, description="Filter by action"),
-    target_model: Optional[str] = Query(None, description="Filter by target model"),
-    target_object_id: Optional[str] = Query(
-        None, description="Filter by target object ID"
-    ),
+    actor_id: str | None = Query(None, description="Filter by actor ID"),
+    actor_email: str | None = Query(None, description="Filter by actor email"),
+    action: str | None = Query(None, description="Filter by action"),
+    target_model: str | None = Query(None, description="Filter by target model"),
+    target_object_id: str | None = Query(None, description="Filter by target object ID"),
     service: AuditServiceQuery = Depends(get_audit_query_service),
 ):
     """List audit logs with optional filtering and pagination."""
@@ -130,8 +127,8 @@ async def get_target_history(
 @router.get("/actor/history", response_model=APIResponse[list[AuditLog]])
 async def get_actor_history(
     request: Request,
-    actor_id: Optional[str] = Query(None, description="Actor ID"),
-    actor_email: Optional[str] = Query(None, description="Actor email"),
+    actor_id: str | None = Query(None, description="Actor ID"),
+    actor_email: str | None = Query(None, description="Actor email"),
     service: AuditServiceQuery = Depends(get_audit_query_service),
 ):
     """Get audit history for a specific actor."""

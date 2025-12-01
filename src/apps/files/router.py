@@ -45,9 +45,7 @@ async def upload_linear_file(
         human_readable_size=FileService.get_human_readable_size(file_size),
     )
 
-    logger.info(
-        f"Linear file uploaded successfully: {file.filename}, " f"rows: {len(data)}"
-    )
+    logger.info(f"Linear file uploaded successfully: {file.filename}, " f"rows: {len(data)}")
 
     return APIResponse.create_with_trace_id(
         data=response_data,
@@ -83,10 +81,7 @@ async def upload_generic_file(
         human_readable_size=FileService.get_human_readable_size(file_size),
     )
 
-    logger.info(
-        f"Generic file uploaded successfully: {file.filename}, "
-        f"size: {file_size} bytes"
-    )
+    logger.info(f"Generic file uploaded successfully: {file.filename}, " f"size: {file_size} bytes")
 
     return APIResponse.create_with_trace_id(
         data=response_data,

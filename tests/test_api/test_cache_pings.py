@@ -7,7 +7,6 @@ Tests the cache connectivity and health check endpoints including:
 - Cache keys listing
 """
 
-import pytest
 from fastapi.testclient import TestClient
 
 from src.main import app

@@ -1,12 +1,13 @@
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from fastapi import HTTPException, status
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
+import pytest
+from fastapi import HTTPException, status
+
 from src.core.auth import (
-    get_current_user,
     get_current_active_user,
     get_current_superuser,
+    get_current_user,
     get_optional_current_user,
 )
 

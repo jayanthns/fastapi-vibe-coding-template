@@ -4,7 +4,7 @@ Includes Redis ping functionality to verify Redis connection.
 """
 
 import time
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, status
 
@@ -39,7 +39,7 @@ def _is_sensitive_key(key: str) -> bool:
 
 @router.get(
     "/",
-    response_model=APIResponse[Dict[str, Any]],
+    response_model=APIResponse[dict[str, Any]],
     status_code=status.HTTP_200_OK,
 )
 async def ping_cache(request: Request):
@@ -162,7 +162,7 @@ async def ping_cache(request: Request):
 
 @router.get(
     "/info",
-    response_model=APIResponse[Dict[str, Any]],
+    response_model=APIResponse[dict[str, Any]],
     status_code=status.HTTP_200_OK,
 )
 async def get_cache_info(request: Request):
@@ -268,7 +268,7 @@ async def get_cache_info(request: Request):
 
 @router.get(
     "/keys",
-    response_model=APIResponse[Dict[str, Any]],
+    response_model=APIResponse[dict[str, Any]],
     status_code=status.HTTP_200_OK,
 )
 async def get_cache_keys(request: Request, pattern: str = "*", limit: int = 100):

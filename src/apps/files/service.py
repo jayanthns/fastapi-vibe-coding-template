@@ -5,7 +5,8 @@ Service layer for file operations.
 import csv
 import io
 import json
-from typing import Any, Dict, Generator, List
+from collections.abc import Generator
+from typing import Any
 
 from fastapi import HTTPException, UploadFile
 
@@ -44,7 +45,7 @@ class FileService:
         return f"{size_bytes:.1f} PB"
 
     @staticmethod
-    async def parse_linear_file(file: UploadFile) -> List[Dict[str, Any]]:
+    async def parse_linear_file(file: UploadFile) -> list[dict[str, Any]]:
         """
         Parses a linear data file (CSV or JSON) and returns a list of records.
         Returns the top 10 records.

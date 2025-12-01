@@ -10,11 +10,11 @@ from pathlib import Path
 # Add the parent directory to the path so we can import from app
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.apps.users.repository import UserRepository
-from src.apps.users.schemas import UserCreate
-from src.apps.users.service import UserService
-from src.db.session import get_db
-from src.utils.security import get_password_hash, verify_password
+from src.apps.users.service import UserService  # noqa: E402, isort:skip
+from src.apps.users.schemas import UserCreate  # noqa: E402, isort:skip
+from src.db.session import get_db  # noqa: E402, isort:skip
+from src.apps.users.repository import UserRepository  # noqa: E402, isort:skip
+from src.utils.security import get_password_hash, verify_password  # noqa: E402, isort:skip
 
 
 async def test_user_service():
@@ -42,6 +42,7 @@ async def test_user_service():
         try:
             # Create test user with unique email
             import time
+
             unique_email = f"test_{int(time.time())}@example.com"
             user_data = UserCreate(
                 email=unique_email,
@@ -60,9 +61,7 @@ async def test_user_service():
             print("\n3. Testing user authentication...")
             from src.apps.users.schemas import UserLogin
 
-            login_data = UserLogin(
-                email=unique_email, password="TestPassword123!"
-            )
+            login_data = UserLogin(email=unique_email, password="TestPassword123!")
             auth_user, auth_token = await service.authenticate_user(login_data)
             print(f"   ✅ Authentication successful: {auth_user.username}")
 

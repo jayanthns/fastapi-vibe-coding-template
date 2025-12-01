@@ -4,22 +4,27 @@ Tests for DateTime Utilities
 Comprehensive test suite for date/time utility functions.
 """
 
-from datetime import date, datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch
-from zoneinfo import ZoneInfo
+from datetime import date, datetime, timezone
+from unittest.mock import patch
 
 import pytest
 
-from src.utils.datetime_utils import (DateTimeUtils, DateTimeUtilsError,
-                                      convert_timezone, format_datetime,
-                                      from_timestamp,
-                                      get_business_days_between,
-                                      get_duration_between, get_timestamp, now,
-                                      parse_datetime, today)
+from src.utils.datetime_utils import (
+    DateTimeUtils,
+    DateTimeUtilsError,
+    convert_timezone,
+    format_datetime,
+    from_timestamp,
+    get_business_days_between,
+    get_duration_between,
+    get_timestamp,
+    now,
+    parse_datetime,
+    today,
+)
 
 # Mark all tests in this module as utility tests (run middle)
 # Test order is managed centrally in conftest.py
-
 
 
 class TestDateTimeUtils:
@@ -591,21 +596,15 @@ class TestErrorHandling:
         """Test timezone conversion error handling."""
         utils = DateTimeUtils()
 
-        with patch.object(
-            utils, "get_timezone", side_effect=Exception("Timezone error")
-        ):
+        with patch.object(utils, "get_timezone", side_effect=Exception("Timezone error")):
             with pytest.raises(DateTimeUtilsError):
-                utils.convert_timezone(
-                    datetime(2024, 1, 1, 12, 0, 0), "UTC", "US/Eastern"
-                )
+                utils.convert_timezone(datetime(2024, 1, 1, 12, 0, 0), "UTC", "US/Eastern")
 
     def test_datetime_formatting_error(self):
         """Test datetime formatting error handling."""
         utils = DateTimeUtils()
 
-        with patch.object(
-            utils, "convert_timezone", side_effect=Exception("Conversion error")
-        ):
+        with patch.object(utils, "convert_timezone", side_effect=Exception("Conversion error")):
             with pytest.raises(DateTimeUtilsError):
                 utils.format_datetime(datetime(2024, 1, 1, 12, 0, 0), tz="US/Eastern")
 

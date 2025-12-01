@@ -32,9 +32,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
     pages: int
 
     @classmethod
-    def create(
-        cls, items: list[T], total: int, params: PageParams
-    ) -> "PaginatedResponse[T]":
+    def create(cls, items: list[T], total: int, params: PageParams) -> "PaginatedResponse[T]":
         pages = (total + params.limit - 1) // params.limit if params.limit > 0 else 0
         page = (params.skip // params.limit) + 1 if params.limit > 0 else 1
 

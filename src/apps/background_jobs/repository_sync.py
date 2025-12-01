@@ -35,7 +35,5 @@ class JobRepositorySync:
         self.session.commit()
 
         # Re-fetch to return updated object
-        result = self.session.execute(
-            select(BackgroundJob).where(BackgroundJob.id == job_id)
-        )
+        result = self.session.execute(select(BackgroundJob).where(BackgroundJob.id == job_id))
         return result.scalars().first()

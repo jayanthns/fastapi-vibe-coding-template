@@ -3,8 +3,6 @@ Unified cache service that switches between Redis and in-memory cache
 based on the USE_REDIS configuration flag.
 """
 
-from typing import Any, Optional
-
 from src.core.cache.memory_cache import memory_cache_service
 from src.core.cache.redis_cache import redis_cache_service
 from src.core.config import settings
@@ -40,19 +38,19 @@ class UnifiedCacheService:
         """Ping the cache service (sync)."""
         return self._get_service().ping_sync()
 
-    async def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> str | None:
         """Get value from cache."""
         return await self._get_service().get(key)
 
-    def get_sync(self, key: str) -> Optional[str]:
+    def get_sync(self, key: str) -> str | None:
         """Get value from cache (sync)."""
         return self._get_service().get_sync(key)
 
-    async def set(self, key: str, value: str, expire: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: str, expire: int | None = None) -> bool:
         """Set value in cache with optional expiration."""
         return await self._get_service().set(key, value, expire)
 
-    def set_sync(self, key: str, value: str, expire: Optional[int] = None) -> bool:
+    def set_sync(self, key: str, value: str, expire: int | None = None) -> bool:
         """Set value in cache with optional expiration (sync)."""
         return self._get_service().set_sync(key, value, expire)
 

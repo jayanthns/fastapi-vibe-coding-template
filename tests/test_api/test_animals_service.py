@@ -1,9 +1,11 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
-from src.apps.animals.service import AnimalService, AuditContext
-from src.apps.animals.schemas import AnimalCreate, AnimalUpdate
+
+import pytest
+
 from src.apps.animals.repository import AnimalRepository
+from src.apps.animals.schemas import AnimalCreate, AnimalUpdate
+from src.apps.animals.service import AnimalService, AuditContext
 
 
 @pytest.mark.asyncio
@@ -131,9 +133,7 @@ class TestAnimalService:
 
             update_data = AnimalUpdate(name="Updated Dog No Audit")
 
-            result = await service.update_animal(
-                animal_id, update_data, audit_context=None
-            )
+            result = await service.update_animal(animal_id, update_data, audit_context=None)
 
             assert result == mock_animal
             mock_repo.update.assert_called_once()

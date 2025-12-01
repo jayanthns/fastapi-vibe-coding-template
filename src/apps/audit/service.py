@@ -5,9 +5,8 @@ This service publishes audit events to a Dramatiq queue for async processing.
 The worker persists the audit logs to the database.
 """
 
-from typing import Any, Dict, Optional, Sequence
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from collections.abc import Sequence
+from typing import Any
 
 from src.apps.audit.models import AuditLog
 from src.apps.audit.repository import AuditLogRepository
@@ -41,12 +40,12 @@ class AuditService:
         action: str,
         target_model: str,
         target_object_id: str,
-        actor_id: Optional[str] = None,
-        actor_email: Optional[str] = None,
-        changes: Optional[Dict[str, Any]] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        trace_id: Optional[str] = None,
+        actor_id: str | None = None,
+        actor_email: str | None = None,
+        changes: dict[str, Any] | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        trace_id: str | None = None,
     ) -> None:
         """
         Publish audit event to queue for async processing.
@@ -83,20 +82,18 @@ class AuditService:
 
         # Publish to Dramatiq queue and track as background job
         async with AsyncSessionLocal() as session:
-            await JobService.enqueue_job(
-                session, write_audit_log, audit_payload, trace_id=trace_id
-            )
+            await JobService.enqueue_job(session, write_audit_log, audit_payload, trace_id=trace_id)
 
     async def log_create(
         self,
         target_model: str,
         target_object_id: str,
-        actor_id: Optional[str] = None,
-        actor_email: Optional[str] = None,
-        changes: Optional[Dict[str, Any]] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        trace_id: Optional[str] = None,
+        actor_id: str | None = None,
+        actor_email: str | None = None,
+        changes: dict[str, Any] | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        trace_id: str | None = None,
     ) -> None:
         """Publish CREATE audit event to queue."""
         await self.log_event(
@@ -115,11 +112,11 @@ class AuditService:
         self,
         target_model: str,
         target_object_id: str,
-        changes: Dict[str, Any],
-        actor_id: Optional[str] = None,
-        actor_email: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
+        changes: dict[str, Any],
+        actor_id: str | None = None,
+        actor_email: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
     ) -> None:
         """Publish UPDATE audit event to queue."""
         await self.log_event(
@@ -137,10 +134,10 @@ class AuditService:
         self,
         target_model: str,
         target_object_id: str,
-        actor_id: Optional[str] = None,
-        actor_email: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
+        actor_id: str | None = None,
+        actor_email: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
     ) -> None:
         """Publish DELETE audit event to queue."""
         await self.log_event(
@@ -185,7 +182,7 @@ class AuditServiceQuery:
         self,
         skip: int = 0,
         limit: int = 100,
-        filters: Optional[AuditLogFilter] = None,
+        filters: AuditLogFilter | None = None,
     ) -> tuple[Sequence[AuditLog], int]:
         """Get audit logs with filtering and pagination."""
         return await self.repository.list(skip, limit, filters)
@@ -197,7 +194,7 @@ class AuditServiceQuery:
         return await self.repository.get_by_target(target_model, target_object_id)
 
     async def get_actor_history(
-        self, actor_id: Optional[str] = None, actor_email: Optional[str] = None
+        self, actor_id: str | None = None, actor_email: str | None = None
     ) -> Sequence[AuditLog]:
         """Get audit history for a specific actor."""
         return await self.repository.get_by_actor(actor_id, actor_email)

@@ -10,9 +10,9 @@ from pathlib import Path
 # Add the parent directory to the path so we can import from app
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.apps.sensitive_fields.repository import SensitiveFieldRepository
-from src.apps.sensitive_fields.schemas import SensitiveFieldCreate
-from src.db.session import get_db
+from src.apps.sensitive_fields.repository import SensitiveFieldRepository  # noqa: E402
+from src.apps.sensitive_fields.schemas import SensitiveFieldCreate  # noqa: E402
+from src.db.session import get_db  # noqa: E402
 
 
 async def add_sensitive_field_interactive():
@@ -38,9 +38,7 @@ async def add_sensitive_field_interactive():
                 print(f"⚠️  Field '{field_name}' already exists (ID: {existing.id})")
                 continue
 
-            is_exact_match_input = (
-                input("Is exact match? (y/n, default: y): ").strip().lower()
-            )
+            is_exact_match_input = input("Is exact match? (y/n, default: y): ").strip().lower()
             is_exact_match = is_exact_match_input != "n"
 
             is_active_input = input("Is active? (y/n, default: y): ").strip().lower()
@@ -59,7 +57,7 @@ async def add_sensitive_field_interactive():
 
                 new_field = await repository.create(sensitive_field_data)
 
-                print(f"✅ Successfully created sensitive field:")
+                print("✅ Successfully created sensitive field:")
                 print(f"   ID: {new_field.id}")
                 print(f"   Field Name: {new_field.field_name}")
                 print(f"   Exact Match: {new_field.is_exact_match}")

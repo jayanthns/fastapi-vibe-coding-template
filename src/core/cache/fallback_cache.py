@@ -9,7 +9,7 @@ Implements industry standard cache fallback pattern:
 """
 
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from src.core.cache.base_cache import BaseCacheService
 from src.core.cache.memory_cache import memory_cache_service
@@ -46,10 +46,7 @@ class FallbackCacheService(BaseCacheService):
 
     def _should_check_redis(self) -> bool:
         """Check if we should test Redis connectivity."""
-        return (
-            time.time() - self.last_redis_check > self.redis_check_interval
-            or self.use_fallback
-        )
+        return time.time() - self.last_redis_check > self.redis_check_interval or self.use_fallback
 
     async def _check_redis_health(self) -> bool:
         """Check if Redis is available and switch back if possible."""
@@ -104,9 +101,7 @@ class FallbackCacheService(BaseCacheService):
         else:
             return self.fallback_cache
 
-    async def _execute_with_fallback(
-        self, operation_name: str, operation_func, *args, **kwargs
-    ):
+    async def _execute_with_fallback(self, operation_name: str, operation_func, *args, **kwargs):
         """Execute cache operation with automatic fallback."""
         # Check Redis health if needed
         if self._should_check_redis():
@@ -170,13 +165,11 @@ class FallbackCacheService(BaseCacheService):
         """Ping the active cache service."""
         return await self._execute_with_fallback("ping", lambda cache: cache.ping())
 
-    async def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> str | None:
         """Get value from cache."""
-        return await self._execute_with_fallback(
-            "get", lambda cache, k: cache.get(k), key
-        )
+        return await self._execute_with_fallback("get", lambda cache, k: cache.get(k), key)
 
-    async def set(self, key: str, value: str, expire: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: str, expire: int | None = None) -> bool:
         """Set value in cache."""
         return await self._execute_with_fallback(
             "set", lambda cache, k, v, e: cache.set(k, v, e), key, value, expire
@@ -184,15 +177,11 @@ class FallbackCacheService(BaseCacheService):
 
     async def delete(self, key: str) -> bool:
         """Delete key from cache."""
-        return await self._execute_with_fallback(
-            "delete", lambda cache, k: cache.delete(k), key
-        )
+        return await self._execute_with_fallback("delete", lambda cache, k: cache.delete(k), key)
 
     async def exists(self, key: str) -> bool:
         """Check if key exists in cache."""
-        return await self._execute_with_fallback(
-            "exists", lambda cache, k: cache.exists(k), key
-        )
+        return await self._execute_with_fallback("exists", lambda cache, k: cache.exists(k), key)
 
     async def expire(self, key: str, seconds: int) -> bool:
         """Set expiration for key."""
@@ -202,15 +191,11 @@ class FallbackCacheService(BaseCacheService):
 
     async def ttl(self, key: str) -> int:
         """Get TTL for key."""
-        return await self._execute_with_fallback(
-            "ttl", lambda cache, k: cache.ttl(k), key
-        )
+        return await self._execute_with_fallback("ttl", lambda cache, k: cache.ttl(k), key)
 
-    async def keys(self, pattern: str = "*") -> List[str]:
+    async def keys(self, pattern: str = "*") -> list[str]:
         """Get keys matching pattern."""
-        return await self._execute_with_fallback(
-            "keys", lambda cache, p: cache.keys(p), pattern
-        )
+        return await self._execute_with_fallback("keys", lambda cache, p: cache.keys(p), pattern)
 
     # Sync methods
     def ping_sync(self) -> bool:
@@ -218,12 +203,12 @@ class FallbackCacheService(BaseCacheService):
         cache = self._get_active_cache()
         return cache.ping_sync()
 
-    def get_sync(self, key: str) -> Optional[str]:
+    def get_sync(self, key: str) -> str | None:
         """Get value from cache (sync)."""
         cache = self._get_active_cache()
         return cache.get_sync(key)
 
-    def set_sync(self, key: str, value: str, expire: Optional[int] = None) -> bool:
+    def set_sync(self, key: str, value: str, expire: int | None = None) -> bool:
         """Set value in cache (sync)."""
         cache = self._get_active_cache()
         return cache.set_sync(key, value, expire)
@@ -248,7 +233,7 @@ class FallbackCacheService(BaseCacheService):
         cache = self._get_active_cache()
         return cache.ttl_sync(key)
 
-    def keys_sync(self, pattern: str = "*") -> List[str]:
+    def keys_sync(self, pattern: str = "*") -> list[str]:
         """Get keys matching pattern (sync)."""
         cache = self._get_active_cache()
         return cache.keys_sync(pattern)
@@ -273,7 +258,7 @@ class FallbackCacheService(BaseCacheService):
         return self.use_fallback
 
     @property
-    def fallback_stats(self) -> Dict[str, Any]:
+    def fallback_stats(self) -> dict[str, Any]:
         """Get fallback statistics for monitoring."""
         return {
             "fallback_active": self.use_fallback,
@@ -283,7 +268,7 @@ class FallbackCacheService(BaseCacheService):
             "last_redis_check": self.last_redis_check,
         }
 
-    async def info(self) -> Dict[str, Any]:
+    async def info(self) -> dict[str, Any]:
         """Get cache service information."""
         cache = self._get_active_cache()
         info = await cache.info()
@@ -299,7 +284,7 @@ class FallbackCacheService(BaseCacheService):
 
         return info
 
-    def info_sync(self) -> Dict[str, Any]:
+    def info_sync(self) -> dict[str, Any]:
         """Get cache service information (sync)."""
         cache = self._get_active_cache()
         info = cache.info_sync()

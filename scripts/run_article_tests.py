@@ -6,7 +6,6 @@ This script demonstrates how to run the TestArticleAPIs class
 similar to Python's unittest module.
 """
 
-import os
 import sys
 import unittest
 from pathlib import Path
@@ -15,9 +14,10 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-import pytest
+import pytest  # noqa: E402, isort:skip
 
-from tests.test_api.test_article_apis import TestArticleAPIs
+
+from tests.test_api.test_article_apis import TestArticleAPIs  # noqa: E402, isort:skip
 
 
 def run_article_tests():
@@ -101,9 +101,7 @@ def list_available_tests():
     # Get all test methods from the class
     test_methods = []
     for attr_name in dir(TestArticleAPIs):
-        if attr_name.startswith("test_") and callable(
-            getattr(TestArticleAPIs, attr_name)
-        ):
+        if attr_name.startswith("test_") and callable(getattr(TestArticleAPIs, attr_name)):
             test_methods.append(attr_name)
 
     # Group tests by category
@@ -165,17 +163,11 @@ def main():
             sys.exit(exit_code)
         elif command == "help":
             print("Usage:")
-            print(
-                "  python scripts/run_article_tests.py list          # List available tests"
-            )
+            print("  python scripts/run_article_tests.py list          # List available tests")
             print("  python scripts/run_article_tests.py run           # Run all tests (pytest)")
             print("  python scripts/run_article_tests.py unittest      # Run all tests (unittest)")
-            print(
-                "  python scripts/run_article_tests.py run <method>  # Run specific test"
-            )
-            print(
-                "  python scripts/run_article_tests.py help          # Show this help"
-            )
+            print("  python scripts/run_article_tests.py run <method>  # Run specific test")
+            print("  python scripts/run_article_tests.py help          # Show this help")
         else:
             print(f"Unknown command: {command}")
             print("Use 'help' to see available commands")

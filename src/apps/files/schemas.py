@@ -2,7 +2,7 @@
 Pydantic schemas for Files API.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -22,7 +22,5 @@ class LinearDataResponseSchema(BaseModel):
     message: str = Field(..., description="Success message")
     filename: str = Field(..., description="Name of the uploaded file")
     total_rows: int = Field(..., description="Total number of rows in the file")
-    preview_rows: List[Dict[str, Any]] = Field(
-        ..., description="Preview of first 10 rows"
-    )
+    preview_rows: list[dict[str, Any]] = Field(..., description="Preview of first 10 rows")
     human_readable_size: str = Field(..., description="Human-readable file size")

@@ -2,15 +2,20 @@
 User management API endpoints.
 """
 
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.apps.users.repository import UserRepository
-from src.apps.users.schemas import (UserCreate, UserLogin, UserPasswordChange,
-                                    UserProfile, UserResponse, UserUpdate)
+from src.apps.users.schemas import (
+    UserCreate,
+    UserLogin,
+    UserPasswordChange,
+    UserProfile,
+    UserResponse,
+    UserUpdate,
+)
 from src.apps.users.service import UserService
 from src.core.auth import get_current_active_user, get_current_superuser
 from src.core.logging import get_logger
@@ -27,9 +32,7 @@ def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
     return UserService(repository)
 
 
-@router.post(
-    "/register", response_model=APIResponse[dict], status_code=status.HTTP_201_CREATED
-)
+@router.post("/register", response_model=APIResponse[dict], status_code=status.HTTP_201_CREATED)
 async def register_user(
     request: Request,
     user_create: UserCreate,
@@ -171,8 +174,8 @@ async def change_password(
 async def list_users(
     request: Request,
     params: PageParams = Depends(),
-    search: Optional[str] = Query(None, description="Search term for users"),
-    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    search: str | None = Query(None, description="Search term for users"),
+    is_active: bool | None = Query(None, description="Filter by active status"),
     current_user: dict = Depends(get_current_superuser),
     service: UserService = Depends(get_user_service),
 ):
@@ -257,9 +260,7 @@ async def verify_user(
 ):
     """Verify a user account (admin only)."""
     logger = get_logger(request)
-    logger.info(
-        f"User verification request for {user_id} by admin: {current_user['id']}"
-    )
+    logger.info(f"User verification request for {user_id} by admin: {current_user['id']}")
 
     user = await service.verify_user(user_id)
     if not user:
@@ -283,9 +284,7 @@ async def deactivate_user(
 ):
     """Deactivate a user account (admin only)."""
     logger = get_logger(request)
-    logger.info(
-        f"User deactivation request for {user_id} by admin: {current_user['id']}"
-    )
+    logger.info(f"User deactivation request for {user_id} by admin: {current_user['id']}")
 
     user = await service.deactivate_user(user_id)
     if not user:

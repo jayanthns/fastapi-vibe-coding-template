@@ -3,8 +3,7 @@ Synchronous Repository layer for AuditLog database operations.
 Used inside Dramatiq workers (sync environment).
 """
 
-from datetime import datetime
-from typing import Optional, Sequence
+from collections.abc import Sequence
 from uuid import UUID
 
 from sqlalchemy import and_, select
@@ -28,7 +27,7 @@ class AuditLogRepositorySync:
         self.db.refresh(audit_log)
         return audit_log
 
-    def get_by_id(self, audit_id: UUID) -> Optional[AuditLog]:
+    def get_by_id(self, audit_id: UUID) -> AuditLog | None:
         """Get an audit log by ID (sync)."""
         result = self.db.execute(select(AuditLog).where(AuditLog.id == audit_id))
         return result.scalar_one_or_none()
@@ -37,7 +36,7 @@ class AuditLogRepositorySync:
         self,
         skip: int = 0,
         limit: int = 100,
-        filters: Optional[AuditLogFilter] = None,
+        filters: AuditLogFilter | None = None,
     ) -> tuple[Sequence[AuditLog], int]:
         """List audit logs with optional filtering and pagination (sync)."""
         from sqlalchemy import func
@@ -78,9 +77,7 @@ class AuditLogRepositorySync:
 
         return logs, total
 
-    def get_by_target(
-        self, target_model: str, target_object_id: str
-    ) -> Sequence[AuditLog]:
+    def get_by_target(self, target_model: str, target_object_id: str) -> Sequence[AuditLog]:
         """Get all audit logs for a specific target (sync)."""
         result = self.db.execute(
             select(AuditLog)
@@ -95,7 +92,7 @@ class AuditLogRepositorySync:
         return result.scalars().all()
 
     def get_by_actor(
-        self, actor_id: Optional[str] = None, actor_email: Optional[str] = None
+        self, actor_id: str | None = None, actor_email: str | None = None
     ) -> Sequence[AuditLog]:
         """Get all audit logs for a specific actor (sync)."""
         conditions = []
@@ -108,8 +105,6 @@ class AuditLogRepositorySync:
             return []
 
         result = self.db.execute(
-            select(AuditLog)
-            .where(and_(*conditions))
-            .order_by(AuditLog.created_at.desc())
+            select(AuditLog).where(and_(*conditions)).order_by(AuditLog.created_at.desc())
         )
         return result.scalars().all()

@@ -1,9 +1,11 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
-from src.apps.users.service import UserService
-from src.apps.users.schemas import UserCreate, UserLogin, UserUpdate, UserPasswordChange
+
+import pytest
+
 from src.apps.users.repository import UserRepository
+from src.apps.users.schemas import UserCreate, UserLogin, UserPasswordChange, UserUpdate
+from src.apps.users.service import UserService
 
 
 @pytest.mark.asyncio
@@ -178,9 +180,7 @@ class TestUserService:
         with pytest.raises(ValueError, match="Current password is incorrect"):
             await service.change_password(
                 uuid4(),
-                UserPasswordChange(
-                    current_password="wrong", new_password="NewPassword123!"
-                ),
+                UserPasswordChange(current_password="wrong", new_password="NewPassword123!"),
             )
 
     async def test_verify_user_not_found(self):
@@ -241,9 +241,7 @@ class TestUserService:
             mock_access.return_value = "access"
             mock_refresh.return_value = "refresh"
 
-            access, refresh = await service.create_token_pair(
-                uuid4(), "test@example.com"
-            )
+            access, refresh = await service.create_token_pair(uuid4(), "test@example.com")
             assert access == "access"
             assert refresh == "refresh"
 

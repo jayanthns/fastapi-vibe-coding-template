@@ -7,7 +7,6 @@ import logging
 import logging.handlers
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from fastapi import Request
 
@@ -15,7 +14,7 @@ from fastapi import Request
 class TraceIDFormatter(logging.Formatter):
     """Custom formatter that includes trace_id in log messages."""
 
-    def __init__(self, fmt: Optional[str] = None, datefmt: Optional[str] = None):
+    def __init__(self, fmt: str | None = None, datefmt: str | None = None):
         if fmt is None:
             fmt = (
                 "%(asctime)s | %(levelname)-8s | %(trace_id)s | "
@@ -42,7 +41,7 @@ class RequestLogger:
         self,
         trace_id: str,
         logger_name: str = "app",
-        correlation_id: Optional[str] = None,
+        correlation_id: str | None = None,
     ):
         self.trace_id = trace_id
         self.correlation_id = correlation_id
@@ -110,9 +109,7 @@ class LoggingConfig:
 
         # Log startup message
         app_logger = logging.getLogger("app")
-        app_logger.info(
-            f"Logging initialized - Console and file: {self.log_files['app']}"
-        )
+        app_logger.info(f"Logging initialized - Console and file: {self.log_files['app']}")
 
     def _setup_file_logging(self) -> None:
         """Setup file-based logging with rotation."""
@@ -254,14 +251,10 @@ def log_request_access(
         processing_time: Request processing time in seconds
     """
     request_logger = RequestLogger(trace_id, "src.access")
-    request_logger.info(
-        f"ACCESS: {method} {path} - {status_code} - {processing_time:.4f}s"
-    )
+    request_logger.info(f"ACCESS: {method} {path} - {status_code} - {processing_time:.4f}s")
 
 
-def log_error(
-    trace_id: str, error_message: str, exception: Optional[Exception] = None
-) -> None:
+def log_error(trace_id: str, error_message: str, exception: Exception | None = None) -> None:
     """
     Log error information to the main app log.
 

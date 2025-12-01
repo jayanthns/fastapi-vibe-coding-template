@@ -21,8 +21,8 @@ class RedisCacheService(BaseCacheService):
     """
 
     _instance: Optional["RedisCacheService"] = None
-    _sync_client: Optional[Redis] = None
-    _async_client: Optional[redis.Redis] = None
+    _sync_client: Redis | None = None
+    _async_client: redis.Redis | None = None
     _lock = asyncio.Lock()
 
     def __new__(cls) -> "RedisCacheService":
@@ -77,12 +77,12 @@ class RedisCacheService(BaseCacheService):
         except Exception:
             return False
 
-    async def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> str | None:
         """Get value from Redis."""
         client = await self.get_async_client()
         return await client.get(key)
 
-    async def set(self, key: str, value: str, expire: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: str, expire: int | None = None) -> bool:
         """Set value in Redis with optional expiration."""
         client = await self.get_async_client()
         return await client.set(key, value, ex=expire)
@@ -119,11 +119,11 @@ class RedisCacheService(BaseCacheService):
         return await client.info()
 
     # Sync methods for non-async contexts
-    def get_sync(self, key: str) -> Optional[str]:
+    def get_sync(self, key: str) -> str | None:
         """Get value from Redis (sync)."""
         return self.sync_client.get(key)  # type: ignore
 
-    def set_sync(self, key: str, value: str, expire: Optional[int] = None) -> bool:
+    def set_sync(self, key: str, value: str, expire: int | None = None) -> bool:
         """Set value in Redis with optional expiration (sync)."""
         return self.sync_client.set(key, value, ex=expire)  # type: ignore
 

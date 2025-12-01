@@ -1,8 +1,10 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from src.apps.background_jobs.models import JobStatus
 from src.apps.background_jobs.service import JobService
-from src.apps.background_jobs.tasks import test_background_task, test_failing_task
+from src.apps.background_jobs.tasks import test_background_task
 
 
 @pytest.mark.asyncio
@@ -11,9 +13,7 @@ async def test_enqueue_job_calls_create_job():
     mock_session = AsyncMock()
 
     with (
-        patch(
-            "src.apps.background_jobs.service.JobService.create_job"
-        ) as mock_create_job,
+        patch("src.apps.background_jobs.service.JobService.create_job") as mock_create_job,
         patch("src.apps.background_jobs.tasks.test_background_task.send") as mock_send,
     ):
 
@@ -28,9 +28,7 @@ async def test_enqueue_job_calls_create_job():
         mock_send.return_value = mock_message
 
         # Call enqueue_job
-        job = await JobService.enqueue_job(
-            mock_session, test_background_task, duration=0
-        )
+        job = await JobService.enqueue_job(mock_session, test_background_task, duration=0)
 
         # Verify send was called
         mock_send.assert_called_once()
@@ -44,7 +42,7 @@ async def test_enqueue_job_calls_create_job():
 @pytest.mark.asyncio
 async def test_job_status_updates_logic():
     """Test status update logic (mocking DB interactions)."""
-    mock_session = AsyncMock()
+
     job_id = "job-123"
     message_id = "msg-123"
 

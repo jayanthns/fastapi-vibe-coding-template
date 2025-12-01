@@ -1,7 +1,9 @@
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 import json
 import pickle
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from src.core.cache.cache import CacheManager, cache_key, cached, cached_sync
 
 

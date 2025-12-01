@@ -2,7 +2,7 @@
 FastAPI router for Animal API endpoints.
 """
 
-from typing import Any, Dict
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -167,7 +167,7 @@ async def delete_animal(
     return None
 
 
-@router.get("/logger-demo/", response_model=APIResponse[Dict[str, Any]])
+@router.get("/logger-demo/", response_model=APIResponse[dict[str, Any]])
 async def logger_demo(request: Request):
     """Demo endpoint to showcase the logger functionality."""
     logger = get_logger(request)

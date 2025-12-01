@@ -5,8 +5,9 @@ Provides easy-to-use caching functions throughout the application.
 
 import json
 import pickle
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any
 
 from src.core.cache.unified_cache import unified_cache_service
 
@@ -34,9 +35,7 @@ class CacheManager:
             return default
 
     @staticmethod
-    async def set(
-        key: str, value: Any, expire: Optional[int] = None, serialize: str = "json"
-    ) -> bool:
+    async def set(key: str, value: Any, expire: int | None = None, serialize: str = "json") -> bool:
         """Set value in cache with automatic serialization."""
         try:
             if serialize == "json":
@@ -110,7 +109,7 @@ def cache_key(prefix: str, *args, **kwargs) -> str:
     return ":".join(key_parts)
 
 
-def cached(key_prefix: str, expire: Optional[int] = None, serialize: str = "json"):
+def cached(key_prefix: str, expire: int | None = None, serialize: str = "json"):
     """
     Decorator to cache function results in Redis.
 
@@ -142,7 +141,7 @@ def cached(key_prefix: str, expire: Optional[int] = None, serialize: str = "json
     return decorator
 
 
-def cached_sync(key_prefix: str, expire: Optional[int] = None, serialize: str = "json"):
+def cached_sync(key_prefix: str, expire: int | None = None, serialize: str = "json"):
     """
     Decorator to cache sync function results in Redis.
 

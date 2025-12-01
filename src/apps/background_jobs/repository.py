@@ -20,9 +20,7 @@ class JobRepository:
         return job
 
     async def get_by_id(self, job_id: UUID) -> BackgroundJob | None:
-        result = await self.session.execute(
-            select(BackgroundJob).where(BackgroundJob.id == job_id)
-        )
+        result = await self.session.execute(select(BackgroundJob).where(BackgroundJob.id == job_id))
         return result.scalars().first()
 
     async def get_by_message_id(self, message_id: str) -> BackgroundJob | None:

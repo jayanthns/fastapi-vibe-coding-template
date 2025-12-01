@@ -8,7 +8,7 @@ including read/write access, DML/DDL operations, and connection pool status.
 import time
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import inspect, text
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.core.logging import get_logger
@@ -57,9 +57,7 @@ async def ping_database(request: Request, db=Depends(get_db)):
             "checked_in": pool.checkedin(),
             "checked_out": pool.checkedout(),
             "overflow": pool.overflow(),
-            "invalid": getattr(
-                pool, "invalid", lambda: 0
-            )(),  # Fallback for async pools
+            "invalid": getattr(pool, "invalid", lambda: 0)(),  # Fallback for async pools
         }
 
         response_time = (time.time() - start_time) * 1000  # Convert to milliseconds
@@ -555,9 +553,7 @@ async def get_database_info(request: Request, db=Depends(get_db)):
             "checked_in": pool.checkedin(),
             "checked_out": pool.checkedout(),
             "overflow": pool.overflow(),
-            "invalid": getattr(
-                pool, "invalid", lambda: 0
-            )(),  # Fallback for async pools
+            "invalid": getattr(pool, "invalid", lambda: 0)(),  # Fallback for async pools
         }
 
         # Get database size (if supported)

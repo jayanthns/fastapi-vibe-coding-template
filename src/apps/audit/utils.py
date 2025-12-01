@@ -1,7 +1,5 @@
 """Helper utilities for audit logging."""
 
-from typing import Optional
-
 from fastapi import Request
 
 from src.apps.animals.service import AuditContext
